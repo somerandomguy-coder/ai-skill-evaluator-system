@@ -228,17 +228,14 @@ export const prismaDataSource: DataSource = {
           orderBy: { createdAt: "asc" },
         });
       }
-      if (!c) {
-        c = await prisma.challenge.findFirst({
-          include: challengeInclude,
-          orderBy: { createdAt: "desc" },
-        });
-      }
       if (c) return toChallengeView(c);
     } catch (err) {
       console.warn(`[prismaDataSource.getChallenge] DB error: ${err}`);
     }
-    return mockDataSource.getChallenge(id);
+    if (id === "seed-challenge" || id.startsWith("demo-") || id.startsWith("seed-")) {
+      return mockDataSource.getChallenge(id);
+    }
+    return null;
   },
 
   startSession,

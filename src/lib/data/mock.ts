@@ -472,7 +472,12 @@ export const mockDataSource: DataSource = {
   },
 
   async getChallenge(id) {
-    return inMemoryChallenges.get(id) || challenge;
+    const mem = inMemoryChallenges.get(id);
+    if (mem) return mem;
+    if (id === "seed-challenge" || id.startsWith("seed-") || id.startsWith("demo-") || id === MOCK_CHALLENGE_ID) {
+      return challenge;
+    }
+    return null;
   },
 
   async getWorkspace(sessionId): Promise<WorkspaceView | null> {

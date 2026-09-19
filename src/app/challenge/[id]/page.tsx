@@ -1,6 +1,6 @@
 import { Briefcase, Clock, ExternalLink, Info, ListChecks, Tag, Sparkles, Terminal, Shield } from "lucide-react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { JobCard, NotAssessedCard, StartCard } from "@/components/challenge/aside";
 import { Rubric } from "@/components/challenge/rubric";
 import { PageShell, SectionTitle } from "@/components/common/layout";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
 import { data } from "@/lib/data";
+import { prisma } from "@/lib/db";
 import { formatTimebox } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Your challenge" };
@@ -18,6 +19,28 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   const [challenge, user] = await Promise.all([data.getChallenge(id), getCurrentUser()]);
   if (!challenge) notFound();
+
+  // If candidate already started building this challenge, prevent going backwards:
+  // immediately redirect them into their active workspace or submitted report.
+  if (user?.id) {
+    try {
+      const existingSession = await prisma.buildSession.findFirst({
+        where: { challengeId: challenge.id, userId: user.id },
+        orderBy: { startedAt: "desc" },
+        select: { id: true, status: true, evaluation: { select: { id: true } } },
+      });
+      if (existingSession) {
+        if (existingSession.status === "ACTIVE") {
+          redirect(`/build/${existingSession.id}`);
+        } else if (existingSession.evaluation?.id) {
+          redirect(`/report/${existingSession.evaluation.id}`);
+        }
+      }
+    } catch (err) {
+      console.warn("[ChallengePage] Session lookup warning:", err);
+    }
+  }
+
   const { job, research } = challenge;
 
   return (

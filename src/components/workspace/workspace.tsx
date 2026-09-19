@@ -61,6 +61,21 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
     void startRuntime(workspace.files);
   }, [workspace.files]);
 
+  // Guard against accidental browser back navigation (e.g. exiting active workspace to Step 2):
+  useEffect(() => {
+    window.history.pushState({ inWorkspace: true }, "", window.location.href);
+
+    const handlePopState = () => {
+      window.history.pushState({ inWorkspace: true }, "", window.location.href);
+      setBriefOpen(true);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   const fileList = useMemo(() => toFileList(files), [files]);
 
   async function runChat(req: { message: string; retry?: boolean }, optimistic?: TurnView): Promise<boolean> {
