@@ -134,6 +134,8 @@ function toEvaluationView(e: EvaluationRow): EvaluationView {
   };
 }
 
+let cachedSeededExample: HomeView["example"] | null = null;
+
 export const prismaDataSource: DataSource = {
   kind: "db",
 
@@ -181,12 +183,26 @@ export const prismaDataSource: DataSource = {
 
   async getHome(userId): Promise<HomeView> {
     try {
-      const seeded = await prisma.challenge.findFirst({
-        where: { jobSubmission: { sourceUrl: SEED_JD_SOURCE_URL } },
-        include: { jobSubmission: true },
-        orderBy: { createdAt: "asc" },
-      });
-      const example = seeded && readJob(seeded.jobSubmission.parsedJd, seeded.jobSubmission.sourceUrl);
+      if (!cachedSeededExample) {
+        const seeded = await prisma.challenge.findFirst({
+          where: { jobSubmission: { sourceUrl: SEED_JD_SOURCE_URL } },
+          include: { jobSubmission: true },
+          orderBy: { createdAt: "asc" },
+        });
+        const example = seeded && readJob(seeded.jobSubmission.parsedJd, seeded.jobSubmission.sourceUrl);
+        if (seeded && example) {
+          cachedSeededExample = {
+            challengeId: seeded.id,
+            roleTitle: example.roleTitle,
+            employer: example.employer,
+            domain: example.domain,
+            skills: example.mustHaveSkills.slice(0, 4),
+            barrierCount: example.barriers.length,
+            sourceUrl: example.sourceUrl,
+          };
+        }
+      }
+
       const sessions = userId
         ? await prisma.buildSession.findMany({
             where: { userId },
@@ -196,18 +212,7 @@ export const prismaDataSource: DataSource = {
           })
         : [];
       return {
-        example:
-          seeded && example
-            ? {
-                challengeId: seeded.id,
-                roleTitle: example.roleTitle,
-                employer: example.employer,
-                domain: example.domain,
-                skills: example.mustHaveSkills.slice(0, 4),
-                barrierCount: example.barriers.length,
-                sourceUrl: example.sourceUrl,
-              }
-            : null,
+        example: cachedSeededExample,
         mySessions: sessions.map((s) => ({
           sessionId: s.id,
           challengeTitle: s.challenge.title,
