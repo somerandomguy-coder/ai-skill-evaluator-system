@@ -1,14 +1,12 @@
 import { Info } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { switchUser } from "@/app/actions/auth";
 import { Logo } from "@/components/ui/logo";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getCurrentUser, safeNext } from "@/lib/auth";
-import { initials } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { DEMO_USERS } from "@/lib/data/demo-users";
 import { AuthForm } from "./auth-form";
+import { DemoAccounts } from "./demo-accounts";
 import { OAuthButtons } from "./oauth-buttons";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -59,37 +57,8 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <OAuthButtons />
       </div>
 
-      {/* Mock auth: one tap into a seeded account. */}
-      <div className="space-y-2.5 rounded-3xl border border-border bg-card/70 p-5 backdrop-blur-md">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold">Demo accounts</h2>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">no passwords</span>
-        </div>
-        <ul className="grid gap-1.5">
-          {users.map((u) => (
-            <li key={u.id}>
-              <form action={switchUser.bind(null, u.id, need ? (u.role === need ? next : undefined) : next)}>
-                <button
-                  type="submit"
-                  className="flex w-full items-center gap-3 rounded-xl border border-transparent px-2.5 py-2 text-left transition-colors hover:border-signal/40 hover:bg-signal-soft/50"
-                >
-                  <span
-                    className={cn(
-                      "grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold",
-                      u.role === "MENTOR" ? "bg-warn-soft text-warn" : "bg-signal-soft text-signal-ink"
-                    )}
-                    aria-hidden
-                  >
-                    {initials(u.name)}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{u.name}</span>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">{u.role === "MENTOR" ? "Mentor" : "Candidate"}</span>
-                </button>
-              </form>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* Mock auth: one tap into a seeded account with instant loading signal */}
+      <DemoAccounts users={users} next={next} need={need} />
     </div>
   );
 }
