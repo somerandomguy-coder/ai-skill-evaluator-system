@@ -115,17 +115,33 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
 
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 flex-col">
-      <div className="flex items-center gap-2 border-b bg-background px-3 py-2 sm:gap-3 sm:px-4">
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{workspace.challenge.title}</div>
+      <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border bg-surface-container-low px-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-primary text-white font-semibold uppercase shrink-0">
+            Step 3 · Workspace
+          </span>
+          <div className="truncate text-xs font-bold text-primary">{workspace.challenge.title}</div>
         </div>
-        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setBriefOpen(true)}>
-          <BookOpen className="size-3.5" aria-hidden />
-          <span className="hidden sm:inline">Brief &amp; rubric</span>
-        </Button>
-        <SessionTimer startedAt={workspace.startedAt} timeboxMinutes={workspace.challenge.timeboxMinutes} />
-        <RuntimePill />
-        <SubmitDialog turnCount={userTurns} fileCount={fileList.filter((f) => f.path !== "package-lock.json").length} disabled={userTurns === 0 || pending} onSubmit={submit} />
+
+        <div className="hidden md:flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+          <span>AUTOSAVED {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} UTC</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 font-mono text-xs rounded border-border hover:bg-surface-container"
+            onClick={() => setBriefOpen(true)}
+          >
+            <BookOpen className="size-3.5" aria-hidden />
+            <span>Rubric Checklist</span>
+          </Button>
+          <SessionTimer startedAt={workspace.startedAt} timeboxMinutes={workspace.challenge.timeboxMinutes} />
+          <RuntimePill />
+          <SubmitDialog turnCount={userTurns} fileCount={fileList.filter((f) => f.path !== "package-lock.json").length} disabled={userTurns === 0 || pending} onSubmit={submit} />
+        </div>
       </div>
 
       {/* Below lg the two panes become a switch */}
