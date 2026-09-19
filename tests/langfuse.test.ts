@@ -16,6 +16,7 @@ describe("Langfuse Observability Integration", () => {
     delete process.env.LANGFUSE_PUBLIC_KEY;
     delete process.env.LANGFUSE_SECRET_KEY;
     delete process.env.LANGFUSE_BASEURL;
+    delete process.env.LANGFUSE_BASE_URL;
     delete process.env.LANGFUSE_HOST;
     setLangfuseForTests(null);
   });
@@ -41,11 +42,14 @@ describe("Langfuse Observability Integration", () => {
     expect(langfuseBaseUrl()).toBe("https://cloud.langfuse.com");
   });
 
-  it("honors custom base URL if configured", () => {
+  it("honors custom base URL if configured via LANGFUSE_BASEURL or LANGFUSE_BASE_URL", () => {
     process.env.LANGFUSE_PUBLIC_KEY = "pk-lf-test-key";
     process.env.LANGFUSE_SECRET_KEY = "sk-lf-test-key";
     process.env.LANGFUSE_BASEURL = "https://us.cloud.langfuse.com";
     expect(langfuseBaseUrl()).toBe("https://us.cloud.langfuse.com");
+
+    process.env.LANGFUSE_BASE_URL = "https://custom.langfuse.com";
+    expect(langfuseBaseUrl()).toBe("https://custom.langfuse.com");
   });
 
   it("returns raw OpenAI client unmodified when disabled", () => {

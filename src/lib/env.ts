@@ -32,7 +32,12 @@ export function langfuseSecretKey(): string | undefined {
 }
 
 export function langfuseBaseUrl(): string {
-  return process.env.LANGFUSE_BASEURL?.trim() || process.env.LANGFUSE_HOST?.trim() || "https://cloud.langfuse.com";
+  return (
+    process.env.LANGFUSE_BASE_URL?.trim() ||
+    process.env.LANGFUSE_BASEURL?.trim() ||
+    process.env.LANGFUSE_HOST?.trim() ||
+    "https://cloud.langfuse.com"
+  );
 }
 
 export function isLangfuseEnabled(): boolean {
