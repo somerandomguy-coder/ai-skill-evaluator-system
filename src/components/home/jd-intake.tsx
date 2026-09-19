@@ -78,7 +78,7 @@ export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolea
   const [text, setText] = useState(PRESETS[0].text);
   const [activePreset, setActivePreset] = useState<string | null>("resume-screener");
   const [run, setRun] = useState<Run>({ status: "idle" });
-  const [fastMode, setFastMode] = useState(true);
+  const [fastMode, setFastMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const steps = useRef<ProgressStep[]>([]);
 

@@ -1,6 +1,5 @@
 import { ArrowRight, Clock, EyeOff, Info, Lock, Play } from "lucide-react";
 import Link from "next/link";
-import { startBuild } from "@/app/actions/build";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,9 +17,7 @@ export function StartCard({ challenge, user }: { challenge: ChallengeView; user:
       </CardHeader>
       <CardContent className="space-y-4">
         {user?.role === "CANDIDATE" ? (
-          <form action={startBuild.bind(null, challenge.id)}>
-            <StartBuildButton />
-          </form>
+          <StartBuildButton challengeId={challenge.id} />
         ) : user ? (
           <div className="flex items-start gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
             <Lock className="mt-0.5 size-4 shrink-0" aria-hidden />

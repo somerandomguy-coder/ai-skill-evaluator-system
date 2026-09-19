@@ -1,29 +1,45 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useTransition } from "react";
 import { LoaderCircle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { startBuild } from "@/app/actions/build";
 
-export function StartBuildButton() {
-  const [pending, setPending] = useState(false);
-  const clickedRef = useRef(false);
+interface StartBuildButtonProps {
+  challengeId: string;
+  className?: string;
+  size?: "default" | "sm" | "lg";
+}
+
+export function StartBuildButton({ challengeId, className, size = "lg" }: StartBuildButtonProps) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleStart = () => {
+    if (isPending) return;
+    startTransition(async () => {
+      try {
+        await startBuild(challengeId);
+      } catch (err: any) {
+        // Next.js redirect works by throwing a special NEXT_REDIRECT error.
+        // We must re-throw it so Next.js router navigates to the workspace page.
+        if (err?.digest?.startsWith("NEXT_REDIRECT") || err?.message === "NEXT_REDIRECT") {
+          throw err;
+        }
+        console.error("Failed to start build workspace:", err);
+        alert(err?.message || "Could not open workspace. Please try again.");
+      }
+    });
+  };
 
   return (
     <Button
-      type="submit"
-      size="lg"
-      disabled={pending}
-      className="w-full gap-2"
-      onClick={(e) => {
-        if (clickedRef.current) {
-          e.preventDefault();
-          return;
-        }
-        clickedRef.current = true;
-        setPending(true);
-      }}
+      type="button"
+      size={size}
+      disabled={isPending}
+      className={className ?? "w-full gap-2"}
+      onClick={handleStart}
     >
-      {pending ? (
+      {isPending ? (
         <>
           <LoaderCircle className="size-4 animate-spin" aria-hidden />
           <span>Opening workspace...</span>

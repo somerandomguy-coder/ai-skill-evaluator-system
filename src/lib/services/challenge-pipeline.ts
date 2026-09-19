@@ -226,7 +226,9 @@ export async function runChallengePipeline(
 
     if (isDemoMode()) return await runDemo(text, emit);
 
-    if (input.fast || isFastPipeline()) {
+    // Only run fast simulation if explicitly requested by client, or if FAST_PIPELINE is true and not explicitly disabled
+    const shouldRunFast = input.fast === true || (isFastPipeline() && input.fast !== false);
+    if (shouldRunFast) {
       return await runFastPipeline({ userId: input.userId, rawJd: text, sourceUrl }, emit);
     }
 

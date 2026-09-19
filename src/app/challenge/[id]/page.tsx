@@ -1,12 +1,15 @@
-import { Briefcase, Clock, ExternalLink, Info, ListChecks, Tag, Sparkles, Terminal, Shield } from "lucide-react";
+import { ArrowRight, Briefcase, Clock, ExternalLink, Info, ListChecks, Tag, Sparkles, Terminal, Shield } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { JobCard, NotAssessedCard, StartCard } from "@/components/challenge/aside";
 import { Rubric } from "@/components/challenge/rubric";
+import { StartBuildButton } from "@/components/challenge/start-button";
 import { PageShell, SectionTitle } from "@/components/common/layout";
 import { Markdown } from "@/components/common/markdown";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
 import { data } from "@/lib/data";
@@ -23,6 +26,7 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
   // If candidate already started building this challenge, prevent going backwards:
   // immediately redirect them into their active workspace or submitted report.
   if (user?.id) {
+    let targetRedirect: string | null = null;
     try {
       const existingSession = await prisma.buildSession.findFirst({
         where: { challengeId: challenge.id, userId: user.id },
@@ -31,13 +35,16 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
       });
       if (existingSession) {
         if (existingSession.status === "ACTIVE") {
-          redirect(`/build/${existingSession.id}`);
+          targetRedirect = `/build/${existingSession.id}`;
         } else if (existingSession.evaluation?.id) {
-          redirect(`/report/${existingSession.evaluation.id}`);
+          targetRedirect = `/report/${existingSession.evaluation.id}`;
         }
       }
     } catch (err) {
       console.warn("[ChallengePage] Session lookup warning:", err);
+    }
+    if (targetRedirect) {
+      redirect(targetRedirect);
     }
   }
 
@@ -133,6 +140,35 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
               description="Review the technical criteria and success signals. Everything you build and discuss with the AI is evaluated against this framework."
             />
             <Rubric requirements={challenge.requirements} />
+          </section>
+
+          {/* Bottom CTA for candidates who naturally scroll down to read the full rubric */}
+          <section id="start-cta" className="rounded-xl border border-primary/25 bg-surface-container-low p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold text-foreground">Ready to start building?</h2>
+                <p className="text-sm text-muted-foreground">
+                  Your workspace opens with an AI pair-programming assistant on the left and a live application preview on the right.
+                </p>
+              </div>
+              <div className="w-full sm:w-auto shrink-0">
+                {user?.role === "CANDIDATE" ? (
+                  <StartBuildButton challengeId={challenge.id} className="w-full sm:w-auto gap-2 px-6" size="lg" />
+                ) : user ? (
+                  <div className="rounded-lg bg-muted px-4 py-2 text-xs text-muted-foreground">
+                    Mentor accounts cannot start builds
+                  </div>
+                ) : (
+                  <Link
+                    href={`/login?next=${encodeURIComponent(`/challenge/${challenge.id}`)}`}
+                    className={buttonVariants({ size: "lg", className: "w-full sm:w-auto gap-2 px-6" })}
+                  >
+                    <span>Sign in to start</span>
+                    <ArrowRight className="size-4" aria-hidden />
+                  </Link>
+                )}
+              </div>
+            </div>
           </section>
         </article>
 
