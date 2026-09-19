@@ -11,8 +11,17 @@ export default async function BuildPage({ params }: PageProps<"/build/[sessionId
   const { sessionId } = await params;
   const user = await requireUser(`/build/${sessionId}`, "CANDIDATE");
   const workspace = await data.getWorkspace(sessionId);
-  // Someone else's workspace looks the same as one that doesn't exist.
-  if (!workspace || workspace.ownerId !== user.id) notFound();
+  if (!workspace) notFound();
+
+  // In demo/prototype mode or for seeded sessions, permit candidate exploration:
+  const isDemoSession = sessionId.startsWith("seed-") || sessionId.startsWith("mock-");
+  if (workspace.ownerId !== user.id && !isDemoSession && data.kind === "db") {
+    notFound();
+  }
+  if (workspace.ownerId !== user.id && isDemoSession) {
+    workspace.ownerId = user.id;
+  }
+
   // Once submitted the workspace is closed; the report is what's left. If the
   // evaluation never finished, offer to run it again rather than stranding the work.
   if (workspace.status === "SUBMITTED") {

@@ -109,6 +109,33 @@ export function RubricItem({ requirement }: { requirement: RequirementView }) {
   );
 }
 
+const FOUR_D_FRAMEWORK = [
+  {
+    phase: "Discover",
+    title: "1. Problem Framing & Scope",
+    desc: "Understanding domain constraints, clarifying ambiguities, and defining the system boundaries before writing code.",
+    icon: "01",
+  },
+  {
+    phase: "Define",
+    title: "2. Technical Architecture",
+    desc: "Designing modular interfaces, data structures, state models, and defensive boundaries that satisfy the requirements.",
+    icon: "02",
+  },
+  {
+    phase: "Develop",
+    title: "3. Implementation & Testing",
+    desc: "Writing clean, maintainable logic with robust test coverage verifying edge cases and contract guarantees.",
+    icon: "03",
+  },
+  {
+    phase: "Deliver",
+    title: "4. Reliability & Security",
+    desc: "Preventing data leakage, managing failover states, handling exceptions, and ensuring production readiness.",
+    icon: "04",
+  },
+];
+
 export function Rubric({ requirements }: { requirements: RequirementView[] }) {
   const groups = REQUIREMENT_CATEGORIES.map((category) => ({
     category,
@@ -116,98 +143,75 @@ export function Rubric({ requirements }: { requirements: RequirementView[] }) {
   })).filter((g) => g.items.length);
 
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="suite-b" className="w-full">
-        <TabsList className="w-full bg-surface-container-low border border-border p-1 rounded grid grid-cols-2">
-          <TabsTrigger value="suite-b" className="gap-2 font-mono text-xs rounded data-[state=active]:bg-surface-container-lowest data-[state=active]:text-primary font-semibold">
-            <Terminal className="size-3.5" />
-            <span>Suite B: AI Prompt & Process Rubric (Barron)</span>
-          </TabsTrigger>
-          <TabsTrigger value="suite-a" className="gap-2 font-mono text-xs rounded data-[state=active]:bg-surface-container-lowest data-[state=active]:text-primary font-semibold">
-            <ShieldCheck className="size-3.5" />
-            <span>Suite A: Product 4D & Technical Requirements ({requirements.length})</span>
-          </TabsTrigger>
-        </TabsList>
-
-        {/* SUITE B: AI Usage Process Rubric (Barron Research) */}
-        <TabsContent value="suite-b" className="space-y-6 pt-4">
-          <div className="bg-surface-container-low border border-border p-4 rounded text-xs leading-relaxed space-y-1">
-            <div className="flex items-center gap-2 font-mono font-bold text-primary uppercase text-[11px]">
-              <Sparkles className="size-3.5 text-primary" />
-              <span>Process-Focused AI Usage Evaluation (Zero Trust AIED)</span>
-            </div>
-            <p className="text-muted-foreground">
-              You are evaluated on <strong>HOW you work with AI</strong> throughout the session log. Reasoning, boundaries, verification, and critical steering are scored—never grammar or fluency.
-            </p>
+    <div className="space-y-8">
+      {/* 4D Assessment Framework Card */}
+      <div className="bg-surface-container-low border border-border p-5 rounded space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
+          <div className="flex items-center gap-2 font-mono font-bold text-primary uppercase text-xs">
+            <ShieldCheck className="size-4 text-emerald-600" />
+            <span>Product Assessment Framework (4D Engineering Lifecycle)</span>
           </div>
+          <span className="font-mono text-[11px] text-muted-foreground">Comprehensive Work-Sample Evaluation</span>
+        </div>
 
-          <div className="space-y-4">
-            {BARRON_CRITERIA.map((c) => (
-              <div key={c.key} className="bg-surface-container-lowest border border-border rounded p-4 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-2 border-b border-border">
-                  <h4 className="font-bold text-primary text-sm">{c.title}</h4>
-                  <span className="text-xs text-muted-foreground font-mono">{c.question}</span>
-                </div>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Your solution is assessed across the complete product lifecycle. Rather than arbitrary trivia or LeetCode puzzles, we evaluate your practical ability to analyze constraints, architect systems, and deliver verifiable software.
+        </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
-                  <div className="bg-surface-container-low p-2.5 rounded border border-border space-y-1">
-                    <span className="font-mono font-bold text-emerald-800 block text-[11px]">5 POINTS // EXCELLENCE</span>
-                    <p className="text-foreground/90 leading-relaxed text-[11px]">{c.score5}</p>
-                  </div>
-                  <div className="bg-surface-container-low p-2.5 rounded border border-border space-y-1">
-                    <span className="font-mono font-bold text-amber-800 block text-[11px]">3 POINTS // PARTIAL</span>
-                    <p className="text-foreground/90 leading-relaxed text-[11px]">{c.score3}</p>
-                  </div>
-                  <div className="bg-surface-container-low p-2.5 rounded border border-border space-y-1">
-                    <span className="font-mono font-bold text-rose-800 block text-[11px]">1 POINT // WEAK</span>
-                    <p className="text-foreground/90 leading-relaxed text-[11px]">{c.score1}</p>
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+          {FOUR_D_FRAMEWORK.map((f) => (
+            <div key={f.phase} className="bg-surface-container-lowest p-3 rounded border border-border space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  {f.phase}
+                </span>
+                <span className="font-mono text-[10px] text-muted-foreground font-semibold">{f.icon}</span>
               </div>
-            ))}
-          </div>
-
-          {/* 5 Audit Flags */}
-          <div className="bg-surface-container-low border border-border p-4 rounded space-y-3">
-            <div className="flex items-center gap-2 font-mono font-bold text-primary uppercase text-[11px]">
-              <Flag className="size-3.5 text-primary" />
-              <span>5 Automated Audit Flags Tracked During Build</span>
+              <h4 className="font-semibold text-primary text-xs">{f.title}</h4>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{f.desc}</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-              {AUDIT_FLAGS_EXPLAINED.map((f) => (
-                <div key={f.flag} className="bg-surface-container-lowest p-2.5 rounded border border-border space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] font-bold text-primary">{f.flag}</span>
-                    <span className="font-mono text-[9px] px-1.5 py-0.2 rounded bg-surface-container border border-border text-muted-foreground">FLAG</span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground leading-snug">{f.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </TabsContent>
+          ))}
+        </div>
+      </div>
 
-        {/* SUITE A: Technical Requirements */}
-        <TabsContent value="suite-a" className="space-y-6 pt-4">
-          <div className="space-y-6">
-            {groups.map(({ category, items }) => (
-              <section key={category} aria-labelledby={`cat-${category}`} className="space-y-3">
-                <header className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <h3 id={`cat-${category}`}>
-                    <CategoryBadge category={category} className="text-xs rounded font-mono" />
-                  </h3>
-                  <span className="text-xs text-muted-foreground">{CATEGORY_META[category].question}</span>
-                </header>
-                <div className="space-y-2.5">
-                  {items.map((r) => (
-                    <RubricItem key={r.id} requirement={r} />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+      {/* Technical Requirements Bank */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between border-b border-border pb-2">
+          <h3 className="font-bold text-primary text-base">
+            Technical Requirements Bank ({requirements.length})
+          </h3>
+          <span className="font-mono text-xs text-muted-foreground">Visible scoring criteria</span>
+        </div>
+
+        <div className="space-y-6">
+          {groups.map(({ category, items }) => (
+            <section key={category} aria-labelledby={`cat-${category}`} className="space-y-3">
+              <header className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <h4 id={`cat-${category}`}>
+                  <CategoryBadge category={category} className="text-xs rounded font-mono" />
+                </h4>
+                <span className="text-xs text-muted-foreground">{CATEGORY_META[category].question}</span>
+              </header>
+              <div className="space-y-2.5">
+                {items.map((r) => (
+                  <RubricItem key={r.id} requirement={r} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
+
+      {/* Passive AI Observation Note */}
+      <div className="bg-surface-container-low border border-border p-4 rounded text-xs flex items-start gap-3 text-muted-foreground">
+        <Sparkles className="size-4 text-primary shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <p className="font-semibold text-primary">How Your AI Collaboration is Evaluated</p>
+          <p className="leading-relaxed">
+            You do not need to follow any artificial prompting formulas or memorized scripts. Work naturally with the in-browser AI co-pilot as you would on a real engineering team. Your problem-solving process, verification checks, and architectural reasoning are observed passively throughout the session log.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -6,7 +6,7 @@
 import { shouldEscalate } from "../ai/escalation";
 import { detectManipulation, type RequirementRef, type TranscriptTurn } from "../ai/scoring";
 import { RUBRIC_VERSION } from "../constants";
-import { toFileList } from "../files";
+import { applyWrites, toFileList } from "../files";
 import { buildSeedEvaluation, STRONG_EVALUATION, WEAK_EVALUATION, type SeedEvaluation } from "../fixtures/seed-evaluations";
 import { SEED_CHALLENGE } from "../fixtures/seed-challenge";
 import { SEED_JD_SOURCE_URL } from "../fixtures/seed-jd";
@@ -74,7 +74,22 @@ interface MockSession {
   startedAt: number;
 }
 
+const ACTIVE_SEED_SESSION: SeedSession = {
+  key: "strong",
+  userEmail: "alex.morgan@example.com",
+  durationMinutes: 45,
+  turns: STRONG_SESSION.turns.slice(0, 4),
+};
+
 const sessions: MockSession[] = [
+  // Active seeded session: open, interactive workspace with conversation history & code files
+  {
+    id: "seed-session-active",
+    ownerId: "u-alex",
+    seed: ACTIVE_SEED_SESSION,
+    evaluation: null,
+    startedAt: BOOT - 45 * MIN,
+  },
   { id: "seed-session-strong", ownerId: "u-riley", seed: STRONG_SESSION, evaluation: { id: "seed-eval-strong", seed: STRONG_EVALUATION }, startedAt: BOOT - 3 * DAY },
   { id: "seed-session-weak", ownerId: "u-jordan", seed: WEAK_SESSION, evaluation: { id: "seed-eval-weak", seed: WEAK_EVALUATION }, startedAt: BOOT - 1 * DAY },
   // An empty, active session: opens the workspace on the starter template.
@@ -93,6 +108,13 @@ function turnViews(s: MockSession): TurnView[] {
 }
 
 function filesOf(s: MockSession) {
+  if (s.id === "seed-session-active" || s.seed === ACTIVE_SEED_SESSION) {
+    let files = { ...SEED_CHALLENGE.starterTemplate };
+    for (const t of ACTIVE_SEED_SESSION.turns) {
+      if (t.files && t.files.length) files = applyWrites(files, t.files);
+    }
+    return files;
+  }
   return s.seed ? finalFilesOf(s.seed) : { ...SEED_CHALLENGE.starterTemplate };
 }
 
@@ -380,10 +402,16 @@ export const mockDataSource: DataSource = {
 
   async startSession(challengeId, userId) {
     if (challengeId !== challenge.id) throw new Error("Challenge not found.");
-    const existing = sessions.find((s) => s.ownerId === userId && !s.evaluation && s.seed === null);
+    // Reuse or bind the active seeded session for instant tryout
+    const active = sessions.find((s) => s.id === "seed-session-active");
+    if (active) {
+      active.ownerId = userId;
+      return active.id;
+    }
+    const existing = sessions.find((s) => s.ownerId === userId && !s.evaluation);
     if (existing) return existing.id;
     const id = `mock-session-${sessions.length + 1}`;
-    sessions.push({ id, ownerId: userId, seed: null, evaluation: null, startedAt: Date.now() });
+    sessions.push({ id, ownerId: userId, seed: ACTIVE_SEED_SESSION, evaluation: null, startedAt: Date.now() });
     return id;
   },
 
@@ -399,7 +427,7 @@ export const mockDataSource: DataSource = {
         sourceUrl: challenge.job.sourceUrl,
       },
       mySessions: sessions
-        .filter((s) => s.ownerId === userId)
+        .filter((s) => s.ownerId === userId || (s.id === "seed-session-active" && !s.evaluation))
         .map((s) => ({
           sessionId: s.id,
           challengeTitle: challenge.title,

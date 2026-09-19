@@ -37,10 +37,10 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
           <header className="space-y-3 pb-6 border-b border-border">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-[11px] uppercase px-2.5 py-0.5 bg-primary text-white rounded font-semibold tracking-wider">
-                Step 2 of 4 · Challenge Brief & Visible Rubric
+                Step 2 of 4 · Challenge Brief & Requirements
               </span>
               <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-surface-container border border-border text-muted-foreground">
-                2-Tier Protocol: Product 4D + Zero Trust AIED
+                4D Product Lifecycle Architecture
               </span>
             </div>
             <h1 className="max-w-3xl text-3xl font-bold tracking-tight text-primary sm:text-4xl text-balance">
@@ -62,9 +62,9 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
                 {challenge.requirements.length} Technical Requirements
               </span>
               <span aria-hidden>·</span>
-              <span className="inline-flex items-center gap-1.5">
-                <Terminal className="size-3.5" aria-hidden />
-                5 AI Usage Criteria (Barron)
+              <span className="inline-flex items-center gap-1.5 text-emerald-700 font-medium">
+                <Shield className="size-3.5" aria-hidden />
+                Transparent Rubric
               </span>
             </div>
           </header>
@@ -105,9 +105,9 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
 
           <section id="rubric" className="space-y-4">
             <SectionTitle
-              eyebrow="Zero secret criteria"
-              title="The 2-tier rubric you'll be scored against"
-              description="Review both Suite A (Product Technical Architecture) and Suite B (AI Prompt & Process Usage). Every score cites exact transcript turns."
+              eyebrow="Transparent evaluation"
+              title="Project Requirements & Assessment Framework"
+              description="Review the technical criteria and success signals. Everything you build and discuss with the AI is evaluated against this framework."
             />
             <Rubric requirements={challenge.requirements} />
           </section>
