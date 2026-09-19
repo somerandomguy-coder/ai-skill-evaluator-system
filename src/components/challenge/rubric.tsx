@@ -5,7 +5,7 @@ import type { RequirementView } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const BARRON_CRITERIA = [
+const COGNITIVE_STEERING_CRITERIA = [
   {
     key: "scope_boundary",
     title: "1. Scope Boundary",

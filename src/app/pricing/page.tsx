@@ -41,7 +41,7 @@ const TIERS = [
       "Unlimited Role Assessments",
       "Human Mentor Review (Senior engineer audit within 48h)",
       "Ability to Contest & Escalate AI Scores",
-      "Barron AI Prompt Telemetry & Flaw Catch metrics",
+      "AI Prompt Steering Telemetry & Flaw Catch metrics",
       "Cryptographic SHA-256 Tamper-Proof Audit Receipt",
       "Executive PDF Dossier Export for Hiring Managers",
       "Priority processing queue",

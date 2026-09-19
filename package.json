@@ -9,10 +9,12 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:benchmark": "tsx scripts/eval-benchmarks.ts",
     "db:up": "docker compose up -d db",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
+    "db:populate": "tsx scripts/populate-challenges.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
   },

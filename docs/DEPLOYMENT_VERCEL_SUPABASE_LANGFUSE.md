@@ -43,7 +43,7 @@ Open **http://localhost:3000** in your browser.
    - Review the candidate **one focused card in the center of the screen at a time**:
      - *Card 1*: Executive Verdict & Overall Score
      - *Card 2*: How They Build (4D Engineering Lifecycle)
-     - *Card 3*: How They Direct AI (Barron Cognitive Rubric & Zero-Trust verification)
+     - *Card 3*: How They Direct AI (AI Steering Rubric & Zero-Trust verification)
      - *Card 4*: Verbatim Transcript Evidence (exact quotes of what the candidate told the AI)
      - *Card 5*: Tamper-Proof Cryptographic Audit Receipt & Next Steps
 

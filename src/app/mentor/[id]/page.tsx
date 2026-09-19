@@ -110,7 +110,7 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
               extraTabs={[
                 {
                   value: "ai-prompt-rubric",
-                  label: "Suite B: AI Usage (Barron)",
+                  label: "Suite B: AI Steering & Zero-Trust",
                   icon: <Terminal className="size-3.5" aria-hidden />,
                   content: (
                     <div className="space-y-4 p-4 text-xs">

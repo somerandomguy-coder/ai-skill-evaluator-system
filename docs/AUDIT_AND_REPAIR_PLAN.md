@@ -133,7 +133,7 @@ Create a small presentation model shared by report, deck and credential: assessm
 
 **P1 · M · R05/R06.** Files: `components/challenge/rubric.tsx`, `components/workspace/brief-sheet.tsx`, `chat-panel.tsx`, generation/evaluator prompts and schemas, marketing copy.
 
-The UI promises an exact two-tier rubric, but the Barron criteria/audit-flag constants are not rendered, and the real evaluator uses seven requirement categories. The extra cognitive suite is computed separately after submission. Generic quick prompts disclose seeded answers about counting non-commenting respondents and pure gate logic, and include an unrelated 64MB constraint for arbitrary challenges. The assistant prompt forbids deliberate sabotage while copy assumes planted defects in every assessment.
+The UI promises an exact two-tier rubric, but the cognitive steering criteria/audit-flag constants are not rendered, and the real evaluator uses seven requirement categories. The extra cognitive suite is computed separately after submission. Generic quick prompts disclose seeded answers about counting non-commenting respondents and pure gate logic, and include an unrelated 64MB constraint for arbitrary challenges. The assistant prompt forbids deliberate sabotage while copy assumes planted defects in every assessment.
 
 Use the persisted requirement bank and version as the shared pre-build and report rubric. Explain score withholding and human review. Remove unimplemented tier promises and hardcoded seeded-solution hints. Use neutral prompts such as asking the candidate to identify uncertainties; record scaffold provenance if coaching remains relevant to assessment. Describe seeded defects as properties of that example, not a guaranteed live intervention.
 

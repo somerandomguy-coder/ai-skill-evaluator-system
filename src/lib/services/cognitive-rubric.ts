@@ -1,5 +1,5 @@
 /**
- * Generates dynamic Suite A (4D Lifecycle), Suite B (Barron Cognitive Rubric),
+ * Generates dynamic Suite A (4D Lifecycle), Suite B (AI Steering & Zero-Trust Rubric),
  * and ZT-AIED Audit results using the candidate's ACTUAL session transcript.
  *
  * Ensures candidate evaluations always cite real verbatim excerpts from what the
@@ -78,7 +78,7 @@ export function buildCognitiveSuites({
     }
   }
 
-  // 2. Compute dynamic scores for Barron AI Cognitive Rubric (Suite B)
+  // 2. Compute dynamic scores for AI Steering & Zero-Trust Rubric (Suite B)
   const baseScore = isStrong ? 5 : isModerate ? 3 : 1;
 
   const scopeScore = Math.max(1, Math.min(5, baseScore + (userMessages.length > 1 ? 0 : -1)));
@@ -156,7 +156,7 @@ export function buildCognitiveSuites({
   };
 
   const suiteB: SuiteBView = {
-    title: "AI Usage & Zero Trust (Barron Rubric)",
+    title: "AI Steering & Zero-Trust Rubric",
     score: totalSuiteBScore,
     maxScore: 25,
     averageScore: avgSuiteBScore,

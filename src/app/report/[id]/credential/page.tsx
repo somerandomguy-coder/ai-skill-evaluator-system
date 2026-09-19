@@ -33,7 +33,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
 
 
   const suiteB = ev.suiteB ?? {
-    title: "Prompt Usage Rubric (Barron)",
+    title: "Prompt Usage & Steering Rubric",
     score: isStrong ? 24 : 6,
     maxScore: 25,
     averageScore: isStrong ? 4.8 : 1.2,
@@ -224,7 +224,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
             </div>
           </div>
 
-          {/* Suite 02: Prompt Usage Rubric (Barron Research) */}
+          {/* Suite 02: Prompt Usage & Steering Rubric */}
           <div className="lg:col-span-6 bg-surface-container-lowest rounded border border-border p-6 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border">
@@ -232,7 +232,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
                   <span className="font-mono text-[10px] uppercase px-2 py-0.5 rounded bg-surface-container font-bold text-primary border border-border">
                     SUITE 02 // COGNITION
                   </span>
-                  <h2 className="text-base font-bold text-primary mt-1">Prompt Usage Rubric (Barron)</h2>
+                  <h2 className="text-base font-bold text-primary mt-1">Prompt Usage &amp; Steering Rubric</h2>
                 </div>
                 <div className="text-right">
                   <span className="font-mono text-lg font-bold text-primary">{suiteB.score}<span className="text-xs font-normal text-muted-foreground">/25</span></span>

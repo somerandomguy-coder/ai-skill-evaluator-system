@@ -91,7 +91,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
   };
 
   const suiteB = ev.suiteB ?? {
-    title: "AI Usage Rubric (Barron Framework)",
+    title: "AI Steering Rubric (Zero-Trust Framework)",
     score: isStrong ? 24 : 6,
     maxScore: 25,
     averageScore: isStrong ? 4.8 : 1.2,
@@ -374,7 +374,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
               </div>
             )}
 
-            {/* Slide 2: How They Direct AI (Barron Rubric & ZT-AIED) */}
+            {/* Slide 2: How They Direct AI (AI Steering Rubric & ZT-AIED) */}
             {currentSlide === 2 && (
               <div className="space-y-5">
                 <div className="border-b border-border pb-3 flex items-center justify-between">
@@ -382,7 +382,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
                     <span className="font-mono text-[10px] uppercase px-2 py-0.5 rounded bg-surface-container font-bold text-primary border border-border">
                       DIMENSION 02 // AI COGNITION &amp; ZT-AIED
                     </span>
-                    <h2 className="text-xl font-bold text-primary mt-1">How They Direct AI (Barron Rubric)</h2>
+                    <h2 className="text-xl font-bold text-primary mt-1">How They Direct AI (AI Steering Rubric)</h2>
                   </div>
                   <div className="text-right">
                     <span className="font-mono text-xl font-extrabold text-primary">{suiteB.score}/25</span>
@@ -593,7 +593,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
           {/* Card 3 */}
           <div className="bg-surface-container-lowest rounded border border-border p-6 space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-border">
-              <h3 className="font-bold text-primary text-sm">How They Direct AI (Barron Rubric)</h3>
+              <h3 className="font-bold text-primary text-sm">How They Direct AI (AI Steering Rubric)</h3>
               <span className="font-mono text-sm font-bold text-primary">{suiteB.score}/25</span>
             </div>
             <div className="space-y-2 text-xs">

@@ -1,0 +1,22 @@
+[
+  {
+    "roleTitle": "Staff Frontend Engineer",
+    "employer": "Canva",
+    "domain": "Visual Design & Collaborative Canvas",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/example-canva-staff-frontend",
+    "rawJd": "Role: Staff Frontend Engineer\nCompany: Canva\nLocation: Sydney, NSW (Hybrid)\n\nAbout the Team:\nCanva's Core Canvas team builds the high-performance rendering and interactive editing engine used by 180M+ monthly active users worldwide.\n\nKey Responsibilities:\n- Architect high-performance, 60fps canvas rendering pipelines using WebGL, WebAssembly, and modern TypeScript.\n- Design modular UI components and collaborate with UX teams on precision interactions (snapping, multi-selection, alignment).\n- Drive frontend performance profiling, memory leak prevention, and state synchronization across distributed clients.\n- Mentor engineers and establish zero-trust architectural standards for AI-assisted code generation.\n\nQualifications & Requirements:\n- 6+ years of production experience with TypeScript, React, and Canvas/WebGL APIs.\n- Deep understanding of browser event loops, DOM performance bottlenecks, and state management.\n- Proven track record decoupling core algorithmic business logic from rendering components.\n- Experience profiling frame rates, memory footprints, and asset caching strategies.\n- Strong communication skills and cross-functional technical leadership.",
+    "mustHaveSkills": ["TypeScript", "React", "Canvas / WebGL", "State Architecture", "Performance Profiling"],
+    "niceToHaveSkills": ["WebAssembly", "CRDTs", "Design Systems"],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Backend Payments Engineer",
+    "employer": "Stripe",
+    "domain": "Fintech & Distributed Transactions",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/example-stripe-backend-payments",
+    "rawJd": "Role: Senior Backend Payments Engineer\nCompany: Stripe\nLocation: Remote / Sydney, Australia\n\nAbout the Team:\nStripe is building the economic infrastructure for the internet. The Payments Ingestion team processes billions of dollars in transaction volume daily with strict five-nines availability.\n\nKey Responsibilities:\n- Design and implement idempotent webhook processing pipelines with distributed deduplication and exponential backoff retries.\n- Model secure transaction state machines preventing double-spending and race conditions under high concurrency.\n- Implement strict signature verification (HMAC-SHA256) and zero-trust payload sanitization before persisting events.\n- Establish automated stress-testing suites verifying graceful degradation during upstream provider outages.\n\nQualifications & Requirements:\n- 5+ years building distributed backend systems in TypeScript, Go, or Python.\n- Deep understanding of ACID guarantees, idempotency keys, and asynchronous message broker patterns.\n- Experience designing resilient APIs with rate limiting, circuit breaking, and structured telemetry.\n- Uncompromising commitment to transactional correctness and zero-loss financial accounting.",
+    "mustHaveSkills": ["TypeScript / Node.js", "Distributed Systems", "Idempotency", "HMAC Security", "PostgreSQL"],
+    "niceToHaveSkills": ["Redis", "Kafka", "Observability (Prometheus/OpenTelemetry)"],
+    "timeboxMinutes": 180
+  }
+]
