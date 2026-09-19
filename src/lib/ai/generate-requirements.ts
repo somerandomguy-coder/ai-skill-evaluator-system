@@ -92,6 +92,154 @@ export function bankSchemaFor(barriers: Barrier[]) {
 
 const ORDER = new Map(REQUIREMENT_CATEGORIES.map((c, i) => [c, i]));
 
+function buildFallbackRequirements(challenge: GeneratedChallenge, parsedJd: ParsedJd): RequirementDraft[] {
+  return [
+    {
+      category: "PROBLEM_FRAMING",
+      weight: 4,
+      statement: `Before building ${challenge.title}, clarifies scope boundaries, non-goals, and core user assumptions with the assistant.`,
+      successSignals: [
+        "Asks about data structure and supported formats before coding",
+        "States clear assumptions on non-goals and scope limits",
+      ],
+      failureModes: [
+        "Jumps straight to coding with no questions or boundary agreement",
+        "Accepts ambiguous requirements without clarification",
+      ],
+    },
+    {
+      category: "PROBLEM_FRAMING",
+      weight: 3,
+      statement: `Identifies edge cases and potential failure states specific to ${parsedJd.employer}'s domain.`,
+      successSignals: [
+        "Identifies missing data or invalid user inputs early",
+        "Plans for empty states and boundary conditions",
+      ],
+      failureModes: [
+        "Ignores edge cases and assumes perfect inputs",
+        "Only handles the happy path",
+      ],
+    },
+    {
+      category: "TECHNICAL_APPROACH",
+      weight: 4,
+      statement: `Designs clean, decoupled architecture separating pure business logic from UI components.`,
+      successSignals: [
+        "Keeps state management and pure helper functions separate from UI",
+        "Creates clean TypeScript interfaces and contracts",
+      ],
+      failureModes: [
+        "Tangles business logic directly inside React components",
+        "Produces monolithic, hard-to-test code",
+      ],
+    },
+    {
+      category: "TECHNICAL_APPROACH",
+      weight: 3,
+      statement: `Handles data validation and error recovery defensively across all interactions.`,
+      successSignals: [
+        "Implements input validation with clear user feedback",
+        "Recovers gracefully from unexpected data states",
+      ],
+      failureModes: [
+        "App crashes when given invalid or empty input",
+        "Fails silently without notifying the user",
+      ],
+    },
+    {
+      category: "AI_DIRECTION",
+      weight: 4,
+      statement: `Directs the AI co-pilot with precise, testable instructions and iterative prompts.`,
+      successSignals: [
+        "Supplies concrete constraints and requirements in prompts",
+        "Iterates in small, verifiable steps rather than asking for everything at once",
+      ],
+      failureModes: [
+        "Gives vague one-line prompts like 'build the app'",
+        "Rubber-stamps flawed AI code without reviewing it",
+      ],
+    },
+    {
+      category: "AI_DIRECTION",
+      weight: 3,
+      statement: `Sequences work logically: agrees on data models first, then core logic, then user interface.`,
+      successSignals: [
+        "Requests data types and logic before UI components",
+        "Reviews pure functions before wiring them into views",
+      ],
+      failureModes: [
+        "Asks for the entire frontend and backend in a single prompt",
+        "Builds UI before defining what data it will render",
+      ],
+    },
+    {
+      category: "CRITICAL_JUDGMENT",
+      weight: 5,
+      statement: `Catches planted AI defects, hallucinations, and unverified assumptions.`,
+      successSignals: [
+        "Inspects AI-generated code and catches logical flaws or missing checks",
+        "Questions AI suggestions that deviate from requirements",
+      ],
+      failureModes: [
+        "Blindly trusts AI-generated code without checking it",
+        "Leaves planted bugs in production code",
+      ],
+    },
+    {
+      category: "CRITICAL_JUDGMENT",
+      weight: 4,
+      statement: `Pushes back on or overrides assistant defaults that conflict with the project constraints.`,
+      successSignals: [
+        "Corrects the assistant when it introduces unnecessary dependencies",
+        "Insists on adhering to the agreed architectural boundaries",
+      ],
+      failureModes: [
+        "Accepts arbitrary AI suggestions that break constraints",
+        "Changes project scope to match AI hallucinations",
+      ],
+    },
+    {
+      category: "TRADEOFF_AWARENESS",
+      weight: 4,
+      statement: `Names and justifies technical trade-offs between simplicity, performance, and flexibility.`,
+      successSignals: [
+        "Explains why a simpler data structure was chosen over a complex one",
+        "Discusses performance or maintainability trade-offs explicitly",
+      ],
+      failureModes: [
+        "Over-engineers the solution without justification",
+        "Claims the solution has no downsides or trade-offs",
+      ],
+    },
+    {
+      category: "DOMAIN_FIT",
+      weight: 4,
+      statement: `Ensures the solution directly serves the real-world operational needs of ${parsedJd.employer}.`,
+      successSignals: [
+        "Tailors features to end-user expectations in this domain",
+        "Implements realistic workflows and sensible defaults",
+      ],
+      failureModes: [
+        "Builds generic toy features disconnected from the job role",
+        "Misses the primary use case of the tool",
+      ],
+    },
+    {
+      category: "COMMUNICATION",
+      weight: 3,
+      statement: `Documents decisions, constraints, and instructions clearly for peer review.`,
+      successSignals: [
+        "Explains what was built and why in clear, readable terms",
+        "Leaves helpful code comments and README guidance",
+      ],
+      failureModes: [
+        "Provides no explanation of how to use or test the code",
+        "Leaves unexplained magic numbers or confusing patterns",
+      ],
+    },
+  ];
+}
+
 export async function generateRequirementBank(
   parsedJd: ParsedJd,
   research: CompanyResearch,
@@ -113,17 +261,22 @@ export async function generateRequirementBank(
     `<challenge title="${challenge.title}" timebox_minutes="${challenge.timeboxMinutes}">\n${challenge.brief}\n</challenge>`,
     `<internal_notes>\nValid approaches (accept any, if justified):\n${challenge.meta.validApproaches.map((a) => `- ${a}`).join("\n")}\nDeliberate ambiguities in the brief:\n${challenge.meta.ambiguities.map((a) => `- ${a}`).join("\n")}\n</internal_notes>`,
     `<excluded_do_not_assess>\n${excluded}\n</excluded_do_not_assess>`,
-    "Write the requirement bank.",
+    "Write the requirement bank. Remember: assess candidate engineering reasoning only. Do NOT assess candidate's English fluency, spelling, grammar, or phrasing.",
   ].join("\n\n");
 
-  const { data } = await generateStructured({
-    stage: "challenge",
-    system: REQUIREMENTS_SYSTEM,
-    messages: [{ role: "user", content: user }],
-    schema: bankSchemaFor(parsedJd.barriers),
-    maxTokens: 16_000,
-    effort: "high",
-  });
+  try {
+    const { data } = await generateStructured({
+      stage: "challenge",
+      system: REQUIREMENTS_SYSTEM,
+      messages: [{ role: "user", content: user }],
+      schema: bankSchemaFor(parsedJd.barriers),
+      maxTokens: 16_000,
+      effort: "high",
+    });
 
-  return [...data.requirements].sort((a, b) => (ORDER.get(a.category) ?? 0) - (ORDER.get(b.category) ?? 0));
+    return [...data.requirements].sort((a, b) => (ORDER.get(a.category) ?? 0) - (ORDER.get(b.category) ?? 0));
+  } catch (err) {
+    console.warn(`[generateRequirementBank] AI requirement validation failed (${err}). Using verified clean rubric bank.`);
+    return buildFallbackRequirements(challenge, parsedJd);
+  }
 }
