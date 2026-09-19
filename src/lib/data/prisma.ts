@@ -228,6 +228,12 @@ export const prismaDataSource: DataSource = {
           orderBy: { createdAt: "asc" },
         });
       }
+      if (!c) {
+        c = await prisma.challenge.findFirst({
+          include: challengeInclude,
+          orderBy: { createdAt: "desc" },
+        });
+      }
       if (c) return toChallengeView(c);
     } catch (err) {
       console.warn(`[prismaDataSource.getChallenge] DB error: ${err}`);

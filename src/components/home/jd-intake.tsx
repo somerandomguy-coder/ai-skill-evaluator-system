@@ -16,54 +16,50 @@ const MAX_CHARS = 25_000;
 
 const PRESETS = [
   {
-    id: "cultureamp",
-    name: "Culture Amp (AI Eng)",
-    role: "Senior Full-Stack Engineer — People Intelligence",
-    company: "Culture Amp",
-    text: `Role: Senior Full-Stack Engineer — People Intelligence
-Company: Culture Amp (Melbourne, VIC / Sydney, NSW)
-Team: Survey Analytics, Privacy & Confidentiality Engine
+    id: "resume-screener",
+    name: "AI Resume Screener",
+    role: "Full-Stack Engineer — AI Resume Screener",
+    company: "TalentAI",
+    text: `Role: Full-Stack Engineer — AI Resume Screener
+Company: TalentAI (Sydney / Remote)
+Team: Fair Hiring & Applicant Review Systems
 
-Primary Architectural Scope:
-- Build decision-support tools and audit workflows for sensitive employee feedback and survey reporting.
-- Enforce strict k-anonymity confidentiality thresholds to prevent demographic subtraction leaks across hierarchical department trees.
-- Design auditable human-in-the-loop review interfaces for generative AI survey summaries and comment clustering.
-- Implement robust unit, integration, and property-based tests verifying zero data leakage under all partition combinations.`,
+What you will build:
+- Build a simple, clean review dashboard to screen job candidate resumes with an AI helper.
+- Check AI claims against real resume text to catch fake skills and AI hallucinations.
+- Filter candidates by required skills (e.g. Python, React) and minimum passing match score.
+- Let human recruiters easily approve or reject applicants with clear reasons and evidence.
+- Ensure fairness: ignore biased details like school prestige, age, or candidate location.`,
   },
   {
-    id: "atlassian",
-    name: "Atlassian (SRE)",
-    role: "Senior Distributed Systems Engineer — Cloud Infrastructure & Resiliency",
+    id: "task-tracker",
+    name: "Team Task Tracker",
+    role: "Frontend Engineer — Student & Team Task Tracker",
     company: "Atlassian",
-    text: `Role: Senior Distributed Systems Engineer — Cloud Infrastructure & Resiliency
-Company: Atlassian (Sydney, NSW — Hybrid / George St Hub)
-Group: Core Platform Reliability & Multi-Region Topology (Confluence Cloud Infrastructure)
+    text: `Role: Frontend Engineer — Student & Team Task Tracker
+Company: Atlassian (Sydney / Remote)
+Team: Collaboration & Project Management
 
-Primary Architectural Scope:
-- Design, scale, and insulate distributed state machines powering low-latency multi-region synchronization.
-- Implement partitioned consensus layers and failover controls with strict p99.9 latency SLA under 120ms during cross-regional packet blackholes.
-- Mitigate split-brain risk in asynchronous replication topologies using verifiable state machines and custom rate-shedding ring buffers.
-- Author zero-downtime database schema migration protocols and regional ring deployments with automated rollback trigger gates.
-
-Minimum Qualifications & Experience:
-- 5+ years building and operating large-scale distributed systems in Go, Rust, or modern TypeScript/Node.
-- Proven experience with consensus engine edge cases under network partition fault states.
-- Deep comprehension of Linux kernel network namespaces, TCP window scaling, and eBPF observability probes.`,
+What you will build:
+- Build an interactive project board to track tasks, homework, and bug tickets.
+- Support simple task states: To Do, In Progress, and Completed.
+- Add quick search, category filters, and priority tags so students can organize work easily.
+- Catch AI bugs and ensure task updates save properly without losing data.`,
   },
   {
-    id: "canva",
-    name: "Canva (Infra)",
-    role: "Senior Infrastructure Engineer — Realtime Render Fabric",
+    id: "card-creator",
+    name: "Portfolio Card Creator",
+    role: "Web Developer — Simple Portfolio Card Creator",
     company: "Canva",
-    text: `Role: Senior Infrastructure Engineer — Realtime Render Fabric
-Company: Canva (Surry Hills, NSW / Remote AU)
-Team: Media Processing & Global Edge Compute Pipeline
+    text: `Role: Web Developer — Simple Portfolio Card Creator
+Company: Canva (Surry Hills / Remote)
+Team: Creative Tools & Student Templates
 
-Primary Architectural Scope:
-- Build high-throughput media ingestion and distributed canvas rasterization engines across edge nodes.
-- Maintain multi-region Kubernetes clusters handling 50k+ concurrent real-time collaboration sessions with sub-50ms canvas delta updates.
-- Profile memory allocations, GC pauses, and CPU cache misses in high-concurrency node runtimes.
-- Design fail-safe cache invalidation architectures across distributed Redis clusters and Cloudflare Workers.`,
+What you will build:
+- Build a drag-and-drop card preview tool for students to showcase projects.
+- Let users customize colors, edit titles, and preview their cards in real time.
+- Validate inputs so cards look great and display cleanly on mobile and desktop.
+- Add a one-click button to export or share the completed card.`,
   },
 ];
 
@@ -80,7 +76,7 @@ function applyEvent(steps: ProgressStep[], e: Extract<PipelineEvent, { type: "st
 export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolean; isCandidate: boolean; demoMode: boolean }) {
   const router = useRouter();
   const [text, setText] = useState(PRESETS[0].text);
-  const [activePreset, setActivePreset] = useState<string | null>("cultureamp");
+  const [activePreset, setActivePreset] = useState<string | null>("resume-screener");
   const [run, setRun] = useState<Run>({ status: "idle" });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const steps = useRef<ProgressStep[]>([]);

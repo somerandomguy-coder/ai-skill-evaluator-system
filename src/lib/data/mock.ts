@@ -472,7 +472,7 @@ export const mockDataSource: DataSource = {
   },
 
   async getChallenge(id) {
-    return inMemoryChallenges.get(id) || (id === challenge.id ? challenge : null);
+    return inMemoryChallenges.get(id) || challenge;
   },
 
   async getWorkspace(sessionId): Promise<WorkspaceView | null> {
@@ -509,12 +509,23 @@ export const mockDataSource: DataSource = {
       };
     }
 
-    return null;
+    const defaultSession = sessions.find((x) => !x.evaluation) || sessions[0];
+    return {
+      sessionId,
+      ownerId: "candidate-1",
+      status: "ACTIVE",
+      startedAt: new Date().toISOString(),
+      challenge: targetChallenge,
+      starter: { ...SEED_CHALLENGE.starterTemplate },
+      turns: defaultSession ? turnViews(defaultSession) : [],
+      files: defaultSession ? filesOf(defaultSession) : { ...SEED_CHALLENGE.starterTemplate },
+      evaluationId: null,
+    };
   },
 
   async getEvaluation(id) {
     const s = sessions.find((x) => x.evaluation?.id === id);
-    return s ? buildEvaluation(s) : null;
+    return s ? buildEvaluation(s) : buildEvaluation(sessions[0]);
   },
 
   async getQueue(): Promise<QueueItemView[]> {
