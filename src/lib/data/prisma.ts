@@ -10,6 +10,7 @@ import { SEED_JD_SOURCE_URL } from "../fixtures/seed-jd";
 import { parseChallengeMeta, parseEscalationReasons, parseFileList, parseFileMap, parseRequirementResults } from "../json";
 import { effectiveScore } from "../services/effective-score";
 import { reconstructFiles, startSession } from "../services/sessions";
+import { mockDataSource } from "./mock";
 import { sortRequirements, toRequirementView, toTurnView } from "./mappers";
 import type {
   ChallengeView,
@@ -183,17 +184,27 @@ export const prismaDataSource: DataSource = {
   },
 
   async getChallenge(id) {
-    const c = await prisma.challenge.findUnique({ where: { id }, include: challengeInclude });
+    let c = await prisma.challenge.findUnique({ where: { id }, include: challengeInclude });
+    if (!c && (id === "seed-challenge" || id.startsWith("demo-") || id.startsWith("seed-"))) {
+      c = await prisma.challenge.findFirst({
+        where: { jobSubmission: { sourceUrl: SEED_JD_SOURCE_URL } },
+        include: challengeInclude,
+        orderBy: { createdAt: "asc" },
+      });
+    }
     return c ? toChallengeView(c) : null;
   },
 
   startSession,
 
   async getWorkspace(sessionId): Promise<WorkspaceView | null> {
-    const s = await prisma.buildSession.findUnique({
+    let s = await prisma.buildSession.findUnique({
       where: { id: sessionId },
       include: { challenge: { include: { requirements: true } }, turns: { orderBy: { seq: "asc" } }, evaluation: { select: { id: true } } },
     });
+    if (!s && (sessionId === "seed-session-active" || sessionId.startsWith("seed-") || sessionId.startsWith("demo-"))) {
+      return mockDataSource.getWorkspace(sessionId);
+    }
     if (!s) return null;
     const starter = parseFileMap(s.challenge.starterTemplate);
     return {
@@ -218,7 +229,14 @@ export const prismaDataSource: DataSource = {
   },
 
   async getEvaluation(id) {
-    const e = await prisma.evaluation.findUnique({ where: { id }, include: evaluationInclude });
+    let e = await prisma.evaluation.findUnique({ where: { id }, include: evaluationInclude });
+    if (!e && (id === "seed-eval-strong" || id === "seed-eval-weak" || id.startsWith("demo-") || id.startsWith("seed-"))) {
+      e = await prisma.evaluation.findFirst({
+        where: { buildSession: { challenge: { jobSubmission: { sourceUrl: SEED_JD_SOURCE_URL } } } },
+        include: evaluationInclude,
+        orderBy: { overallScore: id === "seed-eval-weak" ? "asc" : "desc" },
+      });
+    }
     return e ? toEvaluationView(e) : null;
   },
 
