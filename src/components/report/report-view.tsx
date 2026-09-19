@@ -120,6 +120,23 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
           </Alert>
         )}
 
+        {/* Top Banner: Interviewer / Employer Simplified Deck View */}
+        <div className="bg-primary text-white p-3.5 rounded border border-primary/20 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5 text-xs text-center sm:text-left">
+            <Sparkles className="size-4 shrink-0 text-amber-300" />
+            <span>
+              <strong>Interviewer or Hiring Manager?</strong> Review this candidate in our distraction-free, 1-card-at-a-time executive deck view.
+            </span>
+          </div>
+          <Link
+            href={`/report/${ev.id}/employer`}
+            className="w-full sm:w-auto bg-white text-primary hover:bg-white/95 text-xs font-semibold px-4 py-2 rounded transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm"
+          >
+            <span>Open Interviewer Deck</span>
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
+
         {/* Editorial Header Dossier Card */}
         <div className="bg-surface-container-lowest rounded border border-border p-6 sm:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
