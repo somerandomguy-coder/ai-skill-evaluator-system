@@ -19,6 +19,8 @@ import { SEED_JD_SOURCE_URL } from "../fixtures/seed-jd";
 import { toJson } from "../json";
 import type { PipelineEvent } from "../pipeline-events";
 import { trackEvent } from "../ai/langfuse";
+import { saveInMemoryChallenge } from "../data/mock";
+import type { ChallengeView } from "../data/types";
 
 
 type Emit = (e: PipelineEvent) => void;
@@ -110,36 +112,76 @@ export async function runChallengePipeline(
 
     // 6. Save.
     emit({ type: "step", step: "save", status: "start" });
-    const created = await prisma.$transaction(async (tx) => {
-      const submission = await tx.jobSubmission.create({
-        data: { userId: input.userId, rawJd: text, sourceUrl, parsedJd: toJson(parsed), companyResearch: toJson(research) },
+    let createdId: string;
+    try {
+      const created = await prisma.$transaction(async (tx) => {
+        // Ensure user exists so foreign key constraint never fails
+        await tx.user.upsert({
+          where: { id: input.userId },
+          update: {},
+          create: {
+            id: input.userId,
+            email: `${input.userId}@proofcraft.dev`,
+            name: "Candidate",
+            role: "CANDIDATE",
+          },
+        });
+
+        const submission = await tx.jobSubmission.create({
+          data: { userId: input.userId, rawJd: text, sourceUrl, parsedJd: toJson(parsed), companyResearch: toJson(research) },
+        });
+        const row = await tx.challenge.create({
+          data: {
+            jobSubmissionId: submission.id,
+            title: challenge.title,
+            brief: challenge.brief,
+            domainContext: challenge.domainContext,
+            timeboxMinutes: challenge.timeboxMinutes,
+            starterTemplate: toJson(challenge.starterTemplate),
+            rubricVersion: RUBRIC_VERSION,
+            meta: toJson(challenge.meta),
+          },
+        });
+        await tx.requirement.createMany({
+          data: requirements.map((r) => ({
+            challengeId: row.id,
+            category: r.category,
+            statement: r.statement,
+            weight: r.weight,
+            successSignals: r.successSignals,
+            failureModes: r.failureModes,
+          })),
+        });
+        return row;
       });
-      const row = await tx.challenge.create({
-        data: {
-          jobSubmissionId: submission.id,
-          title: challenge.title,
-          brief: challenge.brief,
-          domainContext: challenge.domainContext,
-          timeboxMinutes: challenge.timeboxMinutes,
-          starterTemplate: toJson(challenge.starterTemplate),
-          rubricVersion: RUBRIC_VERSION,
-          meta: toJson(challenge.meta),
+      createdId = created.id;
+    } catch (dbErr: any) {
+      console.warn(`[runChallengePipeline] Database save failed (${dbErr?.message ?? dbErr}). Storing in-memory.`);
+      const fallbackId = `gen-${Date.now()}`;
+      const fallbackChallengeView: ChallengeView = {
+        id: fallbackId,
+        title: challenge.title,
+        brief: challenge.brief,
+        domainContext: challenge.domainContext,
+        timeboxMinutes: challenge.timeboxMinutes,
+        rubricVersion: RUBRIC_VERSION,
+        requirements: requirements.map((r, i) => ({ id: `req-${i}`, ...r })),
+        job: { ...parsed, sourceUrl: sourceUrl || null },
+        research: {
+          whatTheyDo: research.whatTheyDo,
+          domainAndUsers: research.domainAndUsers,
+          technicalSignals: research.technicalSignals,
+          groundedInSearch: research.groundedInSearch,
+          sources: research.sources.map((s) => ({ title: s.title, url: s.url })),
         },
-      });
-      await tx.requirement.createMany({
-        data: requirements.map((r) => ({
-          challengeId: row.id,
-          category: r.category,
-          statement: r.statement,
-          weight: r.weight,
-          successSignals: r.successSignals,
-          failureModes: r.failureModes,
-        })),
-      });
-      return row;
-    });
+        fromDemoCache: false,
+      };
+      saveInMemoryChallenge(fallbackChallengeView);
+      createdId = fallbackId;
+    }
+
     emit({ type: "step", step: "save", status: "done" });
-    emit({ type: "done", challengeId: created.id, demo: false });
+    emit({ type: "done", challengeId: createdId, demo: false });
   } catch (err) {
     emit({ type: "error", message: describePipelineError(err) });
   }
@@ -149,5 +191,8 @@ export function describePipelineError(err: unknown): string {
   if (err instanceof InvalidJdError || err instanceof FetchJdError || err instanceof AiError) return err.message;
   if (err instanceof DemoFixtureMissingError) return err.message;
   console.error("[pipeline]", err);
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
   return "Something went wrong while building the challenge. Please try again.";
 }

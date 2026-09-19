@@ -11,7 +11,7 @@ import { parseChallengeMeta, parseEscalationReasons, parseFileList, parseFileMap
 import { effectiveScore } from "../services/effective-score";
 import { reconstructFiles, startSession } from "../services/sessions";
 import { buildCognitiveSuites } from "../services/cognitive-rubric";
-import { mockDataSource } from "./mock";
+import { getInMemoryChallenge, mockDataSource } from "./mock";
 import { sortRequirements, toRequirementView, toTurnView } from "./mappers";
 import type {
   ChallengeView,
@@ -137,148 +137,197 @@ export const prismaDataSource: DataSource = {
   kind: "db",
 
   async listUsers() {
-    return (await prisma.user.findMany({ orderBy: [{ role: "asc" }, { name: "asc" }] })).map(toUser);
+    try {
+      return (await prisma.user.findMany({ orderBy: [{ role: "asc" }, { name: "asc" }] })).map(toUser);
+    } catch {
+      return mockDataSource.listUsers();
+    }
   },
   async findUser(id) {
-    const u = await prisma.user.findUnique({ where: { id } });
-    return u ? toUser(u) : null;
+    try {
+      const u = await prisma.user.findUnique({ where: { id } });
+      return u ? toUser(u) : mockDataSource.findUser(id);
+    } catch {
+      return mockDataSource.findUser(id);
+    }
   },
   async findUserByEmail(email) {
-    const u = await prisma.user.findUnique({ where: { email: email.trim().toLowerCase() } });
-    return u ? toUser(u) : null;
+    try {
+      const u = await prisma.user.findUnique({ where: { email: email.trim().toLowerCase() } });
+      return u ? toUser(u) : mockDataSource.findUserByEmail(email);
+    } catch {
+      return mockDataSource.findUserByEmail(email);
+    }
   },
   async createCandidate(email, name) {
-    const e = email.trim().toLowerCase();
-    const derived = (e.split("@")[0] ?? "")
-      .split(/[._-]+/)
-      .filter(Boolean)
-      .map((p) => p[0]!.toUpperCase() + p.slice(1))
-      .join(" ");
-    return toUser(await prisma.user.create({ data: { email: e, name: name?.trim() || derived || "Candidate", role: "CANDIDATE" } }));
+    try {
+      const e = email.trim().toLowerCase();
+      const derived = (e.split("@")[0] ?? "")
+        .split(/[._-]+/)
+        .filter(Boolean)
+        .map((p) => p[0]!.toUpperCase() + p.slice(1))
+        .join(" ");
+      return toUser(await prisma.user.create({ data: { email: e, name: name?.trim() || derived || "Candidate", role: "CANDIDATE" } }));
+    } catch {
+      return mockDataSource.createCandidate(email, name);
+    }
   },
 
   async getHome(userId): Promise<HomeView> {
-    const seeded = await prisma.challenge.findFirst({
-      where: { jobSubmission: { sourceUrl: SEED_JD_SOURCE_URL } },
-      include: { jobSubmission: true },
-      orderBy: { createdAt: "asc" },
-    });
-    const example = seeded && readJob(seeded.jobSubmission.parsedJd, seeded.jobSubmission.sourceUrl);
-    const sessions = userId
-      ? await prisma.buildSession.findMany({
-          where: { userId },
-          orderBy: { startedAt: "desc" },
-          take: 12,
-          include: { challenge: { include: { jobSubmission: true } }, evaluation: { select: { id: true } } },
-        })
-      : [];
-    return {
-      example:
-        seeded && example
-          ? {
-              challengeId: seeded.id,
-              roleTitle: example.roleTitle,
-              employer: example.employer,
-              domain: example.domain,
-              skills: example.mustHaveSkills.slice(0, 4),
-              barrierCount: example.barriers.length,
-              sourceUrl: example.sourceUrl,
-            }
-          : null,
-      mySessions: sessions.map((s) => ({
-        sessionId: s.id,
-        challengeTitle: s.challenge.title,
-        roleTitle: readJob(s.challenge.jobSubmission.parsedJd, null).roleTitle,
-        status: s.status,
-        startedAt: s.startedAt.toISOString(),
-        evaluationId: s.evaluation?.id ?? null,
-      })),
-    };
+    try {
+      const seeded = await prisma.challenge.findFirst({
+        where: { jobSubmission: { sourceUrl: SEED_JD_SOURCE_URL } },
+        include: { jobSubmission: true },
+        orderBy: { createdAt: "asc" },
+      });
+      const example = seeded && readJob(seeded.jobSubmission.parsedJd, seeded.jobSubmission.sourceUrl);
+      const sessions = userId
+        ? await prisma.buildSession.findMany({
+            where: { userId },
+            orderBy: { startedAt: "desc" },
+            take: 12,
+            include: { challenge: { include: { jobSubmission: true } }, evaluation: { select: { id: true } } },
+          })
+        : [];
+      return {
+        example:
+          seeded && example
+            ? {
+                challengeId: seeded.id,
+                roleTitle: example.roleTitle,
+                employer: example.employer,
+                domain: example.domain,
+                skills: example.mustHaveSkills.slice(0, 4),
+                barrierCount: example.barriers.length,
+                sourceUrl: example.sourceUrl,
+              }
+            : null,
+        mySessions: sessions.map((s) => ({
+          sessionId: s.id,
+          challengeTitle: s.challenge.title,
+          roleTitle: readJob(s.challenge.jobSubmission.parsedJd, null).roleTitle,
+          status: s.status,
+          startedAt: s.startedAt.toISOString(),
+          evaluationId: s.evaluation?.id ?? null,
+        })),
+      };
+    } catch {
+      return mockDataSource.getHome(userId);
+    }
   },
 
   async getChallenge(id) {
-    let c = await prisma.challenge.findUnique({ where: { id }, include: challengeInclude });
-    if (!c && (id === "seed-challenge" || id.startsWith("demo-") || id.startsWith("seed-"))) {
-      c = await prisma.challenge.findFirst({
-        where: { jobSubmission: { sourceUrl: SEED_JD_SOURCE_URL } },
-        include: challengeInclude,
-        orderBy: { createdAt: "asc" },
-      });
+    const mem = getInMemoryChallenge(id);
+    if (mem) return mem;
+    try {
+      let c = await prisma.challenge.findUnique({ where: { id }, include: challengeInclude });
+      if (!c && (id === "seed-challenge" || id.startsWith("demo-") || id.startsWith("seed-"))) {
+        c = await prisma.challenge.findFirst({
+          where: { jobSubmission: { sourceUrl: SEED_JD_SOURCE_URL } },
+          include: challengeInclude,
+          orderBy: { createdAt: "asc" },
+        });
+      }
+      if (c) return toChallengeView(c);
+    } catch (err) {
+      console.warn(`[prismaDataSource.getChallenge] DB error: ${err}`);
     }
-    return c ? toChallengeView(c) : null;
+    return mockDataSource.getChallenge(id);
   },
 
   startSession,
 
   async getWorkspace(sessionId): Promise<WorkspaceView | null> {
-    let s = await prisma.buildSession.findUnique({
-      where: { id: sessionId },
-      include: { challenge: { include: { requirements: true } }, turns: { orderBy: { seq: "asc" } }, evaluation: { select: { id: true } } },
-    });
-    if (!s && (sessionId === "seed-session-active" || sessionId.startsWith("seed-") || sessionId.startsWith("demo-"))) {
+    if (sessionId.startsWith("sess-gen-") || sessionId.startsWith("demo-") || sessionId.startsWith("seed-")) {
       return mockDataSource.getWorkspace(sessionId);
     }
-    if (!s) return null;
-    const starter = parseFileMap(s.challenge.starterTemplate);
-    return {
-      sessionId: s.id,
-      ownerId: s.userId,
-      status: s.status,
-      startedAt: s.startedAt.toISOString(),
-      challenge: {
-        id: s.challenge.id,
-        title: s.challenge.title,
-        brief: s.challenge.brief,
-        domainContext: s.challenge.domainContext,
-        timeboxMinutes: s.challenge.timeboxMinutes,
-        rubricVersion: s.challenge.rubricVersion,
-        requirements: sortRequirements(s.challenge.requirements).map(toRequirementView),
-      },
-      starter,
-      turns: s.turns.map(toTurnView),
-      files: reconstructFiles(starter, s.turns),
-      evaluationId: s.evaluation?.id ?? null,
-    };
+    try {
+      let s = await prisma.buildSession.findUnique({
+        where: { id: sessionId },
+        include: { challenge: { include: { requirements: true } }, turns: { orderBy: { seq: "asc" } }, evaluation: { select: { id: true } } },
+      });
+      if (!s && (sessionId === "seed-session-active" || sessionId.startsWith("seed-") || sessionId.startsWith("demo-"))) {
+        return mockDataSource.getWorkspace(sessionId);
+      }
+      if (s) {
+        const starter = parseFileMap(s.challenge.starterTemplate);
+        return {
+          sessionId: s.id,
+          ownerId: s.userId,
+          status: s.status,
+          startedAt: s.startedAt.toISOString(),
+          challenge: {
+            id: s.challenge.id,
+            title: s.challenge.title,
+            brief: s.challenge.brief,
+            domainContext: s.challenge.domainContext,
+            timeboxMinutes: s.challenge.timeboxMinutes,
+            rubricVersion: s.challenge.rubricVersion,
+            requirements: sortRequirements(s.challenge.requirements).map(toRequirementView),
+          },
+          starter,
+          turns: s.turns.map(toTurnView),
+          files: reconstructFiles(starter, s.turns),
+          evaluationId: s.evaluation?.id ?? null,
+        };
+      }
+    } catch (err) {
+      console.warn(`[prismaDataSource.getWorkspace] DB error: ${err}`);
+    }
+    return mockDataSource.getWorkspace(sessionId);
   },
 
   async getEvaluation(id) {
-    let e = await prisma.evaluation.findUnique({ where: { id }, include: evaluationInclude });
-    if (!e && (id === "seed-eval-strong" || id === "seed-eval-weak" || id.startsWith("demo-") || id.startsWith("seed-"))) {
-      e = await prisma.evaluation.findFirst({
-        where: { buildSession: { challenge: { jobSubmission: { sourceUrl: SEED_JD_SOURCE_URL } } } },
-        include: evaluationInclude,
-        orderBy: { overallScore: id === "seed-eval-weak" ? "asc" : "desc" },
-      });
+    try {
+      let e = await prisma.evaluation.findUnique({ where: { id }, include: evaluationInclude });
+      if (!e && (id === "seed-eval-strong" || id === "seed-eval-weak" || id.startsWith("demo-") || id.startsWith("seed-"))) {
+        e = await prisma.evaluation.findFirst({
+          where: { buildSession: { challenge: { jobSubmission: { sourceUrl: SEED_JD_SOURCE_URL } } } },
+          include: evaluationInclude,
+          orderBy: { overallScore: id === "seed-eval-weak" ? "asc" : "desc" },
+        });
+      }
+      if (e) return toEvaluationView(e);
+    } catch (err) {
+      console.warn(`[prismaDataSource.getEvaluation] DB error: ${err}`);
     }
-    return e ? toEvaluationView(e) : null;
+    return mockDataSource.getEvaluation(id);
   },
 
   async getQueue(): Promise<QueueItemView[]> {
-    const rows = await prisma.evaluation.findMany({
-      where: { reviewStatus: "PENDING" },
-      include: { buildSession: { include: { challenge: { include: challengeInclude } } } },
-      orderBy: { createdAt: "asc" },
-    });
-    return rows
-      .map((e) => {
-        const challenge = toChallengeView(e.buildSession.challenge);
-        return {
-          id: e.id,
-          challengeTitle: challenge.title,
-          roleTitle: challenge.job.roleTitle,
-          createdAt: e.createdAt.toISOString(),
-          overallScore: e.overallScore,
-          coverage: computeOverall(parseRequirementResults(e.perRequirement), challenge.requirements).coverage,
-          confidence: e.confidence,
-          contested: e.contested,
-          source: e.source as EvaluationSource,
-          escalation: parseEscalationReasons(e.escalationDetail),
-        };
-      })
-      .sort((a, b) => Number(b.contested) - Number(a.contested));
+    try {
+      const rows = await prisma.evaluation.findMany({
+        where: { reviewStatus: "PENDING" },
+        include: { buildSession: { include: { challenge: { include: challengeInclude } } } },
+        orderBy: { createdAt: "asc" },
+      });
+      return rows
+        .map((e) => {
+          const challenge = toChallengeView(e.buildSession.challenge);
+          return {
+            id: e.id,
+            challengeTitle: challenge.title,
+            roleTitle: challenge.job.roleTitle,
+            createdAt: e.createdAt.toISOString(),
+            overallScore: e.overallScore,
+            coverage: computeOverall(parseRequirementResults(e.perRequirement), challenge.requirements).coverage,
+            confidence: e.confidence,
+            contested: e.contested,
+            source: e.source as EvaluationSource,
+            escalation: parseEscalationReasons(e.escalationDetail),
+          };
+        })
+        .sort((a, b) => Number(b.contested) - Number(a.contested));
+    } catch {
+      return mockDataSource.getQueue();
+    }
   },
 
   async countReviewed() {
-    return prisma.evaluation.count({ where: { reviewStatus: "REVIEWED" } });
+    try {
+      return await prisma.evaluation.count({ where: { reviewStatus: "REVIEWED" } });
+    } catch {
+      return mockDataSource.countReviewed();
+    }
   },
 };

@@ -47,6 +47,16 @@ const users: UserView[] = [
 const requirements: RequirementView[] = SEED_REQUIREMENTS.map((r, i) => ({ id: `seed-req-${i}`, ...r }));
 const refs: RequirementRef[] = requirements;
 
+const inMemoryChallenges = new Map<string, ChallengeView>();
+
+export function saveInMemoryChallenge(c: ChallengeView) {
+  inMemoryChallenges.set(c.id, c);
+}
+
+export function getInMemoryChallenge(id: string): ChallengeView | null {
+  return inMemoryChallenges.get(id) ?? null;
+}
+
 const challenge: ChallengeView = {
   id: MOCK_CHALLENGE_ID,
   title: SEED_CHALLENGE.title,
@@ -416,7 +426,14 @@ export const mockDataSource: DataSource = {
   },
 
   async startSession(challengeId, userId) {
-    if (challengeId !== challenge.id) throw new Error("Challenge not found.");
+    const mem = inMemoryChallenges.get(challengeId);
+    if (mem) {
+      const existing = sessions.find((s) => s.ownerId === userId && s.id === `sess-${challengeId}`);
+      if (existing) return existing.id;
+      const id = `sess-${challengeId}`;
+      sessions.push({ id, ownerId: userId, seed: ACTIVE_SEED_SESSION, evaluation: null, startedAt: Date.now() });
+      return id;
+    }
     // Reuse or bind the active seeded session for instant tryout
     const active = sessions.find((s) => s.id === "seed-session-active");
     if (active) {
@@ -442,7 +459,7 @@ export const mockDataSource: DataSource = {
         sourceUrl: challenge.job.sourceUrl,
       },
       mySessions: sessions
-        .filter((s) => s.ownerId === userId || (s.id === "seed-session-active" && !s.evaluation))
+        .filter((s) => (userId ? s.ownerId === userId : true))
         .map((s) => ({
           sessionId: s.id,
           challengeTitle: challenge.title,
@@ -455,31 +472,44 @@ export const mockDataSource: DataSource = {
   },
 
   async getChallenge(id) {
-    return id === challenge.id ? challenge : null;
+    return inMemoryChallenges.get(id) || (id === challenge.id ? challenge : null);
   },
 
   async getWorkspace(sessionId): Promise<WorkspaceView | null> {
     const s = findSession(sessionId);
-    if (!s) return null;
-    return {
-      sessionId: s.id,
-      ownerId: s.ownerId,
-      status: s.evaluation ? "SUBMITTED" : "ACTIVE",
-      startedAt: new Date(s.startedAt).toISOString(),
-      challenge: {
-        id: challenge.id,
-        title: challenge.title,
-        brief: challenge.brief,
-        domainContext: challenge.domainContext,
-        timeboxMinutes: challenge.timeboxMinutes,
-        rubricVersion: challenge.rubricVersion,
-        requirements,
-      },
-      starter: { ...SEED_CHALLENGE.starterTemplate },
-      turns: turnViews(s),
-      files: filesOf(s),
-      evaluationId: s.evaluation?.id ?? null,
-    };
+    const challengeId = sessionId.replace(/^sess-/, "");
+    const memChallenge = inMemoryChallenges.get(challengeId);
+    const targetChallenge = memChallenge || challenge;
+
+    if (s) {
+      return {
+        sessionId: s.id,
+        ownerId: s.ownerId,
+        status: s.evaluation ? "SUBMITTED" : "ACTIVE",
+        startedAt: new Date(s.startedAt).toISOString(),
+        challenge: targetChallenge,
+        starter: { ...SEED_CHALLENGE.starterTemplate },
+        turns: turnViews(s),
+        files: filesOf(s),
+        evaluationId: s.evaluation?.id ?? null,
+      };
+    }
+
+    if (memChallenge) {
+      return {
+        sessionId,
+        ownerId: "candidate-1",
+        status: "ACTIVE",
+        startedAt: new Date().toISOString(),
+        challenge: memChallenge,
+        starter: { ...SEED_CHALLENGE.starterTemplate },
+        turns: [],
+        files: { ...SEED_CHALLENGE.starterTemplate },
+        evaluationId: null,
+      };
+    }
+
+    return null;
   },
 
   async getEvaluation(id) {
