@@ -100,10 +100,71 @@ export interface ResultView extends RequirementResult {
   requirement: RequirementView;
 }
 
+export type PromptCriterionKey =
+  | "scope_boundary"
+  | "decomposition"
+  | "prompt_quality"
+  | "verification"
+  | "stack_decision";
+
+export interface PromptRubricCriterion {
+  criterion: PromptCriterionKey;
+  label: string;
+  score: number; // 1-5
+  evidenceQuotes: string[];
+  confidence: number;
+  rationale: string;
+}
+
+export interface AuditFlags {
+  flaw_caught: boolean;
+  privacy_breach: boolean;
+  scope_creep_resisted: boolean;
+  injection_attempt: boolean;
+  out_of_scope: boolean;
+}
+
+export interface FourDPhase {
+  name: "Discover" | "Define" | "Develop" | "Deliver";
+  phase: number;
+  score: number;
+  maxScore: number;
+  summary: string;
+}
+
+export interface SuiteAView {
+  title: string;
+  score: number;
+  maxScore: number;
+  status: string;
+  phases: FourDPhase[];
+  takeaway: string;
+}
+
+export interface SuiteBView {
+  title: string;
+  score: number; // sum of 5 criteria, out of 25
+  maxScore: number; // 25
+  averageScore: number; // out of 5.0
+  criteria: PromptRubricCriterion[];
+  flags: AuditFlags;
+  strengths: string[];
+  nextSteps: string[];
+}
+
+export interface VerificationReceipt {
+  hash: string;
+  protocol: string;
+  timestamp: string;
+  calibrationN: number;
+  evaluatorVersion: string;
+}
+
 export interface EvaluationView {
   id: string;
   sessionId: string;
   ownerId: string;
+  candidateName?: string;
   createdAt: string;
   challenge: { id: string; title: string; timeboxMinutes: number; rubricVersion: string };
   job: { roleTitle: string; employer: string };
@@ -116,6 +177,7 @@ export interface EvaluationView {
   results: ResultView[];
   strengths: string[];
   gaps: string[];
+  nextSteps?: string[];
   needsHumanReview: boolean;
   reviewStatus: ReviewStatus;
   contested: boolean;
@@ -126,6 +188,11 @@ export interface EvaluationView {
   turns: TurnView[];
   files: FileWrite[];
   durationMinutes: number;
+  /** 2-Tier Architecture Additions */
+  suiteA?: SuiteAView;
+  suiteB?: SuiteBView;
+  verificationReceipt?: VerificationReceipt;
+  reviewSlaMessage?: string;
 }
 
 export interface QueueItemView {

@@ -22,6 +22,8 @@ import type {
   HomeView,
   QueueItemView,
   RequirementView,
+  SuiteAView,
+  SuiteBView,
   TurnView,
   UserView,
   WorkspaceView,
@@ -111,10 +113,202 @@ function buildEvaluation(s: MockSession): EvaluationView | null {
     integrityFlags: detectManipulation(turns),
   });
   const byId = new Map(requirements.map((r) => [r.id, r]));
+  const isStrong = s.seed.key === "strong";
+
+  const suiteA: SuiteAView = isStrong
+    ? {
+        title: "Product 4D & Zero Trust Architecture",
+        score: 90,
+        maxScore: 100,
+        status: "EXEMPLARY",
+        phases: [
+          { name: "Discover", phase: 1, score: 9, maxScore: 10, summary: "Identified subtraction leak and ambiguous group-size boundary prior to writing code." },
+          { name: "Define", phase: 2, score: 9, maxScore: 10, summary: "Enforced strict decoupling of pure decision logic from UI presentation layer." },
+          { name: "Develop", phase: 3, score: 9, maxScore: 10, summary: "Caught planted counting flaw in peopleIn() filter and added boundary tests." },
+          { name: "Deliver", phase: 4, score: 9, maxScore: 10, summary: "Authored transparent README documenting architectural limits and deliberate trade-offs." },
+        ],
+        takeaway: "Tested AI code under load; caught unhandled async rejections and planted flaws before committing.",
+      }
+    : {
+        title: "Product 4D & Zero Trust Architecture",
+        score: 28,
+        maxScore: 100,
+        status: "DEVELOPING",
+        phases: [
+          { name: "Discover", phase: 1, score: 2, maxScore: 10, summary: "No questions asked regarding ambiguous brief boundaries or user roles." },
+          { name: "Define", phase: 2, score: 3, maxScore: 10, summary: "Decision logic buried directly inside React component without modularity." },
+          { name: "Develop", phase: 3, score: 3, maxScore: 10, summary: "Accepted buggy count filter; planted defect went completely unnoticed." },
+          { name: "Deliver", phase: 4, score: 2, maxScore: 10, summary: "No documentation of system limits or intentional trade-offs in README." },
+        ],
+        takeaway: "Candidate accepted all AI outputs unconditionally without checking logic or boundary edge cases.",
+      };
+
+  const suiteB: SuiteBView = isStrong
+    ? {
+        title: "AI Prompt & Process Usage Rubric",
+        score: 24,
+        maxScore: 25,
+        averageScore: 4.8,
+        criteria: [
+          {
+            criterion: "scope_boundary",
+            label: "1. Scope Boundary",
+            score: 5,
+            evidenceQuotes: [
+              "Please answer these and propose the rules in plain words first. No code yet.",
+              "Now write src/lib/gate.js only, pure functions with no React, and I will review it before we do the interface.",
+            ],
+            confidence: 0.95,
+            rationale: "Candidate established clear V1 boundaries before writing code and kept scope tightly confined to the core gate logic.",
+          },
+          {
+            criterion: "decomposition",
+            label: "2. Decomposition",
+            score: 5,
+            evidenceQuotes: [
+              "propose the rules in plain words first. No code yet.",
+              "Now write src/lib/gate.js only, pure functions with no React",
+              "add a section \"Decisions and limits\" to README.md",
+            ],
+            confidence: 0.92,
+            rationale: "Staged the work into deliberate phases: verbal agreement, pure function implementation, UI integration, and documentation.",
+          },
+          {
+            criterion: "prompt_quality",
+            label: "3. Prompt Quality",
+            score: 5,
+            evidenceQuotes: [
+              "1) \"Minimum group size\" - do we count respondents (people) or comments? In responses.json some respondents have an empty comment...",
+              "Please require at least 2 different people behind a claim",
+            ],
+            confidence: 0.94,
+            rationale: "Prompts provided rich domain context, data schema analysis, exact expected behaviors, and explicit constraints.",
+          },
+          {
+            criterion: "verification",
+            label: "4. Verification (Zero Trust)",
+            score: 5,
+            evidenceQuotes: [
+              "peopleIn() filters with `r.comment.trim()`, so it counts only respondents who wrote a comment.",
+              "You cannot run the code.",
+              "I checked in the preview.",
+            ],
+            confidence: 0.96,
+            rationale: "Zero-trust verification: spotted planted counting error in AI code, questioned hallucinated execution assertions, and verified behavior in the live preview.",
+          },
+          {
+            criterion: "stack_decision",
+            label: "5. Stack Decision",
+            score: 4,
+            evidenceQuotes: [
+              "pure functions with no React, and I will review it before we do the interface",
+              "It holds more than necessary, but the rule is simple and the reviewer can understand and audit it. I accept this tradeoff.",
+            ],
+            confidence: 0.88,
+            rationale: "Compared architectural options, insisted on decoupled pure functions for auditable governance, and articulated explicit simplicity vs precision trade-offs.",
+          },
+        ],
+        flags: {
+          flaw_caught: true,
+          privacy_breach: false,
+          scope_creep_resisted: true,
+          injection_attempt: false,
+          out_of_scope: false,
+        },
+        strengths: [
+          "Autonomous AI Control: Directed assistant step-by-step; caught planted comment-filtering defect before commit.",
+          "Deterministic Bounds: Interrogated brief upfront to clarify whether minimum group size counts people or comments.",
+          "Zero-Trust Scrutiny: Refused AI's unsupported runtime claims and verified output with boundary tests.",
+        ],
+        nextSteps: [
+          "Explore probabilistic/risk-scored threshold models alongside binary rule gates.",
+          "Stress-test keyword overlap matching against synthetic adversarial paraphrase datasets.",
+          "Add automated linting checks for identifying details within large-group survey responses.",
+        ],
+      }
+    : {
+        title: "AI Prompt & Process Usage Rubric",
+        score: 5,
+        maxScore: 25,
+        averageScore: 1.0,
+        criteria: [
+          {
+            criterion: "scope_boundary",
+            label: "1. Scope Boundary",
+            score: 1,
+            evidenceQuotes: ["build a dashboard to review the survey summaries and release them to managers"],
+            confidence: 0.85,
+            rationale: "No boundary stated. Allowed AI to dictate scope and accepted everything immediately.",
+          },
+          {
+            criterion: "decomposition",
+            label: "2. Decomposition",
+            score: 1,
+            evidenceQuotes: ["build a dashboard to review the survey summaries and release them to managers"],
+            confidence: 0.82,
+            rationale: "Asked AI to build the entire system in one monolithic prompt with no staged execution.",
+          },
+          {
+            criterion: "prompt_quality",
+            label: "3. Prompt Quality",
+            score: 1,
+            evidenceQuotes: ["great thanks. make it look nicer and then i am done"],
+            confidence: 0.85,
+            rationale: "Prompts were vague, lacked constraints or data context, and provided no directional guidance.",
+          },
+          {
+            criterion: "verification",
+            label: "4. Verification (Zero Trust)",
+            score: 1,
+            evidenceQuotes: ["great thanks."],
+            confidence: 0.88,
+            rationale: "Accepted AI assertion 'This keeps the summaries confidential' without checking. Planted defect missed entirely.",
+          },
+          {
+            criterion: "stack_decision",
+            label: "5. Stack Decision",
+            score: 1,
+            evidenceQuotes: ["can you add the minimum group size thing"],
+            confidence: 0.75,
+            rationale: "Used whatever the AI generated with zero discussion of alternatives or trade-offs.",
+          },
+        ],
+        flags: {
+          flaw_caught: false,
+          privacy_breach: false,
+          scope_creep_resisted: false,
+          injection_attempt: false,
+          out_of_scope: false,
+        },
+        strengths: [
+          "Prompted for the minimum group size safeguard after assistant mentioned it.",
+          "Produced a runnable React interface listing survey cards.",
+        ],
+        nextSteps: [
+          "Practice Zero-Trust AI prompting: always inspect generated code before accepting.",
+          "Decompose projects into discrete stages (data/logic -> UI -> validation) rather than one-shot requests.",
+          "Explicitly define in-scope vs out-of-scope boundaries before writing code.",
+        ],
+      };
+
+  const reviews: MentorReviewView[] = isStrong
+    ? [
+        {
+          id: "review-strong-1",
+          verdict: "CONFIRM",
+          comments:
+            "Candidate operates with exceptional agency. Instead of rubber-stamping AI routines, established strict memory and counting boundaries immediately. Verified boundary cases in live preview. Highly recommended for Senior role.",
+          adjustedScore: 88,
+          reviewedAt: new Date(s.startedAt + 140 * MIN).toISOString(),
+        },
+      ]
+    : [];
+
   return {
     id: s.evaluation.id,
     sessionId: s.id,
     ownerId: s.ownerId,
+    candidateName: isStrong ? "Alex Vance" : "Jordan Taylor",
     createdAt: new Date(s.startedAt + (s.seed.durationMinutes + 1) * MIN).toISOString(),
     challenge: { id: challenge.id, title: challenge.title, timeboxMinutes: challenge.timeboxMinutes, rubricVersion: RUBRIC_VERSION },
     job: { roleTitle: challenge.job.roleTitle, employer: challenge.job.employer },
@@ -122,19 +316,36 @@ function buildEvaluation(s: MockSession): EvaluationView | null {
     overallScore: result.overallScore,
     confidence: result.confidence,
     coverage: result.coverage,
-    effective: effectiveScore({ overallScore: result.overallScore }, []),
+    effective: isStrong
+      ? { score: 88, basis: "mentor-confirmed" }
+      : effectiveScore({ overallScore: result.overallScore }, []),
     results: result.perRequirement.map((r) => ({ ...r, requirement: byId.get(r.requirementId)! })),
-    strengths: result.strengths,
+    strengths: isStrong ? suiteB.strengths : result.strengths,
     gaps: result.gaps,
-    needsHumanReview: decision.escalate,
-    reviewStatus: decision.escalate ? "PENDING" : "NONE",
+    nextSteps: suiteB.nextSteps,
+    needsHumanReview: isStrong ? false : decision.escalate,
+    reviewStatus: isStrong ? "REVIEWED" : decision.escalate ? "PENDING" : "NONE",
     contested: false,
     contestReason: null,
-    escalation: decision.reasons,
-    reviews: [],
+    escalation: isStrong ? [] : decision.reasons,
+    reviews,
     turns: turnViews(s),
     files: toFileList(files),
     durationMinutes: s.seed.durationMinutes,
+    suiteA,
+    suiteB,
+    verificationReceipt: isStrong
+      ? {
+          hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          protocol: "PROOFCRAFT-RESILIENCE-V4",
+          timestamp: new Date(s.startedAt + 126 * MIN).toISOString(),
+          calibrationN: 140,
+          evaluatorVersion: "v2.4-strict-openai",
+        }
+      : undefined,
+    reviewSlaMessage: isStrong
+      ? "Verified by Senior Engineering Mentor (E. Vance, Staff Systems Architect)"
+      : "Human mentor review in progress: A senior engineering mentor is reviewing flagged criteria. This typically takes 2-3 business days. You will receive an email once finalized.",
   };
 }
 
