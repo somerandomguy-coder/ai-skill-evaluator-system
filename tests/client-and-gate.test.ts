@@ -12,22 +12,22 @@ const request = {
   maxTokens: 100,
 };
 
-const saved = { demo: process.env.DEMO_MODE, key: process.env.ANTHROPIC_API_KEY };
+const saved = { demo: process.env.DEMO_MODE, key: process.env.OPENAI_API_KEY };
 afterEach(() => {
   process.env.DEMO_MODE = saved.demo;
-  process.env.ANTHROPIC_API_KEY = saved.key;
+  process.env.OPENAI_API_KEY = saved.key;
 });
 
 describe("generateStructured guards", () => {
   it("refuses to make a live call in DEMO_MODE — the backstop behind 'no live API calls'", async () => {
     process.env.DEMO_MODE = "true";
-    process.env.ANTHROPIC_API_KEY = "sk-ant-should-not-be-used";
+    process.env.OPENAI_API_KEY = "sk-should-not-be-used";
     await expect(generateStructured(request)).rejects.toBeInstanceOf(DemoModeError);
   });
 
   it("explains a missing API key instead of failing obscurely", async () => {
     process.env.DEMO_MODE = "false";
-    process.env.ANTHROPIC_API_KEY = "";
+    process.env.OPENAI_API_KEY = "";
     const err = await generateStructured(request).catch((e) => e);
     expect(err).toBeInstanceOf(MissingApiKeyError);
     expect(err.message).toMatch(/DEMO_MODE=true/);

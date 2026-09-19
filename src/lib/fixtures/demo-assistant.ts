@@ -22,7 +22,7 @@ const scripted: AssistantTurn[] = WEAK_SESSION.turns
 export const DEMO_ASSISTANT_SCRIPT: readonly AssistantTurn[] = scripted;
 
 export const DEMO_ASSISTANT_EXHAUSTED: AssistantTurn = {
-  message: `${NOTE}\n\nThe demo has no further cached replies. Set DEMO_MODE=false and add an Anthropic API key to talk to the live assistant, or submit your session now.`,
+  message: `${NOTE}\n\nThe demo has no further cached replies. Set DEMO_MODE=false and add an OpenAI API key to talk to the live assistant, or submit your session now.`,
   files: [],
   reasoning: "Demo mode script exhausted.",
 };

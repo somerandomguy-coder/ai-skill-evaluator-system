@@ -5,8 +5,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
-    // Tests never touch a real database or the Anthropic API.
-    env: { DEMO_MODE: "false", ANTHROPIC_API_KEY: "" },
+    // Tests never touch a real database or the OpenAI API.
+    env: { DEMO_MODE: "false", OPENAI_API_KEY: "" },
   },
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },

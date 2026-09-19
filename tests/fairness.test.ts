@@ -135,7 +135,7 @@ describe("poor grammar + strong reasoning scores well", () => {
         r2: "u say u tested but u cannot run code",
         r3: "because promise is for who answer",
       }),
-      model: "claude-opus-5",
+      model: "gpt-5.5",
       usage: { inputTokens: 0, outputTokens: 0 },
     });
 
@@ -236,9 +236,9 @@ describe("the rubric can never assess language or a barrier", () => {
 });
 
 // --- live model (opt-in) ---------------------------------------------------
-// RUN_LIVE_AI_TESTS=1 ANTHROPIC_API_KEY=... DEMO_MODE=false npx vitest run tests/fairness.test.ts
+// RUN_LIVE_AI_TESTS=1 OPENAI_API_KEY=... DEMO_MODE=false npx vitest run tests/fairness.test.ts
 // Not run in CI or by default: it spends real tokens and cannot run offline.
-const live = process.env.RUN_LIVE_AI_TESTS === "1" && !!process.env.ANTHROPIC_API_KEY;
+const live = process.env.RUN_LIVE_AI_TESTS === "1" && !!process.env.OPENAI_API_KEY;
 
 describe.skipIf(!live)("live model: poor grammar with strong reasoning is not penalised", () => {
   it("scores the poorly-worded transcript within 15 points of the polished twin, and far above the shallow one", async () => {

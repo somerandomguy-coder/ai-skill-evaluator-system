@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
+import { zodResponseFormat } from "openai/helpers/zod";
 import { ChallengeCallSchema } from "@/lib/ai/assemble-challenge";
 import { bankSchemaFor } from "@/lib/ai/generate-requirements";
 import {
@@ -9,7 +9,7 @@ import {
   ParsedJdSchema,
 } from "@/lib/ai/schemas";
 import { detectBarriers, finalizeParsedJd } from "@/lib/ai/barriers";
-import { supportsAdaptiveThinking } from "@/lib/ai/client";
+import { supportsReasoningEffort } from "@/lib/ai/client";
 import {
   LIMITS,
   PathError,
@@ -30,20 +30,22 @@ describe("every model-facing schema can be sent as a structured-output format", 
     ["AssistantTurn", AssistantTurnSchema],
     ["EvaluatorOutput", EvaluatorOutputSchema],
   ])("%s", (_name, schema) => {
-    const fmt = betaZodOutputFormat(schema);
+    const fmt = zodResponseFormat(schema, "test_output");
     expect(fmt.type).toBe("json_schema");
-    expect(fmt.schema.type).toBe("object");
-    expect(fmt.schema.additionalProperties).toBe(false);
+    expect(fmt.json_schema.strict).toBe(true);
+    const json = fmt.json_schema.schema as { type?: string; additionalProperties?: boolean };
+    expect(json.type).toBe("object");
+    expect(json.additionalProperties).toBe(false);
   });
 });
 
 describe("model gating", () => {
-  it("only sends thinking/effort to models that accept them", () => {
-    for (const m of ["claude-opus-5", "claude-sonnet-5", "claude-opus-4-8", "claude-fable-5-1", "claude-sonnet-4-6"]) {
-      expect(supportsAdaptiveThinking(m), m).toBe(true);
+  it("only sends reasoning_effort to reasoning models", () => {
+    for (const m of ["gpt-5.5", "gpt-5", "gpt-5.4-mini", "o3", "o4-mini"]) {
+      expect(supportsReasoningEffort(m), m).toBe(true);
     }
-    for (const m of ["claude-haiku-4-5", "claude-haiku-4-5-20251001", "claude-sonnet-4-5"]) {
-      expect(supportsAdaptiveThinking(m), m).toBe(false);
+    for (const m of ["gpt-4.1", "gpt-4o", "gpt-5.2-chat-latest", "gpt-5-chat-latest"]) {
+      expect(supportsReasoningEffort(m), m).toBe(false);
     }
   });
 });

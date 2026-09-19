@@ -27,7 +27,7 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
           <Info aria-hidden />
           <AlertTitle>You are seeing the seeded example</AlertTitle>
           <AlertDescription>
-            Demo mode serves cached responses only, so it could not build a challenge from the text you pasted. Turn demo mode off (and add an Anthropic key) to generate one live.
+            Demo mode serves cached responses only, so it could not build a challenge from the text you pasted. Turn demo mode off (and add an OpenAI API key) to generate one live.
           </AlertDescription>
         </Alert>
       )}
