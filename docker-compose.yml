@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_USER: assess
       POSTGRES_PASSWORD: assess
-      POSTGRES_DB: assess
+      POSTGRES_DB: assess_dev
     ports:
       - "54329:5432"
     volumes:

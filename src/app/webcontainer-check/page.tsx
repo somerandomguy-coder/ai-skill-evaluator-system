@@ -8,7 +8,7 @@
  * riskiest dependency (cross-origin isolation + WebContainer) is proven.
  * The data-* attributes exist so a headless browser can assert on it.
  */
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import {
   getRuntimeSnapshot,
   getServerRuntimeSnapshot,
@@ -20,12 +20,15 @@ import { BASE_STARTER } from "@/lib/starter";
 export default function WebContainerCheckPage() {
   const snap = useSyncExternalStore(subscribeRuntime, getRuntimeSnapshot, getServerRuntimeSnapshot);
 
-  // Read after mount: `window` does not exist during SSR, so reading it while
-  // rendering would produce a hydration mismatch.
-  const [isolated, setIsolated] = useState<boolean | null>(null);
+  // `window` does not exist during SSR, so it is read through useSyncExternalStore:
+  // null on the server and during hydration, the real value afterwards (no mismatch).
+  const isolated = useSyncExternalStore(
+    () => () => undefined,
+    () => window.crossOriginIsolated,
+    () => null
+  );
 
   useEffect(() => {
-    setIsolated(window.crossOriginIsolated);
     void startRuntime(BASE_STARTER);
   }, []);
 

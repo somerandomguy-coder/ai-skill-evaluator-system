@@ -95,8 +95,7 @@ function enqueue<T>(fn: () => Promise<T>): Promise<T> {
   return run;
 }
 
-// eslint-disable-next-line no-control-regex
-const ANSI = /\[[0-9;?]*[A-Za-z]/g;
+const ANSI = /\u001b\[[0-9;?]*[A-Za-z]/g;
 
 function appendLog(chunk: string) {
   const lines = chunk

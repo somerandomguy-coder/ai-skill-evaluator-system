@@ -1,0 +1,218 @@
+// Work-sample assessment platform — data model.
+//
+// Follows the product spec, plus a handful of additions that the spec's flows
+// imply but its field list does not spell out (marked "added:").
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CANDIDATE
+  MENTOR
+}
+
+enum SessionStatus {
+  ACTIVE
+  SUBMITTED
+}
+
+enum TurnRole {
+  USER
+  ASSISTANT
+}
+
+// added: explicit mentor-queue state machine.
+//   NONE     -> nothing for a mentor to do (score stands)
+//   PENDING  -> escalated by the rules, or contested by the candidate
+//   REVIEWED -> a mentor has confirmed or overridden the AI evaluation
+enum ReviewStatus {
+  NONE
+  PENDING
+  REVIEWED
+}
+
+enum MentorVerdict {
+  CONFIRM
+  OVERRIDE
+}
+
+/// Seeded, no credentials. Auth is a role switcher backed by a cookie.
+model User {
+  id        String   @id @default(cuid(2))
+  email     String   @unique
+  name      String
+  role      Role
+  createdAt DateTime @default(now())
+
+  jobSubmissions JobSubmission[]
+  buildSessions  BuildSession[]
+  mentorReviews  MentorReview[]
+}
+
+model JobSubmission {
+  id              String   @id @default(cuid(2))
+  userId          String
+  rawJd           String
+  sourceUrl       String?
+  parsedJd        Json
+  companyResearch Json
+  // added: true when the challenge was served from DEMO_MODE fixtures
+  fromDemoCache   Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  user       User        @relation(fields: [userId], references: [id])
+  challenges Challenge[]
+
+  @@index([userId])
+}
+
+model Challenge {
+  id              String   @id @default(cuid(2))
+  jobSubmissionId String
+  title           String
+  brief           String // markdown
+  domainContext   String
+  timeboxMinutes  Int
+  /// Flat { path: contents } map mounted into the WebContainer.
+  starterTemplate Json
+  rubricVersion   String
+  // added: generator notes for mentors, never shown to candidates —
+  // { validApproaches: string[], ambiguities: string[], source: "ai" | "demo-cache" }
+  meta            Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  jobSubmission JobSubmission @relation(fields: [jobSubmissionId], references: [id])
+  requirements  Requirement[]
+  buildSessions BuildSession[]
+
+  @@index([jobSubmissionId])
+}
+
+/// The requirement bank: the rubric a candidate is shown before starting.
+model Requirement {
+  id             String   @id @default(cuid(2))
+  challengeId    String
+  category       String // PROBLEM_FRAMING | TECHNICAL_APPROACH | ... (validated by Zod)
+  statement      String
+  weight         Int
+  successSignals String[]
+  failureModes   String[]
+
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@index([challengeId])
+}
+
+model BuildSession {
+  id          String        @id @default(cuid(2))
+  challengeId String
+  userId      String
+  status      SessionStatus @default(ACTIVE)
+  startedAt   DateTime      @default(now())
+  submittedAt DateTime?
+
+  challenge     Challenge      @relation(fields: [challengeId], references: [id])
+  user          User           @relation(fields: [userId], references: [id])
+  turns         ChatTurn[]
+  snapshot      FileSnapshot?
+  evaluation    Evaluation?
+
+  @@index([challengeId])
+  @@index([userId])
+}
+
+/// The transcript — captured, not pasted.
+model ChatTurn {
+  id             String   @id @default(cuid(2))
+  buildSessionId String
+  seq            Int
+  role           TurnRole
+  content        String
+  /// [{ path, contents }] written by an ASSISTANT turn (whole files).
+  filesWritten   Json?
+  // added: the assistant's own `reasoning` field. Assistant-side context for
+  // the evaluator and mentor; never treated as the candidate's reasoning.
+  reasoning      String?
+  createdAt      DateTime @default(now())
+
+  buildSession BuildSession @relation(fields: [buildSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([buildSessionId, seq])
+}
+
+/// Final file tree at submission, reconstructed server-side from the
+/// starter template + every turn's filesWritten (never trusted from the client).
+model FileSnapshot {
+  id             String   @id @default(cuid(2))
+  buildSessionId String   @unique
+  /// [{ path, contents }]
+  tree           Json
+  capturedAt     DateTime @default(now())
+
+  buildSession BuildSession @relation(fields: [buildSessionId], references: [id], onDelete: Cascade)
+}
+
+model Evaluation {
+  id             String  @id @default(cuid(2))
+  buildSessionId String  @unique
+  /// 0-100, weighted over the requirements that could be scored.
+  overallScore   Float
+  /// 0-1, weighted; requirements that could not be scored count as 0.
+  confidence     Float
+  /// [{ requirementId, score|null, confidence, evidence[], rationale }]
+  perRequirement Json
+  strengths      String[]
+  gaps           String[]
+  needsHumanReview Boolean @default(false)
+  escalationReason String?
+  rubricVersion  String
+  createdAt      DateTime @default(now())
+
+  // added: mentor-queue state and the candidate's right to contest a score.
+  reviewStatus   ReviewStatus @default(NONE)
+  contested      Boolean      @default(false)
+  contestReason  String?
+  contestedAt    DateTime?
+  // added: how the evaluation was produced ("ai" | "demo-cache" | "demo-offline"),
+  // so a report can never present a canned result as a live AI judgment.
+  source         String       @default("ai")
+
+  buildSession  BuildSession   @relation(fields: [buildSessionId], references: [id], onDelete: Cascade)
+  mentorReviews MentorReview[]
+
+  @@index([reviewStatus])
+}
+
+model MentorReview {
+  id            String        @id @default(cuid(2))
+  evaluationId  String
+  mentorId      String
+  verdict       MentorVerdict
+  comments      String
+  adjustedScore Float?
+  reviewedAt    DateTime      @default(now())
+
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  mentor     User       @relation(fields: [mentorId], references: [id])
+
+  @@index([evaluationId])
+}
+
+/// DuckDuckGo results, cached forever by a hash of the normalised query so the
+/// scraper (no official API, rate-limits aggressively) is never hit twice.
+model SearchCache {
+  id        String   @id @default(cuid(2))
+  queryHash String   @unique
+  query     String
+  results   Json
+  // A transient failure is cached briefly (retryAfter) so a rate-limit is not hammered.
+  failed    Boolean  @default(false)
+  retryAfter DateTime?
+  createdAt DateTime @default(now())
+}
