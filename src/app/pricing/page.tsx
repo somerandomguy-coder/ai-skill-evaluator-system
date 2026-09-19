@@ -1,12 +1,11 @@
-import { Check, ArrowRight, Sparkles, UserCheck, HelpCircle } from "lucide-react";
+import { ArrowRight, Building2, Check, ChevronDown, Crown, GraduationCap, Rocket, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { PageShell } from "@/components/common/layout";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export const metadata = {
-  title: "Pricing — ProofCraft",
+  title: "Pricing",
   description: "Simple, transparent pricing. Your first work-sample assessment is 100% free.",
 };
 
@@ -15,7 +14,8 @@ const TIERS = [
     name: "Starter",
     price: "$0",
     cadence: "first project is free",
-    description: "Experience the full assessment workflow. No credit card required.",
+    description: "No credit card",
+    icon: Rocket,
     popular: false,
     badge: "Free Trial",
     features: [
@@ -28,15 +28,15 @@ const TIERS = [
     ],
     cta: "Start Free Assessment",
     href: "/",
-    ctaVariant: "outline" as const,
   },
   {
     name: "Pro Candidate",
     price: "$29",
     cadence: "per month (or $19 single assessment)",
-    description: "For active job seekers who want verified proof and senior human mentor feedback.",
+    description: "Verified proof + mentor review",
+    icon: Crown,
     popular: true,
-    badge: "Most Popular",
+    badge: "Highly recommended",
     features: [
       "Unlimited Role Assessments",
       "Human Mentor Review (Senior engineer audit within 48h)",
@@ -48,13 +48,13 @@ const TIERS = [
     ],
     cta: "Get Started with Pro",
     href: "/login?next=/pricing",
-    ctaVariant: "default" as const,
   },
   {
     name: "Teams & Centers",
     price: "$149",
     cadence: "per month / seat",
-    description: "For engineering hiring teams, mentorship programs, and coding bootcamps.",
+    description: "Hiring teams & bootcamps",
+    icon: Building2,
     popular: false,
     badge: "For Organizations",
     features: [
@@ -67,7 +67,6 @@ const TIERS = [
     ],
     cta: "Partner With Us",
     href: "/partnerships",
-    ctaVariant: "outline" as const,
   },
 ];
 
@@ -92,124 +91,122 @@ const FAQS = [
 
 export default function PricingPage() {
   return (
-    <PageShell width="6xl" className="space-y-16 py-12">
-      {/* Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-4">
-        <span className="font-mono text-xs uppercase px-2.5 py-0.5 bg-surface-container-low text-primary rounded font-semibold tracking-wider border border-border inline-flex items-center gap-2">
-          <Sparkles className="size-3 text-emerald-600" />
-          Transparent Pricing
+    <PageShell width="6xl" className="space-y-16 py-12 sm:py-16">
+      <header className="relative isolate mx-auto max-w-2xl space-y-5 overflow-x-clip text-center">
+        <div className="ambient -top-32 left-1/2 size-[32rem] -translate-x-1/2" aria-hidden />
+        <span className="rise inline-flex items-center gap-2 rounded-full border border-signal/50 bg-signal-soft/60 px-3 py-1 text-[13px] font-semibold text-signal-ink backdrop-blur-md">
+          <Sparkles className="size-3.5" aria-hidden />
+          First project free
         </span>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-primary">
-          First project is free. Pay only as you grow.
+        <h1 className="rise font-display text-4xl text-balance sm:text-6xl" style={{ ["--i" as string]: 1 }}>
+          Pay only as you grow.
         </h1>
-        <p className="text-base text-muted-foreground leading-relaxed">
-          Test your real engineering and AI co-pilot skills with zero risk. Upgrade when you need senior mentor evaluations and verified credentials.
-        </p>
-      </div>
+      </header>
 
-      {/* Pricing Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-        {TIERS.map((tier) => (
-          <Card
-            key={tier.name}
-            className={`flex flex-col justify-between border rounded relative ${
-              tier.popular
-                ? "border-primary bg-surface-container-lowest shadow-sm ring-1 ring-primary"
-                : "border-border bg-surface-container-lowest"
-            }`}
-          >
-            {tier.popular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-primary text-white font-mono text-[11px] px-3 py-0.5 rounded uppercase tracking-wider">
-                  {tier.badge}
-                </Badge>
+      <div className="relative isolate grid grid-cols-1 items-stretch gap-6 overflow-x-clip py-4 md:grid-cols-3">
+        <div className="ambient top-1/2 left-1/2 h-[30rem] w-[46rem] -translate-x-1/2 -translate-y-1/2" aria-hidden />
+        {TIERS.map((tier, i) => {
+          const Icon = tier.icon;
+          const card = (
+            <div
+              className={cn(
+                "relative flex h-full flex-col gap-6 overflow-hidden rounded-[calc(1.5rem-1.5px)] bg-card p-6",
+                tier.popular && "backdrop-blur-xl"
+              )}
+            >
+              {tier.popular && (
+                <span
+                  className="pointer-events-none absolute -top-24 -right-16 size-64 rounded-full bg-[radial-gradient(closest-side,rgb(255_107_0/0.16),transparent)]"
+                  aria-hidden
+                />
+              )}
+              <div className="flex items-center justify-between gap-3">
+                <span className={cn("grid size-10 place-items-center rounded-xl", tier.popular ? "bg-action text-[var(--action-ink)]" : "bg-signal-soft text-signal-ink")}>
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                {!tier.popular && <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">{tier.badge}</span>}
               </div>
-            )}
-
-            <CardHeader className="p-6 pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold text-primary">{tier.name}</CardTitle>
-                {!tier.popular && (
-                  <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground border-border">
-                    {tier.badge}
-                  </Badge>
-                )}
+              <div className="space-y-1">
+                <h2 className="font-title text-xl">{tier.name}</h2>
+                <p className="text-[13px] text-muted-foreground">{tier.description}</p>
               </div>
-              <CardDescription className="text-xs text-muted-foreground mt-1">
-                {tier.description}
-              </CardDescription>
-              <div className="mt-4 pt-4 border-t border-border">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-primary">{tier.price}</span>
-                  <span className="text-xs text-muted-foreground font-mono">/ {tier.cadence}</span>
-                </div>
+              <div className="flex items-baseline gap-1.5 border-t border-border pt-5">
+                <span className="tabular font-display text-5xl">{tier.price}</span>
+                <span className="text-xs text-muted-foreground">{tier.cadence}</span>
               </div>
-            </CardHeader>
-
-            <CardContent className="p-6 pt-2 flex-1">
-              <ul className="space-y-2.5 text-xs text-foreground/90">
+              <ul className="flex-1 space-y-2.5 text-[13px]">
                 {tier.features.map((feat) => (
                   <li key={feat} className="flex items-start gap-2.5">
-                    <Check className="size-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span className="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-signal-soft text-signal-ink">
+                      <Check className="size-2.5" strokeWidth={3.5} aria-hidden />
+                    </span>
                     <span className="leading-relaxed">{feat}</span>
                   </li>
                 ))}
               </ul>
-            </CardContent>
-
-            <CardFooter className="p-6 pt-2">
               <Link
                 href={tier.href}
                 className={buttonVariants({
-                  variant: tier.ctaVariant,
-                  className: "w-full rounded font-semibold text-xs py-5 gap-2",
+                  variant: tier.popular ? "signal" : "outline",
+                  size: "xl",
+                  className: "w-full",
                 })}
               >
-                <span>{tier.cta}</span>
-                <ArrowRight className="size-3.5" />
+                {tier.cta}
+                <ArrowRight aria-hidden />
               </Link>
-            </CardFooter>
-          </Card>
-        ))}
+            </div>
+          );
+          return tier.popular ? (
+            // Gradient border: a 1.5px orange frame around a frosted card, lifted and glowing.
+            <div
+              key={tier.name}
+              className="rise lift-lg relative rounded-3xl bg-[linear-gradient(160deg,#ffb066,#ff6b00_40%,#ea580c_70%,rgb(234_88_12/0.2))] p-[1.5px] shadow-[0_20px_60px_-20px_rgb(255_107_0/0.55)] md:-my-3"
+              style={{ ["--i" as string]: i }}
+            >
+              <span className="absolute -top-3.5 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-action px-3 py-1 text-xs font-semibold whitespace-nowrap text-[var(--action-ink)] shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_4px_14px_rgb(255_107_0/0.45)]">
+                <Sparkles className="size-3.5" aria-hidden />
+                {tier.badge}
+              </span>
+              {card}
+            </div>
+          ) : (
+            <div key={tier.name} className="rise lift-lg rounded-3xl border border-border" style={{ ["--i" as string]: i }}>
+              {card}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Feature Highlights Banner */}
-      <div className="bg-surface-container-low border border-border rounded p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="space-y-1.5 text-center sm:text-left">
-          <div className="flex items-center justify-center sm:justify-start gap-2 text-primary font-bold text-base">
-            <UserCheck className="size-5 text-emerald-600" />
-            <span>Looking for Human Mentorship or Career Review?</span>
-          </div>
-          <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
-            Our accredited network of senior engineers from Atlassian, Canva, and Culture Amp reviews candidate sessions to provide deep feedback and verify credentials.
-          </p>
-        </div>
-        <Link
-          href="/partnerships"
-          className={buttonVariants({ variant: "outline", className: "rounded shrink-0 text-xs font-mono border-border" })}
-        >
-          Learn About Mentors & Partnerships →
+      <div className="flex flex-col items-center justify-between gap-4 rounded-3xl border border-border bg-card p-6 sm:flex-row">
+        <span className="inline-flex items-center gap-2.5 font-semibold">
+          <span className="grid size-9 place-items-center rounded-xl bg-signal-soft text-signal-ink">
+            <GraduationCap className="size-4" aria-hidden />
+          </span>
+          Mentors & partnerships
+        </span>
+        <Link href="/partnerships" className={buttonVariants({ variant: "outline", size: "lg", className: "rounded-full px-4" })}>
+          Explore
+          <ArrowRight aria-hidden />
         </Link>
       </div>
 
-      {/* FAQs */}
-      <div className="space-y-8 max-w-3xl mx-auto pt-4">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold tracking-tight text-primary">Frequently Asked Questions</h2>
-          <p className="text-xs text-muted-foreground">Everything you need to know about ProofCraft billing and plans.</p>
-        </div>
-        <div className="grid gap-4">
+      <section aria-labelledby="faq" className="mx-auto max-w-3xl space-y-5">
+        <h2 id="faq" className="font-title text-center text-2xl">
+          FAQ
+        </h2>
+        <div className="divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card">
           {FAQS.map((faq) => (
-            <Card key={faq.q} className="border border-border bg-surface-container-lowest rounded p-5">
-              <h3 className="font-semibold text-primary text-sm flex items-center gap-2">
-                <HelpCircle className="size-4 text-secondary shrink-0" />
-                <span>{faq.q}</span>
-              </h3>
-              <p className="mt-2 text-xs text-muted-foreground leading-relaxed pl-6">{faq.a}</p>
-            </Card>
+            <details key={faq.q} className="group/faq">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold transition-colors hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+                {faq.q}
+                <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform duration-300 group-open/faq:rotate-180" aria-hidden />
+              </summary>
+              <p className="slide-in px-5 pb-5 text-[13px] leading-relaxed text-muted-foreground">{faq.a}</p>
+            </details>
           ))}
         </div>
-      </div>
+      </section>
     </PageShell>
   );
 }

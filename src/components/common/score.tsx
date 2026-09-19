@@ -1,8 +1,16 @@
+import type { CSSProperties } from "react";
 import { PASS_BOUNDARY } from "@/lib/constants";
-import { scoreBand, TONE_STROKE } from "@/lib/format";
+import { scoreBand, type Tone } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-/** Circular 0-100 score with a tick at the pass boundary. */
+/** Status colours for a score band, from the theme tokens so they hold up in dark mode. */
+export const TONE = {
+  strong: { text: "text-ok", bg: "bg-ok", soft: "bg-ok-soft text-ok", stroke: "stroke-ok" },
+  mixed: { text: "text-warn", bg: "bg-warn", soft: "bg-warn-soft text-warn", stroke: "stroke-warn" },
+  limited: { text: "text-bad", bg: "bg-bad", soft: "bg-bad-soft text-bad", stroke: "stroke-bad" },
+} satisfies Record<Tone, Record<string, string>>;
+
+/** Circular 0-100 score with a tick at the pass boundary. The arc draws itself in once. */
 export function ScoreRing({
   score,
   size = 176,
@@ -20,12 +28,19 @@ export function ScoreRing({
   const band = scoreBand(pct);
   const c = size / 2;
   const r = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * r;
+  // Rounded so server (Node) and browser trig agree exactly, or hydration mismatches.
+  const round = (n: number) => Math.round(n * 100) / 100;
+  const circumference = round(2 * Math.PI * r);
   // The ring is drawn starting at 12 o'clock; the tick uses the same convention.
   const theta = (PASS_BOUNDARY / 100) * 2 * Math.PI;
   const inner = r - stroke / 2 - 3;
   const outer = r + stroke / 2 + 3;
-  const tick = { x1: c + inner * Math.cos(theta), y1: c + inner * Math.sin(theta), x2: c + outer * Math.cos(theta), y2: c + outer * Math.sin(theta) };
+  const tick = {
+    x1: round(c + inner * Math.cos(theta)),
+    y1: round(c + inner * Math.sin(theta)),
+    x2: round(c + outer * Math.cos(theta)),
+    y2: round(c + outer * Math.sin(theta)),
+  };
 
   return (
     <div className={cn("relative shrink-0", className)} style={{ width: size, height: size }} role="img" aria-label={`Score ${Math.round(pct)} percent, ${band.label}`}>
@@ -39,26 +54,28 @@ export function ScoreRing({
             fill="none"
             strokeWidth={stroke}
             strokeLinecap="round"
-            strokeDasharray={`${(circumference * pct) / 100} ${circumference}`}
-            className={TONE_STROKE[band.tone]}
+            strokeDasharray={circumference}
+            strokeDashoffset={round(circumference * (1 - pct / 100))}
+            className={cn("score-arc", TONE[band.tone].stroke)}
+            style={{ "--arc": circumference } as CSSProperties}
           />
-          <line {...tick} strokeWidth={2} className="stroke-foreground/50" />
+          <line {...tick} strokeWidth={2} className="stroke-foreground/40" />
         </g>
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
-          <div className="tabular text-4xl font-semibold tracking-tight">
+          <div className="tabular font-display text-5xl">
             {Math.round(pct)}
-            <span className="ml-0.5 text-lg font-medium text-muted-foreground">%</span>
+            <span className="ml-0.5 text-xl font-medium text-muted-foreground">%</span>
           </div>
-          <div className="mt-0.5 text-xs text-muted-foreground">{caption ?? band.label}</div>
+          <div className={cn("mt-1 text-xs font-medium", TONE[band.tone].text)}>{caption ?? band.label}</div>
         </div>
       </div>
     </div>
   );
 }
 
-const SEGMENT_TONE = ["bg-rose-500", "bg-rose-400", "bg-amber-400", "bg-amber-500", "bg-emerald-500", "bg-emerald-600"];
+const segmentTone = (score: number) => (score >= 4 ? "bg-ok" : score === 3 ? "bg-warn" : "bg-bad");
 
 /** 0-5 in five segments; `null` renders as an honest "not scored". */
 export function ScoreBar({ score, className }: { score: number | null; className?: string }) {
@@ -67,7 +84,7 @@ export function ScoreBar({ score, className }: { score: number | null; className
       <div className={cn("flex items-center gap-2", className)}>
         <div className="flex gap-1" aria-hidden>
           {[0, 1, 2, 3, 4].map((i) => (
-            <span key={i} className="h-2 w-5 rounded-full border border-dashed border-foreground/25" />
+            <span key={i} className="h-1.5 w-5 rounded-full border border-dashed border-foreground/25" />
           ))}
         </div>
         <span className="text-xs font-medium text-muted-foreground">Not scored</span>
@@ -78,10 +95,10 @@ export function ScoreBar({ score, className }: { score: number | null; className
     <div className={cn("flex items-center gap-2", className)} role="img" aria-label={`Score ${score} out of 5`}>
       <div className="flex gap-1" aria-hidden>
         {[1, 2, 3, 4, 5].map((i) => (
-          <span key={i} className={cn("h-2 w-5 rounded-full", i <= score ? SEGMENT_TONE[score] : "bg-foreground/10")} />
+          <span key={i} className={cn("h-1.5 w-5 rounded-full", i <= score ? segmentTone(score) : "bg-foreground/10")} />
         ))}
       </div>
-      <span className="tabular text-sm font-semibold">
+      <span className="tabular font-mono text-sm font-semibold">
         {score}
         <span className="text-xs font-normal text-muted-foreground">/5</span>
       </span>
@@ -95,10 +112,10 @@ export function ConfidenceMeter({ value, className }: { value: number; className
   return (
     <div className={cn("flex items-center gap-2 text-xs text-muted-foreground", className)} title={`Confidence ${pct}%`}>
       <span>Confidence</span>
-      <span className="h-1.5 w-16 overflow-hidden rounded-full bg-foreground/10" aria-hidden>
-        <span className="block h-full rounded-full bg-foreground/60" style={{ width: `${pct}%` }} />
+      <span className="h-1 w-16 overflow-hidden rounded-full bg-foreground/10" aria-hidden>
+        <span className="grow-x block h-full rounded-full bg-signal" style={{ width: `${pct}%` }} />
       </span>
-      <span className="tabular w-8">{value.toFixed(2)}</span>
+      <span className="tabular w-8 font-mono">{pct}%</span>
     </div>
   );
 }

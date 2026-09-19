@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, LogOut, Users } from "lucide-react";
+import { ChevronDown, GraduationCap, LogIn, LogOut, UserPlus, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
@@ -27,7 +27,7 @@ function Avatar({ name, role, className }: { name: string; role: UserView["role"
     <span
       className={cn(
         "grid size-7 shrink-0 place-items-center rounded-full text-[0.65rem] font-semibold",
-        role === "MENTOR" ? "bg-amber-100 text-amber-800" : "bg-indigo-100 text-indigo-800",
+        role === "MENTOR" ? "bg-warn-soft text-warn" : "bg-signal-soft text-signal-ink",
         className
       )}
       aria-hidden
@@ -47,9 +47,28 @@ export function RoleSwitcher({ current, users }: { current: UserView | null; use
 
   if (!current) {
     return (
-      <Link href="/login" className={buttonVariants({ variant: "default", size: "sm" })}>
-        Sign in
-      </Link>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={<Button variant="outline" size="icon" className="rounded-full" aria-label="Account menu" />}
+        >
+          <UserRound className="size-4" aria-hidden />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem render={<Link href="/login" />} className="gap-2">
+            <LogIn className="size-4" aria-hidden />
+            Sign in
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/login?mode=signup" />} className="gap-2">
+            <UserPlus className="size-4" aria-hidden />
+            Sign up
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem render={<Link href="/mentor" />} className="gap-2">
+            <GraduationCap className="size-4 text-signal" aria-hidden />
+            Mentor portal
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 
@@ -60,11 +79,11 @@ export function RoleSwitcher({ current, users }: { current: UserView | null; use
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" className="h-9 gap-2 px-1.5 sm:px-2" aria-busy={pending} />}>
+      <DropdownMenuTrigger render={<Button variant="ghost" className="h-9 gap-2 rounded-full px-1.5 sm:pr-2.5" aria-busy={pending} />}>
         <Avatar name={current.name} role={current.role} />
-        <span className="hidden text-left leading-tight sm:block">
-          <span className="block text-sm font-medium">{current.name}</span>
-          <span className="block text-xs text-muted-foreground">{ROLE_LABEL[current.role]}</span>
+        {/* One line: the name, or the role when the account has no real name. */}
+        <span className="hidden max-w-32 truncate text-[13px] font-medium lg:block">
+          {current.name && current.name !== ROLE_LABEL[current.role] ? current.name : ROLE_LABEL[current.role]}
         </span>
         <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden />
       </DropdownMenuTrigger>
@@ -98,6 +117,10 @@ export function RoleSwitcher({ current, users }: { current: UserView | null; use
           </DropdownMenuGroup>
         ))}
         <DropdownMenuSeparator />
+        <DropdownMenuItem render={<Link href="/mentor" />} className="gap-2">
+          <GraduationCap className="size-4 text-signal" aria-hidden />
+          Mentor portal
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => start(() => signOut())} className="gap-2">
           <LogOut className="size-4" aria-hidden />
           Sign out

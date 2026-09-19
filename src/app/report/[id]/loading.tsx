@@ -2,20 +2,24 @@ import { PageShell } from "@/components/common/layout";
 
 export default function ReportLoading() {
   return (
-    <PageShell width="5xl" className="py-8 space-y-8 animate-pulse">
-      <div className="space-y-3 pb-6 border-b border-border">
-        <div className="h-5 w-36 rounded bg-muted/80"></div>
-        <div className="h-9 w-2/3 rounded bg-muted/80"></div>
-        <div className="h-4 w-1/3 rounded bg-muted/50"></div>
+    <PageShell width="5xl" className="space-y-6 py-8">
+      <div className="space-y-4">
+        <div className="skeleton h-6 w-40 rounded-full" />
+        <div className="skeleton h-12 w-3/4" />
+        <div className="flex gap-2">
+          <div className="skeleton h-8 w-44 rounded-full" />
+          <div className="skeleton h-8 w-28 rounded-full" />
+        </div>
       </div>
-
-      <div className="grid gap-5 md:grid-cols-3">
-        <div className="h-36 rounded-lg border border-border bg-surface-container-low"></div>
-        <div className="h-36 rounded-lg border border-border bg-surface-container-low"></div>
-        <div className="h-36 rounded-lg border border-border bg-surface-container-low"></div>
+      <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
+        <div className="skeleton h-64 rounded-3xl" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="skeleton h-48 rounded-3xl" />
+          <div className="skeleton h-48 rounded-3xl" />
+        </div>
       </div>
-
-      <div className="h-64 rounded-lg border border-border bg-surface-container-low"></div>
+      <div className="skeleton h-16 rounded-2xl" />
+      <div className="skeleton h-16 rounded-2xl" />
     </PageShell>
   );
 }

@@ -7,7 +7,7 @@ export function PageShell({ children, className, width = "6xl" }: { children: Re
   const max = { "4xl": "max-w-4xl", "5xl": "max-w-5xl", "6xl": "max-w-6xl", "7xl": "max-w-7xl" }[width];
   return (
     <>
-      <div className={cn("mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10", max, className)}>{children}</div>
+      <div className={cn("mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8", max, className)}>{children}</div>
       <SiteFooter />
     </>
   );
@@ -26,9 +26,9 @@ export function SectionTitle({
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      {eyebrow && <div className="text-xs font-medium uppercase tracking-wider text-primary/80">{eyebrow}</div>}
-      <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h2>
-      {description && <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">{description}</p>}
+      {eyebrow && <div className="text-[13px] font-medium text-muted-foreground">{eyebrow}</div>}
+      <h2 className="font-title text-xl text-balance sm:text-2xl">{title}</h2>
+      {description && <p className="max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">{description}</p>}
     </div>
   );
 }

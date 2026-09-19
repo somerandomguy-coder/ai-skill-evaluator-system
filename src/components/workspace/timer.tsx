@@ -19,16 +19,22 @@ export function SessionTimer({ startedAt, timeboxMinutes }: { startedAt: string;
 
   return (
     <div
-      className={cn("hidden items-center gap-2 rounded-lg border px-2.5 py-1 text-xs sm:flex", over ? "border-amber-300 bg-amber-50 text-amber-800" : "bg-muted/40 text-muted-foreground")}
+      className={cn(
+        "hidden items-center gap-2 rounded-lg px-2.5 py-1 text-xs sm:flex",
+        over ? "bg-warn-soft text-warn" : "bg-muted text-muted-foreground"
+      )}
       title={over ? "Past the guide time. You can keep going; the timebox is a guide, not a hard stop." : "Time so far, against the guide time for this brief"}
     >
       <Clock className="size-3.5" aria-hidden />
-      <span className="tabular font-medium text-foreground">
+      <span className={cn("tabular font-mono font-medium", !over && "text-foreground")} suppressHydrationWarning>
         {h}:{pad(m)}:{pad(s)}
       </span>
-      <span className="text-muted-foreground">of ~{formatTimebox(timeboxMinutes)}</span>
-      <span className="h-1 w-14 overflow-hidden rounded-full bg-foreground/10" aria-hidden>
-        <span className={cn("block h-full rounded-full", over ? "bg-amber-500" : "bg-primary/70")} style={{ width: `${pct}%` }} />
+      <span className="hidden text-muted-foreground xl:inline">of ~{formatTimebox(timeboxMinutes)}</span>
+      <span className="h-1 w-12 overflow-hidden rounded-full bg-foreground/10" aria-hidden>
+        <span
+          className={cn("block h-full w-full origin-left rounded-full transition-transform duration-1000 ease-linear", over ? "bg-warn" : "bg-signal")}
+          style={{ transform: `scaleX(${pct / 100})` }}
+        />
       </span>
     </div>
   );

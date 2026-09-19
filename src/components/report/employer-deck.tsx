@@ -270,7 +270,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
                 <div className="flex items-center justify-between border-b border-border pb-4">
                   <div>
                     <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                      ProofCraft Executive Dossier // For Hiring Managers
+                      codecraft Executive Dossier // For Hiring Managers
                     </span>
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-primary tracking-tight mt-1">
                       {candidateName}
@@ -484,7 +484,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
                 <div className="p-4 rounded bg-surface-container-low border border-border space-y-3 text-xs font-mono">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">ENGINE PROTOCOL</span>
-                    <span className="font-bold text-primary">ProofCraft Resilience v2.4</span>
+                    <span className="font-bold text-primary">codecraft Resilience v2.4</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">TIMESTAMP (UTC)</span>

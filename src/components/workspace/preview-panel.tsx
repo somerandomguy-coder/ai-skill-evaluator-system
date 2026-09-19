@@ -16,17 +16,13 @@ export function PreviewPanel({ initialFiles }: { initialFiles: FileMap }) {
   if (rt.status === "unsupported") {
     return (
       <div className="mx-auto flex h-full max-w-md flex-col justify-center gap-4 p-6">
-        <span className="grid size-10 place-items-center rounded-xl bg-muted text-muted-foreground">
+        <span className="grid size-11 place-items-center rounded-2xl bg-muted text-muted-foreground">
           <MonitorOff className="size-5" aria-hidden />
         </span>
         <div className="space-y-1.5">
-          <h3 className="text-base font-semibold">The live preview can&apos;t run in this browser</h3>
+          <h3 className="font-title text-base">Live preview needs Chrome or Edge</h3>
           <p className="text-sm text-muted-foreground">{rt.unsupportedReason}</p>
         </div>
-        <ul className="space-y-1.5 text-sm text-muted-foreground">
-          <li>Open this page in Chrome, Edge or Brave to get the live preview.</li>
-          <li>You can keep working: the assistant still writes your files (see the Files tab), and your transcript is what we assess.</li>
-        </ul>
       </div>
     );
   }
@@ -34,7 +30,7 @@ export function PreviewPanel({ initialFiles }: { initialFiles: FileMap }) {
   if (rt.status === "error") {
     return (
       <div className="flex h-full flex-col gap-3 p-4">
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="rounded-xl border-bad/30 bg-bad-soft">
           <TriangleAlert aria-hidden />
           <AlertTitle>The preview hit a problem</AlertTitle>
           <AlertDescription>{rt.error}</AlertDescription>
@@ -48,7 +44,7 @@ export function PreviewPanel({ initialFiles }: { initialFiles: FileMap }) {
             Start over
           </Button>
         </div>
-        {rt.logs.length > 0 && <pre className="min-h-0 flex-1 overflow-auto rounded-lg bg-neutral-950 p-3 font-mono text-[0.7rem] leading-relaxed text-neutral-300">{rt.logs.slice(-40).join("\n")}</pre>}
+        {rt.logs.length > 0 && <pre className="min-h-0 flex-1 overflow-auto rounded-xl bg-code p-3 font-mono text-[11px] leading-relaxed text-code-foreground">{rt.logs.slice(-40).join("\n")}</pre>}
       </div>
     );
   }
@@ -57,8 +53,11 @@ export function PreviewPanel({ initialFiles }: { initialFiles: FileMap }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center justify-between gap-2 border-b px-3 py-1.5">
-        <span className="truncate font-mono text-xs text-muted-foreground">{rt.previewUrl.replace(/^https?:\/\//, "")}</span>
+      <div className="flex items-center gap-2 border-b border-border bg-card px-2 py-1.5">
+        <span className="flex min-w-0 flex-1 items-center gap-2 rounded-lg bg-muted px-3 py-1">
+          <span className="live-dot size-1.5 shrink-0 text-ok" aria-hidden />
+          <span className="truncate font-mono text-xs text-muted-foreground">{rt.previewUrl.replace(/^https?:\/\//, "")}</span>
+        </span>
         <div className="flex shrink-0 items-center gap-1">
           <Button variant="ghost" size="icon-sm" onClick={() => setReloads((n) => n + 1)} title="Reload the preview" aria-label="Reload the preview">
             <RefreshCw aria-hidden />
@@ -68,7 +67,7 @@ export function PreviewPanel({ initialFiles }: { initialFiles: FileMap }) {
           </a>
         </div>
       </div>
-      <iframe key={reloads} src={rt.previewUrl} title="Live preview of your project" className="min-h-0 w-full flex-1 border-0 bg-white" />
+      <iframe key={reloads} src={rt.previewUrl} title="Live preview of your project" className="fade-in min-h-0 w-full flex-1 border-0 bg-white" />
     </div>
   );
 }

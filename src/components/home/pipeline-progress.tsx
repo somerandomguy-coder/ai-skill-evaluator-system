@@ -21,35 +21,51 @@ export const PIPELINE_STEPS: Omit<ProgressStep, "state" | "detail">[] = [
   { id: "save", label: "Save", hint: "Ready for you to read before you start" },
 ];
 
-/** Narrates the pipeline while it runs: live generation takes about a minute. */
+/** Narrates the pipeline while it runs, as a build log: live generation takes about a minute. */
 export function PipelineProgress({ steps }: { steps: ProgressStep[] }) {
+  const done = steps.filter((s) => s.state === "done").length;
   return (
-    <ol className="space-y-0" aria-live="polite" aria-label="Building your challenge">
-      {steps.map((s, i) => (
-        <li key={s.id} className="relative flex gap-3 pb-4 last:pb-0">
-          {i < steps.length - 1 && (
-            <span className={cn("absolute top-6 left-[0.6875rem] h-[calc(100%-1.25rem)] w-px", s.state === "done" ? "bg-emerald-300" : "bg-border")} aria-hidden />
-          )}
-          <span className="relative mt-0.5 grid size-[1.375rem] shrink-0 place-items-center">
-            {s.state === "done" ? (
-              <span className="grid size-[1.375rem] place-items-center rounded-full bg-emerald-500 text-white">
-                <Check className="size-3.5" strokeWidth={3} aria-hidden />
+    <div className="space-y-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="font-title text-base">Building your challenge</p>
+        <span className="tabular font-mono text-xs text-muted-foreground">
+          {done}/{steps.length}
+        </span>
+      </div>
+      <ol className="space-y-0" aria-live="polite" aria-label="Building your challenge">
+        {steps.map((s, i) => (
+          <li key={s.id} className="relative flex gap-3.5 pb-5 last:pb-0">
+            {i < steps.length - 1 && (
+              <span className="absolute top-7 bottom-1 left-[0.6875rem] w-px bg-border" aria-hidden>
+                {s.state === "done" && <span className="grow-y absolute inset-0 bg-ok" />}
               </span>
-            ) : s.state === "active" ? (
-              <LoaderCircle className="size-[1.375rem] animate-spin text-primary" aria-hidden />
-            ) : (
-              <span className="size-[1.375rem] rounded-full border-2 border-dashed border-foreground/20" aria-hidden />
             )}
-          </span>
-          <div className="min-w-0">
-            <div className={cn("text-sm font-medium", s.state === "pending" && "text-muted-foreground")}>
-              {s.label}
-              {s.detail && <span className="ml-2 font-normal text-muted-foreground">{s.detail}</span>}
+            <span className="relative mt-0.5 grid size-[1.375rem] shrink-0 place-items-center">
+              {s.state === "done" ? (
+                <span className="pop-in grid size-[1.375rem] place-items-center rounded-full bg-ok text-white dark:text-background">
+                  <Check className="size-3.5" strokeWidth={3} aria-hidden />
+                </span>
+              ) : s.state === "active" ? (
+                <LoaderCircle className="size-[1.375rem] animate-spin text-signal" aria-hidden />
+              ) : (
+                <span className="size-[1.375rem] rounded-full border-2 border-dashed border-foreground/15" aria-hidden />
+              )}
+            </span>
+            <div className="min-w-0 pt-px">
+              <div className={cn("text-sm font-medium transition-colors", s.state === "pending" && "text-muted-foreground")}>
+                {s.label}
+                {s.detail && <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">{s.detail}</span>}
+              </div>
             </div>
-            {s.state === "active" && <p className="text-xs text-muted-foreground">{s.hint}</p>}
-          </div>
-        </li>
-      ))}
-    </ol>
+          </li>
+        ))}
+      </ol>
+      <div className="h-1 overflow-hidden rounded-full bg-muted" aria-hidden>
+        <div
+          className="h-full origin-left rounded-full bg-signal transition-transform duration-700 ease-[var(--ease)]"
+          style={{ transform: `scaleX(${Math.max(0.04, done / steps.length)})` }}
+        />
+      </div>
+    </div>
   );
 }

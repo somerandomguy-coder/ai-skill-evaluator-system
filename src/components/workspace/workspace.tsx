@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, FolderTree, MessageSquare, MonitorPlay, Terminal } from "lucide-react";
+import { BookOpenText, FolderTree, MessageSquare, MonitorPlay, SquareTerminal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FileBrowser } from "@/components/evidence/file-browser";
@@ -32,8 +32,8 @@ function ConsoleView() {
     ref.current?.scrollTo({ top: ref.current.scrollHeight });
   }, [rt.logs.length]);
   return (
-    <pre ref={ref} className="h-full overflow-auto bg-neutral-950 p-3 font-mono text-[0.72rem] leading-relaxed text-neutral-300">
-      {rt.logs.length ? rt.logs.join("\n") : "Install and dev-server output appears here."}
+    <pre ref={ref} className="h-full overflow-auto bg-code p-4 font-mono text-[12px] leading-relaxed text-code-foreground">
+      {rt.logs.length ? rt.logs.join("\n") : <span className="text-code-foreground/50">Install and dev-server output appears here.</span>}
     </pre>
   );
 }
@@ -147,57 +147,51 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
 
   const userTurns = turns.filter((t) => t.role === "USER").length;
 
+  const visibleFiles = fileList.filter((f) => f.path !== "package-lock.json").length;
+  const tabClass = "h-10 flex-none gap-1.5 rounded-none px-3 text-[13px] after:bg-signal data-active:text-foreground";
+
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 flex-col">
-      <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border bg-surface-container-low px-4">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-primary text-white font-semibold uppercase shrink-0">
-            Step 3 · Workspace
-          </span>
-          <div className="truncate text-xs font-bold text-primary">{workspace.challenge.title}</div>
-        </div>
+      <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-4">
+        <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold" title={workspace.challenge.title}>
+          {workspace.challenge.title}
+        </h1>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-[13px]" onClick={() => setBriefOpen(true)}>
+          <BookOpenText className="size-3.5" aria-hidden />
+          <span className="hidden sm:inline">Brief & rubric</span>
+        </Button>
+        <SessionTimer startedAt={workspace.startedAt} timeboxMinutes={workspace.challenge.timeboxMinutes} />
+        <RuntimePill />
+        <SubmitDialog turnCount={userTurns} fileCount={visibleFiles} disabled={userTurns === 0 || pending} onSubmit={submit} />
+      </div>
 
-        <div className="hidden md:flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-          <span>AUTOSAVED {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} UTC</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 font-mono text-xs rounded border-border hover:bg-surface-container"
-            onClick={() => setBriefOpen(true)}
-          >
-            <BookOpen className="size-3.5" aria-hidden />
-            <span>Rubric Checklist</span>
-          </Button>
-          <SessionTimer startedAt={workspace.startedAt} timeboxMinutes={workspace.challenge.timeboxMinutes} />
-          <RuntimePill />
-          <SubmitDialog turnCount={userTurns} fileCount={fileList.filter((f) => f.path !== "package-lock.json").length} disabled={userTurns === 0 || pending} onSubmit={submit} />
+      {/* Below lg the two panes become a segmented switch. */}
+      <div className="border-b border-border bg-card p-1.5 lg:hidden">
+        <div className="relative grid grid-cols-2 rounded-lg bg-muted p-0.5" role="tablist" aria-label="Workspace view">
+          <span
+            className="absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded-md bg-card shadow-sm transition-transform duration-300 ease-[var(--ease)]"
+            style={{ transform: mobile === "work" ? "translateX(100%)" : "none" }}
+            aria-hidden
+          />
+          {(["chat", "work"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="tab"
+              aria-selected={mobile === v}
+              onClick={() => setMobile(v)}
+              className={cn("relative flex items-center justify-center gap-1.5 rounded-md py-1.5 text-[13px] font-medium transition-colors", mobile === v ? "text-foreground" : "text-muted-foreground")}
+            >
+              {v === "chat" ? <MessageSquare className="size-3.5" aria-hidden /> : <MonitorPlay className="size-3.5" aria-hidden />}
+              {v === "chat" ? "Chat" : "Preview & files"}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Below lg the two panes become a switch */}
-      <div className="grid grid-cols-2 gap-1 border-b bg-muted/40 p-1 lg:hidden" role="tablist" aria-label="Workspace view">
-        {(["chat", "work"] as const).map((v) => (
-          <button
-            key={v}
-            type="button"
-            role="tab"
-            aria-selected={mobile === v}
-            onClick={() => setMobile(v)}
-            className={cn("flex items-center justify-center gap-1.5 rounded-md py-1.5 text-sm font-medium", mobile === v ? "bg-background shadow-sm" : "text-muted-foreground")}
-          >
-            {v === "chat" ? <MessageSquare className="size-4" aria-hidden /> : <MonitorPlay className="size-4" aria-hidden />}
-            {v === "chat" ? "Chat" : "Preview & files"}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)]">
         <ChatPanel
-          className={cn("border-r", mobile !== "chat" && "hidden lg:flex")}
+          className={cn("border-r border-border", mobile !== "chat" && "hidden lg:flex")}
           turns={turns}
           notes={notes}
           pending={pending}
@@ -210,30 +204,30 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
           onOpenBrief={() => setBriefOpen(true)}
         />
 
-        <div className={cn("flex min-h-0 min-w-0 flex-col", mobile !== "work" && "hidden lg:flex")}>
+        <div className={cn("flex min-h-0 min-w-0 flex-col bg-background", mobile !== "work" && "hidden lg:flex")}>
           <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="min-h-0 flex-1 gap-0">
-            <div className="border-b bg-muted/30 px-3 py-2">
-              <TabsList>
-                <TabsTrigger value="preview" className="gap-1.5">
+            <div className="border-b border-border bg-card px-2">
+              <TabsList variant="line" className="h-10 gap-0 p-0">
+                <TabsTrigger value="preview" className={tabClass}>
                   <MonitorPlay aria-hidden /> Preview
                 </TabsTrigger>
-                <TabsTrigger value="files" className="gap-1.5">
+                <TabsTrigger value="files" className={tabClass}>
                   <FolderTree aria-hidden /> Files
-                  <span className="tabular text-xs text-muted-foreground">{fileList.filter((f) => f.path !== "package-lock.json").length}</span>
-                  {changed.size > 0 && <span className="size-1.5 rounded-full bg-emerald-500" aria-label="updated" />}
+                  <span className="tabular rounded bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{visibleFiles}</span>
+                  {changed.size > 0 && <span className="pop-in size-1.5 rounded-full bg-signal" aria-label="updated" />}
                 </TabsTrigger>
-                <TabsTrigger value="console" className="gap-1.5">
-                  <Terminal aria-hidden /> Console
+                <TabsTrigger value="console" className={tabClass}>
+                  <SquareTerminal aria-hidden /> Console
                 </TabsTrigger>
               </TabsList>
             </div>
-            <TabsContent value="preview" className="min-h-0 overflow-hidden">
+            <TabsContent value="preview" className="fade-in min-h-0 overflow-hidden">
               <PreviewPanel initialFiles={workspace.files} />
             </TabsContent>
-            <TabsContent value="files" className="flex min-h-0 overflow-hidden">
+            <TabsContent value="files" className="fade-in flex min-h-0 overflow-hidden bg-card">
               <FileBrowser files={fileList} changed={changed} selected={file} onSelect={setFile} className="h-full w-full" />
             </TabsContent>
-            <TabsContent value="console" className="min-h-0 overflow-hidden">
+            <TabsContent value="console" className="fade-in min-h-0 overflow-hidden">
               <ConsoleView />
             </TabsContent>
           </Tabs>
