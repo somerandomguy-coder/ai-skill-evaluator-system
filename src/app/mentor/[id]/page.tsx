@@ -11,6 +11,7 @@ import { ReviewForm } from "@/components/mentor/review-form";
 import { RequirementResultCard } from "@/components/report/requirement-result";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { CATEGORY_META, REQUIREMENT_CATEGORIES } from "@/lib/ai/schemas";
 import { requireUser } from "@/lib/auth";
 import { data } from "@/lib/data";
 import { formatMinutes, formatTimebox, shortId, timeAgo } from "@/lib/format";
@@ -22,6 +23,30 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
   await requireUser(`/mentor/${id}`, "MENTOR");
   const ev = await data.getEvaluation(id);
   if (!ev) notFound();
+
+  const groups = REQUIREMENT_CATEGORIES.map((category) => ({
+    category,
+    label: CATEGORY_META[category]?.label ?? category,
+    items: ev.results.filter((r) => r.requirement.category === category),
+  })).filter((g) => g.items.length > 0);
+
+  const categories = groups.map((g) => {
+    const totalWeight = g.items.reduce((sum, item) => sum + item.requirement.weight, 0);
+    const weightedSum = g.items.reduce((sum, item) => sum + (item.score ?? ev.overallScore) * item.requirement.weight, 0);
+    const avgScore = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : Math.round(ev.overallScore);
+    return {
+      category: g.category,
+      label: g.label,
+      weight: totalWeight,
+      score: avgScore,
+      items: g.items.map((item) => ({
+        id: item.requirementId,
+        statement: item.requirement.statement,
+        weight: item.requirement.weight,
+        score: item.score ?? Math.round(ev.overallScore),
+      })),
+    };
+  });
 
   const hasAiScores = ev.results.some((r) => r.score !== null);
   const suiteB = ev.suiteB;
@@ -67,7 +92,7 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
         <h1 className="max-w-4xl text-2xl font-bold tracking-tight text-primary sm:text-3xl text-balance">
           {ev.challenge.title}
         </h1>
-        <p className="text-xs text-muted-foreground font-mono">
+        <p className="text-xs text-muted-foreground font-mono" suppressHydrationWarning>
           {ev.job.roleTitle} at {ev.job.employer} · submitted {timeAgo(ev.createdAt)} · session {formatMinutes(ev.durationMinutes)} of {formatTimebox(ev.challenge.timeboxMinutes)} · protocol {ev.challenge.rubricVersion}
         </p>
       </header>
@@ -155,6 +180,7 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
               aiScore={ev.overallScore}
               hasAiScores={hasAiScores}
               reviewedBefore={ev.reviewStatus === "REVIEWED"}
+              categories={categories}
             />
 
             <Card className="rounded border border-border bg-surface-container-lowest">

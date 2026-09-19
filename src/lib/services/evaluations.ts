@@ -18,6 +18,7 @@ import { fromFileList } from "../files";
 import { parseFileList, parseRequirementResults, toJson } from "../json";
 import { ServiceError } from "./errors";
 import { trackEvent } from "../ai/langfuse";
+import { DEMO_USERS } from "../data/demo-users";
 
 export { effectiveScore, type EffectiveScore } from "./effective-score";
 
@@ -171,9 +172,27 @@ export async function submitMentorReview(i: MentorReviewInput): Promise<MentorRe
     adjustedScore = Math.round(n * 10) / 10;
   }
 
+  // Ensure the mentor user exists in the database to satisfy the foreign key constraint
+  let mentorDbId = i.mentorId;
+  const existingMentor = await prisma.user.findUnique({ where: { id: i.mentorId } });
+  if (!existingMentor) {
+    const demo = DEMO_USERS.find((u) => u.id === i.mentorId);
+    const email = demo?.email || `${i.mentorId}@proofcraft.dev`;
+    const name = demo?.name || "Mentor Reviewer";
+    const userWithEmail = await prisma.user.findUnique({ where: { email } });
+    if (userWithEmail) {
+      mentorDbId = userWithEmail.id;
+    } else {
+      const created = await prisma.user.create({
+        data: { id: i.mentorId, email, name, role: "MENTOR" },
+      });
+      mentorDbId = created.id;
+    }
+  }
+
   const [review] = await prisma.$transaction([
     prisma.mentorReview.create({
-      data: { evaluationId: i.evaluationId, mentorId: i.mentorId, verdict: i.verdict, comments, adjustedScore },
+      data: { evaluationId: i.evaluationId, mentorId: mentorDbId, verdict: i.verdict, comments, adjustedScore },
     }),
     prisma.evaluation.update({ where: { id: i.evaluationId }, data: { reviewStatus: "REVIEWED" } }),
   ]);
