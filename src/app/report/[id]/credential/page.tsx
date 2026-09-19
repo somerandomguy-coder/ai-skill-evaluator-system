@@ -21,13 +21,16 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
     maxScore: 100,
     status: isStrong ? "EXEMPLARY" : "DEVELOPING",
     phases: [
-      { name: "Discover" as const, phase: 1, score: isStrong ? 9 : 3, maxScore: 10, summary: "Identified subtraction leak and ambiguous group-size boundary." },
-      { name: "Define" as const, phase: 2, score: isStrong ? 9 : 3, maxScore: 10, summary: "Explicit bounded memory ceiling and decoupled pure gate logic." },
-      { name: "Develop" as const, phase: 3, score: isStrong ? 9 : 3, maxScore: 10, summary: "Zero-regression implementation; caught planted counting flaw." },
-      { name: "Deliver" as const, phase: 4, score: isStrong ? 9 : 3, maxScore: 10, summary: "Vitest stress test suite verified with transparent trade-offs." },
+      { name: "Define" as const, phase: 1, score: isStrong ? 9 : 2, maxScore: 10, summary: isStrong ? "Identified subtraction leak and ambiguous group-size boundary." : "Define skipped: jumped straight to build." },
+      { name: "Design" as const, phase: 2, score: isStrong ? 9 : 2, maxScore: 10, summary: isStrong ? "Explicit bounded memory ceiling and decoupled pure gate logic." : "Design skipped: tangled UI and decision logic." },
+      { name: "Develop" as const, phase: 3, score: isStrong ? 9 : 3, maxScore: 10, summary: isStrong ? "Zero-regression implementation; caught planted counting flaw." : "Develop bloated: accepted hallucinated AI scope." },
+      { name: "Demonstrate" as const, phase: 4, score: isStrong ? 9 : 2, maxScore: 10, summary: isStrong ? "Vitest stress test suite verified with transparent trade-offs." : "Demonstrate unclear: fake completeness with broken edge cases." },
     ],
-    takeaway: "Tested AI code under load; caught unhandled async rejections before committing.",
+    takeaway: isStrong
+      ? "Tested AI code under load; caught unhandled async rejections before committing."
+      : "A polished app can still be the wrong app. Skips Define/Design, trusts AI assumptions, creates fake completeness.",
   };
+
 
   const suiteB = ev.suiteB ?? {
     title: "Prompt Usage Rubric (Barron)",

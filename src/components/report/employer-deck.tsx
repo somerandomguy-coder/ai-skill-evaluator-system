@@ -21,6 +21,8 @@ import {
   ShieldCheck,
   Sparkles,
   Terminal,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EvaluationView } from "@/lib/data/types";
@@ -47,35 +49,45 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
     status: isStrong ? "EXEMPLARY" : "DEVELOPING",
     phases: [
       {
-        name: "Discover" as const,
+        name: "Define" as const,
         phase: 1,
-        score: isStrong ? 9 : 3,
+        score: isStrong ? 9 : 2,
         maxScore: 10,
-        summary: "Identified subtraction leak and ambiguous group-size boundary upfront.",
+        summary: isStrong
+          ? "Clarified ambiguous group-size boundary and confidentiality thresholds prior to prompting."
+          : "Define skipped: Jumped straight to build with zero boundary clarification.",
       },
       {
-        name: "Define" as const,
+        name: "Design" as const,
         phase: 2,
-        score: isStrong ? 9 : 3,
+        score: isStrong ? 9 : 2,
         maxScore: 10,
-        summary: "Specified explicit memory ceiling and decoupled pure gate logic before prompting.",
+        summary: isStrong
+          ? "Decoupled pure calculation logic from UI presentation layer before code generation."
+          : "Design skipped: Monolithic prompt; decision logic tangled inside UI.",
       },
       {
         name: "Develop" as const,
         phase: 3,
         score: isStrong ? 9 : 3,
         maxScore: 10,
-        summary: "Zero-regression implementation; caught planted counter defect in AI code.",
+        summary: isStrong
+          ? "Caught planted counting flaw in peopleIn() filter; prevented code bloat."
+          : "Develop bloated: Accepted hallucinated AI scope; planted defect missed.",
       },
       {
-        name: "Deliver" as const,
+        name: "Demonstrate" as const,
         phase: 4,
-        score: isStrong ? 9 : 3,
+        score: isStrong ? 9 : 2,
         maxScore: 10,
-        summary: "Stress test suite verified under partition load with transparent trade-offs.",
+        summary: isStrong
+          ? "Stress-tested boundary cases and authored transparent documentation of deliberate limits."
+          : "Demonstrate unclear: Fake completeness — surface polish with broken logic.",
       },
     ],
-    takeaway: "Tested AI code under load; caught unhandled async rejections before committing.",
+    takeaway: isStrong
+      ? "Tested AI code under load; caught unhandled async rejections and planted flaws before committing."
+      : "A polished app can still be the wrong app. Skips Define/Design, trusts AI assumptions, creates fake completeness.",
   };
 
   const suiteB = ev.suiteB ?? {
@@ -334,22 +346,25 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
                   ))}
                 </div>
 
-                <div className="p-3 rounded bg-surface-container-low border border-border text-xs flex items-center gap-2">
-                  <ShieldCheck className="size-4 text-emerald-700 shrink-0" />
-                  <span className="text-muted-foreground">
-                    <strong className="text-foreground">Takeaway:</strong> {suiteA.takeaway}
-                  </span>
+                <div className="p-3 rounded bg-surface-container-low border border-border text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-mono text-[10px] font-bold text-primary uppercase">
+                    <ShieldCheck className="size-4 text-emerald-700" />
+                    <span>ORGANIZER THESIS: &ldquo;A POLISHED APP CAN STILL BE THE WRONG APP&rdquo;</span>
+                  </div>
+                  <p className="text-muted-foreground text-[11px] leading-relaxed">
+                    Evaluates whether the candidate skips Define and Design, jumps straight to Build, trusts AI scope, and generates fake completeness without an evidence gate.
+                  </p>
                 </div>
               </div>
             )}
 
-            {/* Slide 2: How They Direct AI (Barron Rubric) */}
+            {/* Slide 2: How They Direct AI (Barron Rubric & ZT-AIED) */}
             {currentSlide === 2 && (
               <div className="space-y-5">
                 <div className="border-b border-border pb-3 flex items-center justify-between">
                   <div>
                     <span className="font-mono text-[10px] uppercase px-2 py-0.5 rounded bg-surface-container font-bold text-primary border border-border">
-                      DIMENSION 02 // AI COGNITION
+                      DIMENSION 02 // AI COGNITION &amp; ZT-AIED
                     </span>
                     <h2 className="text-xl font-bold text-primary mt-1">How They Direct AI (Barron Rubric)</h2>
                   </div>
@@ -363,7 +378,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
                   {suiteB.criteria.map((c) => (
                     <div
                       key={c.criterion}
-                      className="p-2.5 rounded bg-surface-container-low border border-border flex items-center justify-between gap-3 text-xs"
+                      className="p-2 rounded bg-surface-container-low border border-border flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="min-w-0">
                         <span className="font-bold text-primary block">{c.label}</span>
@@ -376,14 +391,31 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
                   ))}
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="p-2 rounded bg-surface-container-low border border-border flex items-center gap-2">
-                    <Check className="size-3.5 text-emerald-600 stroke-[3]" />
-                    <span>Caught Planted Flaw</span>
+                {/* ZT-AIED Zero-Trust Audit Grid */}
+                <div className="bg-surface-container-low p-3 rounded border border-border space-y-2">
+                  <div className="flex items-center justify-between font-mono text-[10px] font-bold text-primary uppercase">
+                    <span>ZT-AIED ZERO-TRUST AUDIT GATE</span>
+                    <span className={isStrong ? "text-emerald-700" : "text-amber-700"}>
+                      {isStrong ? "PASS · ZERO-TRUST INTEGRITY" : "ZT-AIED FAILURE DETECTED"}
+                    </span>
                   </div>
-                  <div className="p-2 rounded bg-surface-container-low border border-border flex items-center gap-2">
-                    <Check className="size-3.5 text-emerald-600 stroke-[3]" />
-                    <span>Resisted Scope Bloat</span>
+                  <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
+                    <div className={`p-2 rounded border flex items-center gap-1.5 ${isStrong ? "bg-surface-container-lowest text-foreground" : "bg-red-50 text-red-900 border-red-200"}`}>
+                      {isStrong ? <Check className="size-3 text-emerald-600 stroke-[3]" /> : <X className="size-3 text-red-600 stroke-[3]" />}
+                      <span>{isStrong ? "Questioned AI claims" : "Trusts assumptions"}</span>
+                    </div>
+                    <div className={`p-2 rounded border flex items-center gap-1.5 ${isStrong ? "bg-surface-container-lowest text-foreground" : "bg-red-50 text-red-900 border-red-200"}`}>
+                      {isStrong ? <Check className="size-3 text-emerald-600 stroke-[3]" /> : <X className="size-3 text-red-600 stroke-[3]" />}
+                      <span>{isStrong ? "Defended scope bounds" : "Trusts AI scope"}</span>
+                    </div>
+                    <div className={`p-2 rounded border flex items-center gap-1.5 ${isStrong ? "bg-surface-container-lowest text-foreground" : "bg-red-50 text-red-900 border-red-200"}`}>
+                      {isStrong ? <Check className="size-3 text-emerald-600 stroke-[3]" /> : <X className="size-3 text-red-600 stroke-[3]" />}
+                      <span>{isStrong ? "Proven runtime logic" : "Fake completeness"}</span>
+                    </div>
+                    <div className={`p-2 rounded border flex items-center gap-1.5 ${isStrong ? "bg-surface-container-lowest text-foreground" : "bg-red-50 text-red-900 border-red-200"}`}>
+                      {isStrong ? <Check className="size-3 text-emerald-600 stroke-[3]" /> : <X className="size-3 text-red-600 stroke-[3]" />}
+                      <span>{isStrong ? "Verified evidence gate" : "No evidence gate"}</span>
+                    </div>
                   </div>
                 </div>
               </div>

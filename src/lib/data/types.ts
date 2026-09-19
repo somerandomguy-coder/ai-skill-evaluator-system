@@ -125,11 +125,19 @@ export interface AuditFlags {
 }
 
 export interface FourDPhase {
-  name: "Discover" | "Define" | "Develop" | "Deliver";
+  name: "Define" | "Design" | "Develop" | "Demonstrate" | "Discover" | "Deliver";
   phase: number;
   score: number;
   maxScore: number;
   summary: string;
+}
+
+export interface ZtAiedAudit {
+  trustsAssumptions: boolean; // Trusts AI assumptions without verification
+  trustsAiScope: boolean;     // Accepts AI scope creep and bloat
+  trustsFakeCompleteness: boolean; // Relies on superficial polish with broken logic
+  noEvidenceGate: boolean;    // Lacks unit tests or evidence verification before commit
+  verdict: string;            // "A polished app can still be the wrong app."
 }
 
 export interface SuiteAView {
@@ -140,6 +148,7 @@ export interface SuiteAView {
   phases: FourDPhase[];
   takeaway: string;
 }
+
 
 export interface SuiteBView {
   title: string;
@@ -193,7 +202,9 @@ export interface EvaluationView {
   suiteB?: SuiteBView;
   verificationReceipt?: VerificationReceipt;
   reviewSlaMessage?: string;
+  ztAiedAudit?: ZtAiedAudit;
 }
+
 
 export interface QueueItemView {
   id: string;

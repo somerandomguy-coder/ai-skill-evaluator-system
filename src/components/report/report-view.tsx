@@ -56,13 +56,16 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
     maxScore: 100,
     status: ev.overallScore >= 80 ? "EXEMPLARY" : "DEVELOPING",
     phases: [
-      { name: "Discover" as const, phase: 1, score: ev.overallScore >= 80 ? 9 : 3, maxScore: 10, summary: "Interrogated brief boundaries prior to code." },
-      { name: "Define" as const, phase: 2, score: ev.overallScore >= 80 ? 9 : 3, maxScore: 10, summary: "Enforced modular decision logic." },
-      { name: "Develop" as const, phase: 3, score: ev.overallScore >= 80 ? 9 : 3, maxScore: 10, summary: "Tested edge cases in live preview." },
-      { name: "Deliver" as const, phase: 4, score: ev.overallScore >= 80 ? 9 : 3, maxScore: 10, summary: "Documented limits and trade-offs." },
+      { name: "Define" as const, phase: 1, score: ev.overallScore >= 80 ? 9 : 2, maxScore: 10, summary: ev.overallScore >= 80 ? "Interrogated brief boundaries prior to code." : "Define skipped: jumped straight to build without scope agreement." },
+      { name: "Design" as const, phase: 2, score: ev.overallScore >= 80 ? 9 : 2, maxScore: 10, summary: ev.overallScore >= 80 ? "Enforced decoupled modular architecture." : "Design skipped: monolithic prompt with tangled UI and logic." },
+      { name: "Develop" as const, phase: 3, score: ev.overallScore >= 80 ? 9 : 3, maxScore: 10, summary: ev.overallScore >= 80 ? "Tested edge cases in live preview; avoided bloat." : "Develop bloated: accepted AI hallucinations without inspection." },
+      { name: "Demonstrate" as const, phase: 4, score: ev.overallScore >= 80 ? 9 : 2, maxScore: 10, summary: ev.overallScore >= 80 ? "Documented verified limits and trade-offs." : "Demonstrate unclear: fake completeness with broken edge cases." },
     ],
-    takeaway: "Evaluated across end-to-end product development lifecycle.",
+    takeaway: ev.overallScore >= 80
+      ? "Evaluated across end-to-end product development lifecycle with zero-trust verification."
+      : "A polished app can still be the wrong app. Skips Define/Design, trusts AI assumptions, creates fake completeness.",
   };
+
 
   const suiteB = ev.suiteB ?? {
     title: "AI Prompt & Process Usage Rubric",

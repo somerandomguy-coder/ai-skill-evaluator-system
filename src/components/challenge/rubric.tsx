@@ -111,27 +111,31 @@ export function RubricItem({ requirement }: { requirement: RequirementView }) {
 
 const FOUR_D_FRAMEWORK = [
   {
-    phase: "Discover",
-    title: "1. Problem Framing & Scope",
-    desc: "Understanding domain constraints, clarifying ambiguities, and defining the system boundaries before writing code.",
+    phase: "Define",
+    title: "1. Scope & Boundaries",
+    desc: "Clarifying ambiguities, defining non-goals, and resisting scope creep before writing code.",
+    warning: "Define skipped: jumping straight to build without boundary agreement.",
     icon: "01",
   },
   {
-    phase: "Define",
+    phase: "Design",
     title: "2. Technical Architecture",
-    desc: "Designing modular interfaces, data structures, state models, and defensive boundaries that satisfy the requirements.",
+    desc: "Designing decoupled data structures, pure functions, and contracts prior to code generation.",
+    warning: "Design skipped: monolithic prompt with tangled UI and business logic.",
     icon: "02",
   },
   {
     phase: "Develop",
-    title: "3. Implementation & Testing",
-    desc: "Writing clean, maintainable logic with robust test coverage verifying edge cases and contract guarantees.",
+    title: "3. Disciplined Build",
+    desc: "Writing clean, maintainable logic; catching planted AI defects and avoiding code bloat.",
+    warning: "Develop bloated: accepting unverified AI scope and rubber-stamping flawed code.",
     icon: "03",
   },
   {
-    phase: "Deliver",
-    title: "4. Reliability & Security",
-    desc: "Preventing data leakage, managing failover states, handling exceptions, and ensuring production readiness.",
+    phase: "Demonstrate",
+    title: "4. Evidence & Testing",
+    desc: "Proving correctness with unit evidence gates, stress tests, and transparent trade-offs.",
+    warning: "Demonstrate unclear: fake completeness with surface polish and broken edge cases.",
     icon: "04",
   },
 ];
@@ -154,25 +158,39 @@ export function Rubric({ requirements }: { requirements: RequirementView[] }) {
           <span className="font-mono text-[11px] text-muted-foreground">Comprehensive Work-Sample Evaluation</span>
         </div>
 
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Your solution is assessed across the complete product lifecycle. Rather than arbitrary trivia or LeetCode puzzles, we evaluate your practical ability to analyze constraints, architect systems, and deliver verifiable software.
-        </p>
+        <div className="p-3 bg-surface-container-lowest rounded border border-border flex items-start gap-2.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-1.5 shrink-0" />
+          <div className="space-y-0.5 text-xs">
+            <span className="font-mono text-[10px] uppercase font-bold text-primary block">
+              EVALUATION THESIS: &ldquo;A POLISHED APP CAN STILL BE THE WRONG APP&rdquo;
+            </span>
+            <p className="text-muted-foreground text-[11px] leading-relaxed">
+              We assess whether you skip Define &amp; Design, jump straight to Build, trust AI assumptions, or create fake completeness with no evidence gate.
+            </p>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
           {FOUR_D_FRAMEWORK.map((f) => (
-            <div key={f.phase} className="bg-surface-container-lowest p-3 rounded border border-border space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                  {f.phase}
-                </span>
-                <span className="font-mono text-[10px] text-muted-foreground font-semibold">{f.icon}</span>
+            <div key={f.phase} className="bg-surface-container-lowest p-3 rounded border border-border space-y-1.5 flex flex-col justify-between">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] uppercase font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                    {f.phase}
+                  </span>
+                  <span className="font-mono text-[10px] text-muted-foreground font-semibold">{f.icon}</span>
+                </div>
+                <h4 className="font-semibold text-primary text-xs">{f.title}</h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{f.desc}</p>
               </div>
-              <h4 className="font-semibold text-primary text-xs">{f.title}</h4>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">{f.desc}</p>
+              <div className="pt-2 border-t border-border/60 text-[10px] text-amber-700 font-mono">
+                ⚠ {f.warning}
+              </div>
             </div>
           ))}
         </div>
       </div>
+
 
       {/* Technical Requirements Bank */}
       <div className="space-y-6">

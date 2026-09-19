@@ -140,30 +140,30 @@ function buildEvaluation(s: MockSession): EvaluationView | null {
 
   const suiteA: SuiteAView = isStrong
     ? {
-        title: "Product 4D & Zero Trust Architecture",
+        title: "Product 4D Engineering Lifecycle",
         score: 90,
         maxScore: 100,
         status: "EXEMPLARY",
         phases: [
-          { name: "Discover", phase: 1, score: 9, maxScore: 10, summary: "Identified subtraction leak and ambiguous group-size boundary prior to writing code." },
-          { name: "Define", phase: 2, score: 9, maxScore: 10, summary: "Enforced strict decoupling of pure decision logic from UI presentation layer." },
-          { name: "Develop", phase: 3, score: 9, maxScore: 10, summary: "Caught planted counting flaw in peopleIn() filter and added boundary tests." },
-          { name: "Deliver", phase: 4, score: 9, maxScore: 10, summary: "Authored transparent README documenting architectural limits and deliberate trade-offs." },
+          { name: "Define", phase: 1, score: 9, maxScore: 10, summary: "Clarified ambiguous group-size boundary and confidentiality thresholds prior to prompting." },
+          { name: "Design", phase: 2, score: 9, maxScore: 10, summary: "Decoupled pure calculation logic from UI presentation layer before code generation." },
+          { name: "Develop", phase: 3, score: 9, maxScore: 10, summary: "Caught planted counting flaw in peopleIn() filter; prevented code bloat." },
+          { name: "Demonstrate", phase: 4, score: 9, maxScore: 10, summary: "Stress-tested boundary cases and authored transparent documentation of deliberate limits." },
         ],
         takeaway: "Tested AI code under load; caught unhandled async rejections and planted flaws before committing.",
       }
     : {
-        title: "Product 4D & Zero Trust Architecture",
+        title: "Product 4D Engineering Lifecycle",
         score: 28,
         maxScore: 100,
         status: "DEVELOPING",
         phases: [
-          { name: "Discover", phase: 1, score: 2, maxScore: 10, summary: "No questions asked regarding ambiguous brief boundaries or user roles." },
-          { name: "Define", phase: 2, score: 3, maxScore: 10, summary: "Decision logic buried directly inside React component without modularity." },
-          { name: "Develop", phase: 3, score: 3, maxScore: 10, summary: "Accepted buggy count filter; planted defect went completely unnoticed." },
-          { name: "Deliver", phase: 4, score: 2, maxScore: 10, summary: "No documentation of system limits or intentional trade-offs in README." },
+          { name: "Define", phase: 1, score: 2, maxScore: 10, summary: "Skipped: Jumped straight to build with zero boundary clarification." },
+          { name: "Design", phase: 2, score: 2, maxScore: 10, summary: "Skipped: One monolithic prompt; decision logic tangled directly inside UI." },
+          { name: "Develop", phase: 3, score: 3, maxScore: 10, summary: "Bloated: Accepted hallucinated AI scope; planted bug went unnoticed." },
+          { name: "Demonstrate", phase: 4, score: 2, maxScore: 10, summary: "Unclear: Fake completeness — surface polish with broken boundary logic." },
         ],
-        takeaway: "Candidate accepted all AI outputs unconditionally without checking logic or boundary edge cases.",
+        takeaway: "A polished app can still be the wrong app. Candidate skipped Define & Design and accepted unverified AI code.",
       };
 
   const suiteB: SuiteBView = isStrong
@@ -369,6 +369,21 @@ function buildEvaluation(s: MockSession): EvaluationView | null {
     reviewSlaMessage: isStrong
       ? "Verified by Senior Engineering Mentor (E. Vance, Staff Systems Architect)"
       : "Human mentor review in progress: A senior engineering mentor is reviewing flagged criteria. This typically takes 2-3 business days. You will receive an email once finalized.",
+    ztAiedAudit: isStrong
+      ? {
+          trustsAssumptions: false,
+          trustsAiScope: false,
+          trustsFakeCompleteness: false,
+          noEvidenceGate: false,
+          verdict: "Exemplary Zero-Trust Rigor: Proved correctness with unit evidence gates, verified AI assumptions, and defended architectural boundaries.",
+        }
+      : {
+          trustsAssumptions: true,
+          trustsAiScope: true,
+          trustsFakeCompleteness: true,
+          noEvidenceGate: true,
+          verdict: "A polished app can still be the wrong app. Skips Define and Design, jumps straight to Build, trusts AI assumptions, and creates fake completeness with no evidence gate.",
+        },
   };
 }
 
