@@ -12,6 +12,7 @@ import { APP_NAME } from "@/lib/brand";
 import { data } from "@/lib/data";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { DEMO_USERS } from "@/lib/data/demo-users";
 import { AuthForm } from "./auth-form";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -23,7 +24,8 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const need = one(sp.need);
   const error = one(sp.error);
 
-  const [user, users] = await Promise.all([getCurrentUser(), data.listUsers()]);
+  const user = await getCurrentUser();
+  const users = DEMO_USERS;
   // Already signed in and no role mismatch to resolve: go where they were headed.
   if (user && !need) redirect(safeNext(next));
 

@@ -8,10 +8,12 @@
 import { redirect } from "next/navigation";
 import { clearUserCookie, safeNext, setUserCookie } from "@/lib/auth";
 import { data } from "@/lib/data";
+import { DEMO_USERS } from "@/lib/data/demo-users";
 
 /** Role switcher / "Continue as": become an existing seeded user. */
 export async function switchUser(userId: string, next?: string) {
-  const user = await data.findUser(userId);
+  const demo = DEMO_USERS.find((d) => d.id === userId);
+  const user = demo ?? (await data.findUser(userId));
   if (!user) redirect("/login");
   await setUserCookie(user.id);
   redirect(safeNext(next ?? (user.role === "MENTOR" ? "/mentor" : "/")));

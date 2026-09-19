@@ -15,6 +15,7 @@ import { SEED_REQUIREMENTS } from "../fixtures/seed-requirements";
 import { SEED_RESEARCH } from "../fixtures/seed-research";
 import { STRONG_SESSION, WEAK_SESSION, finalFilesOf, type SeedSession } from "../fixtures/seed-sessions";
 import { effectiveScore } from "../services/effective-score";
+import { DEMO_USERS } from "./demo-users";
 import type {
   ChallengeView,
   DataSource,
@@ -36,13 +37,7 @@ const BOOT = Date.now();
 
 export const MOCK_CHALLENGE_ID = "seed-challenge";
 
-const users: UserView[] = [
-  { id: "u-alex", name: "Alex Morgan", email: "alex.morgan@example.com", role: "CANDIDATE" },
-  { id: "u-riley", name: "Riley Chen", email: "riley.chen@example.com", role: "CANDIDATE" },
-  { id: "u-jordan", name: "Jordan Ellis", email: "jordan.ellis@example.com", role: "CANDIDATE" },
-  { id: "u-casey", name: "Casey Rivera", email: "casey.rivera@example.com", role: "MENTOR" },
-  { id: "u-robin", name: "Robin Patel", email: "robin.patel@example.com", role: "MENTOR" },
-];
+const users: UserView[] = [...DEMO_USERS];
 
 const requirements: RequirementView[] = SEED_REQUIREMENTS.map((r, i) => ({ id: `seed-req-${i}`, ...r }));
 const refs: RequirementRef[] = requirements;

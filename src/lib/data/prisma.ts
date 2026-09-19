@@ -11,6 +11,7 @@ import { parseChallengeMeta, parseEscalationReasons, parseFileList, parseFileMap
 import { effectiveScore } from "../services/effective-score";
 import { reconstructFiles, startSession } from "../services/sessions";
 import { buildCognitiveSuites } from "../services/cognitive-rubric";
+import { DEMO_USERS } from "./demo-users";
 import { getInMemoryChallenge, mockDataSource } from "./mock";
 import { sortRequirements, toRequirementView, toTurnView } from "./mappers";
 import type {
@@ -144,6 +145,8 @@ export const prismaDataSource: DataSource = {
     }
   },
   async findUser(id) {
+    const demo = DEMO_USERS.find((u) => u.id === id);
+    if (demo) return demo;
     try {
       const u = await prisma.user.findUnique({ where: { id } });
       return u ? toUser(u) : mockDataSource.findUser(id);
@@ -152,8 +155,11 @@ export const prismaDataSource: DataSource = {
     }
   },
   async findUserByEmail(email) {
+    const e = email.trim().toLowerCase();
+    const demo = DEMO_USERS.find((u) => u.email.toLowerCase() === e);
+    if (demo) return demo;
     try {
-      const u = await prisma.user.findUnique({ where: { email: email.trim().toLowerCase() } });
+      const u = await prisma.user.findUnique({ where: { email: e } });
       return u ? toUser(u) : mockDataSource.findUserByEmail(email);
     } catch {
       return mockDataSource.findUserByEmail(email);
