@@ -56,10 +56,20 @@ export async function SiteHeader() {
 
         {/* Right Status & Controls */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 font-mono text-[11px] bg-surface-container-lowest px-2.5 py-1 rounded border border-border text-foreground">
-            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            <span className="text-muted-foreground">Cluster:</span>
-            <span className="font-semibold text-primary">AU-SYD-VERIFIED</span>
+          <div className="hidden sm:flex items-center gap-2.5 font-mono text-[11px] bg-surface-container-lowest px-3 py-1 rounded border border-border text-foreground">
+            <Link
+              href="/pricing"
+              className="text-muted-foreground hover:text-primary transition-colors font-sans font-medium"
+            >
+              Pricing
+            </Link>
+            <span className="text-border">|</span>
+            <Link
+              href="/partnerships"
+              className="text-muted-foreground hover:text-primary transition-colors font-sans font-medium"
+            >
+              Partnerships
+            </Link>
             <span className="text-border">|</span>
             <Link
               href="/mentor"

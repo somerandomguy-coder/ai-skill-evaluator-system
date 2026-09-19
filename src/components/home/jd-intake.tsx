@@ -1,27 +1,25 @@
 "use client";
 
-import { ArrowRight, CircleAlert, Link2, Sparkles, FileText, CheckCircle2, Terminal, Shield, Zap } from "lucide-react";
+import { ArrowRight, CircleAlert, Sparkles, FileText, CheckCircle2, Upload, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { runPipeline } from "@/lib/client/api";
 import type { PipelineEvent } from "@/lib/pipeline-events";
 import { PIPELINE_STEPS, PipelineProgress, type ProgressStep } from "./pipeline-progress";
 
 const MIN_CHARS = 80;
-const MAX_CHARS = 20_000;
+const MAX_CHARS = 25_000;
 
 const PRESETS = [
   {
     id: "cultureamp",
-    name: "Culture Amp (Seeded)",
-    url: "https://www.cultureamp.com/careers/senior-fullstack-people-intelligence",
+    name: "Culture Amp (AI Eng)",
+    role: "Senior Full-Stack Engineer — People Intelligence",
+    company: "Culture Amp",
     text: `Role: Senior Full-Stack Engineer — People Intelligence
 Company: Culture Amp (Melbourne, VIC / Sydney, NSW)
 Team: Survey Analytics, Privacy & Confidentiality Engine
@@ -34,8 +32,9 @@ Primary Architectural Scope:
   },
   {
     id: "atlassian",
-    name: "Atlassian SRE",
-    url: "https://careers.atlassian.com/jobs/cloud-resiliency-syd",
+    name: "Atlassian (SRE)",
+    role: "Senior Distributed Systems Engineer — Cloud Infrastructure & Resiliency",
+    company: "Atlassian",
     text: `Role: Senior Distributed Systems Engineer — Cloud Infrastructure & Resiliency
 Company: Atlassian (Sydney, NSW — Hybrid / George St Hub)
 Group: Core Platform Reliability & Multi-Region Topology (Confluence Cloud Infrastructure)
@@ -53,8 +52,9 @@ Minimum Qualifications & Experience:
   },
   {
     id: "canva",
-    name: "Canva Infra",
-    url: "https://www.canva.com/careers/jobs/realtime-render-fabric-lead",
+    name: "Canva (Infra)",
+    role: "Senior Infrastructure Engineer — Realtime Render Fabric",
+    company: "Canva",
     text: `Role: Senior Infrastructure Engineer — Realtime Render Fabric
 Company: Canva (Surry Hills, NSW / Remote AU)
 Team: Media Processing & Global Edge Compute Pipeline
@@ -67,11 +67,10 @@ Primary Architectural Scope:
   },
 ];
 
-type Mode = "text" | "url";
 type Run = { status: "idle" } | { status: "running" | "error"; steps: ProgressStep[]; message?: string };
 
-function initialSteps(mode: Mode): ProgressStep[] {
-  return PIPELINE_STEPS.filter((s) => mode === "url" || s.id !== "read").map((s) => ({ ...s, state: "pending" as const }));
+function initialSteps(): ProgressStep[] {
+  return PIPELINE_STEPS.filter((s) => s.id !== "read").map((s) => ({ ...s, state: "pending" as const }));
 }
 
 function applyEvent(steps: ProgressStep[], e: Extract<PipelineEvent, { type: "step" }>): ProgressStep[] {
@@ -80,20 +79,38 @@ function applyEvent(steps: ProgressStep[], e: Extract<PipelineEvent, { type: "st
 
 export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolean; isCandidate: boolean; demoMode: boolean }) {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>("text");
   const [text, setText] = useState(PRESETS[0].text);
-  const [url, setUrl] = useState(PRESETS[0].url);
-  const [activePreset, setActivePreset] = useState("cultureamp");
+  const [activePreset, setActivePreset] = useState<string | null>("cultureamp");
   const [run, setRun] = useState<Run>({ status: "idle" });
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const steps = useRef<ProgressStep[]>([]);
 
-  const valid = mode === "text" ? text.trim().length >= MIN_CHARS && text.length <= MAX_CHARS : /^https?:\/\/\S+$/i.test(url.trim());
+  const valid = text.trim().length >= MIN_CHARS && text.length <= MAX_CHARS;
   const busy = run.status === "running";
 
   function handlePreset(p: typeof PRESETS[number]) {
     setActivePreset(p.id);
     setText(p.text);
-    setUrl(p.url);
+  }
+
+  function handleClear() {
+    setActivePreset(null);
+    setText("");
+  }
+
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result;
+      if (typeof content === "string") {
+        setText(content);
+        setActivePreset(null);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
   }
 
   async function submit(e: React.FormEvent) {
@@ -101,11 +118,11 @@ export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolea
     if (!signedIn) return router.push("/login?next=/");
     if (!valid || busy) return;
 
-    steps.current = initialSteps(mode);
+    steps.current = initialSteps();
     setRun({ status: "running", steps: steps.current });
     let done: Extract<PipelineEvent, { type: "done" }> | null = null;
     try {
-      await runPipeline(mode === "text" ? { rawJd: text } : { sourceUrl: url.trim() }, (ev) => {
+      await runPipeline({ rawJd: text }, (ev) => {
         if (ev.type === "step") {
           steps.current = applyEvent(steps.current, ev);
           setRun({ status: "running", steps: steps.current });
@@ -125,136 +142,127 @@ export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolea
 
   return (
     <div className="w-full space-y-4">
-      {/* Preset Switcher Bar */}
-      <div className="w-full bg-surface-container-low border border-border rounded p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></div>
-          <span className="font-mono uppercase font-semibold text-primary">Prototype Presets:</span>
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {PRESETS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => handlePreset(p)}
-              className={`px-2.5 py-1 rounded font-mono text-[11px] transition-all flex items-center gap-1.5 cursor-pointer border ${
-                activePreset === p.id
-                  ? "bg-primary text-white border-primary font-semibold"
-                  : "bg-surface-container-lowest text-muted-foreground border-border hover:text-primary hover:bg-surface-container"
-              }`}
-            >
-              {activePreset === p.id && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
-              <span>{p.name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".txt,.md,.text"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
 
-      {/* Main Intake Form */}
-      <Card className="border border-border bg-surface-container-lowest rounded">
-        <CardHeader className="pb-3 border-b border-border">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-base font-bold tracking-tight text-primary">
-                  Target Role & Engineering Mandate
-                </CardTitle>
-                <CheckCircle2 className="size-4 text-emerald-600" />
-              </div>
-              <CardDescription className="text-xs mt-0.5">
-                Every project brief and evaluation rubric is synthesized directly from real company constraints.
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground font-mono text-[11px]">
-              <span className="font-semibold text-primary">{text.length.toLocaleString()} chars</span>
-              <span>•</span>
-              <span className="text-emerald-700 font-medium">Optimal calibration density</span>
+      {/* Main Intake Box */}
+      <Card className="border border-border bg-surface-container-lowest rounded overflow-hidden">
+        {/* Top Control Strip */}
+        <div className="bg-surface-container-low/60 border-b border-border px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-wider">
+              Try sample role:
+            </span>
+            {PRESETS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => handlePreset(p)}
+                className={`px-3 py-1 rounded text-xs font-mono transition-colors cursor-pointer border ${
+                  activePreset === p.id
+                    ? "bg-primary text-white border-primary font-semibold"
+                    : "bg-surface-container-lowest text-foreground/80 border-border hover:bg-surface-container hover:text-primary"
+                }`}
+              >
+                {p.name}
+              </button>
+            ))}
+            {text.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="px-2 py-1 rounded text-xs text-muted-foreground hover:text-destructive hover:bg-surface-container transition-colors cursor-pointer flex items-center gap-1 font-mono"
+                title="Clear text"
+              >
+                <Trash2 className="size-3" />
+                <span>Clear</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="h-8 gap-1.5 rounded text-xs font-mono border-border bg-surface-container-lowest hover:bg-surface-container"
+            >
+              <Upload className="size-3.5" />
+              <span>Upload JD file</span>
+            </Button>
+            <div className="text-xs font-mono text-muted-foreground">
+              <span className={text.trim().length >= MIN_CHARS ? "text-primary font-semibold" : "text-amber-600"}>
+                {text.length.toLocaleString()}
+              </span>
+              <span> / {MAX_CHARS.toLocaleString()} chars</span>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="pt-4">
+        </div>
+
+        {/* Form Body */}
+        <CardContent className="p-4 sm:p-6">
           {run.status === "running" || run.status === "error" ? (
-            <div className="space-y-5 py-2">
+            <div className="space-y-5 py-4">
               <PipelineProgress steps={run.steps} />
               {run.status === "error" && (
-                <>
+                <div className="space-y-3">
                   <Alert variant="destructive">
                     <CircleAlert aria-hidden />
-                    <AlertTitle>We couldn&apos;t build your challenge</AlertTitle>
+                    <AlertTitle>Could not build challenge</AlertTitle>
                     <AlertDescription>{run.message}</AlertDescription>
                   </Alert>
                   <Button variant="outline" onClick={() => setRun({ status: "idle" })} className="rounded">
-                    Back to the form
+                    Back to edit job description
                   </Button>
-                </>
+                </div>
               )}
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-4">
-              <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
-                <TabsList className="w-full bg-surface-container-low border border-border p-0.5 rounded">
-                  <TabsTrigger value="text" className="gap-1.5 text-xs rounded data-[state=active]:bg-surface-container-lowest data-[state=active]:text-primary">
-                    <FileText className="size-3.5" aria-hidden /> Paste Job Ad Text
-                  </TabsTrigger>
-                  <TabsTrigger value="url" className="gap-1.5 text-xs rounded data-[state=active]:bg-surface-container-lowest data-[state=active]:text-primary">
-                    <Link2 className="size-3.5" aria-hidden /> Fetch from URL
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              {mode === "text" ? (
-                <div className="space-y-1.5">
-                  <Textarea
-                    id="jd"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    placeholder="Paste the full job description: responsibilities, requirements, architectural scope..."
-                    className="min-h-60 resize-y font-mono text-xs leading-relaxed p-3 bg-surface-container-lowest border-border rounded focus-visible:ring-1 focus-visible:ring-primary"
-                  />
-                  <div className="flex justify-between text-[11px] text-muted-foreground font-mono">
-                    <span>{text.trim().length > 0 && text.trim().length < MIN_CHARS ? `Minimum ${MIN_CHARS} characters required.` : "Plain text with requirements."}</span>
-                    <span>
-                      {text.length.toLocaleString()} / {MAX_CHARS.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  <Input
-                    id="jd-url"
-                    type="url"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="https://careers.company.com/job/distributed-systems-lead"
-                    className="font-mono text-xs border-border rounded"
-                    inputMode="url"
-                  />
-                  <p className="text-[11px] text-muted-foreground">Public posting URLs only. If the page is behind a login wall, paste the text directly.</p>
-                </div>
-              )}
+              <div className="relative">
+                <Textarea
+                  id="jd"
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    setActivePreset(null);
+                  }}
+                  placeholder="Paste any job description here (responsibilities, required tech stack, engineering scope)... or choose a sample above."
+                  className="min-h-[260px] sm:min-h-[300px] resize-y font-mono text-xs sm:text-sm leading-relaxed p-4 bg-surface-container-lowest border-border rounded focus-visible:ring-1 focus-visible:ring-primary"
+                />
+              </div>
 
               {demoMode && (
-                <div className="p-2.5 rounded bg-surface-container-low border border-border text-xs flex items-center gap-2">
+                <div className="p-3 rounded bg-surface-container-low border border-border text-xs flex items-center gap-2">
                   <Sparkles className="size-4 text-primary shrink-0" />
                   <span className="text-muted-foreground">
-                    <strong className="text-primary font-semibold">Live Prototype Mode:</strong> Cached responses provide instant challenge synthesis without wait.
+                    <strong className="text-primary font-semibold">Demo Mode:</strong> Instant challenge generation using pre-cached benchmarks.
                   </span>
                 </div>
               )}
 
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full bg-primary text-white hover:bg-primary/90 font-semibold tracking-wide rounded cursor-pointer transition-all flex items-center justify-center gap-2 py-5"
-                disabled={signedIn && (!valid || !isCandidate)}
-              >
-                <span>{signedIn ? "Generate My Project Brief & Rubric" : "Sign in to Generate Challenge"}</span>
-                <ArrowRight className="size-4" aria-hidden />
-              </Button>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono order-2 sm:order-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  <span>{valid ? "Ready to generate customized challenge & rubric" : `Please enter at least ${MIN_CHARS} characters`}</span>
+                </div>
 
-              <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                <span>Takes ~45s to calibrate 2-tier evaluation rubric and provision isolated sandbox.</span>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full sm:w-auto px-8 bg-primary text-white hover:bg-primary/90 font-semibold tracking-wide rounded cursor-pointer transition-all flex items-center justify-center gap-2 py-6 text-sm sm:text-base order-1 sm:order-2"
+                  disabled={signedIn && (!valid || !isCandidate)}
+                >
+                  <span>{signedIn ? "Generate Assessment Challenge" : "Sign in to Generate Challenge"}</span>
+                  <ArrowRight className="size-4.5" aria-hidden />
+                </Button>
               </div>
             </form>
           )}

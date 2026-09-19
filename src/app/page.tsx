@@ -51,71 +51,57 @@ export default async function HomePage() {
   const { example } = home;
 
   return (
-    <PageShell width="7xl" className="space-y-16 py-8">
-      {/* Editorial Hero Banner */}
-      <section className="space-y-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-border">
-          <div className="flex flex-col gap-2 max-w-3xl">
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-[11px] uppercase px-2.5 py-0.5 bg-surface-container-high text-primary rounded font-semibold tracking-wider border border-border">
-                Step 1 of 4 · Role & Domain Intake
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-              <span className="font-mono text-[11px] text-muted-foreground">SPECIFICATION SYNTHESIZER v2.4</span>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl text-balance">
-              Generate a tailored work-sample assessment from any job description
-            </h1>
-            <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">
-              Every project brief and 2-tier evaluation rubric is synthesized directly from real company constraints and technical requirements.
-            </p>
-          </div>
-          <div className="flex flex-col items-start md:items-end gap-1.5 shrink-0">
-            <div className="flex items-center gap-2 bg-surface-container-lowest px-3 py-1.5 rounded border border-border font-mono text-[11px]">
-              <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-              <span className="text-primary font-semibold">Role Spec Generator</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="text-muted-foreground">AU-EAST-SYD1</span>
-            </div>
-            <span className="font-mono text-[10px] text-muted-foreground">Isolated Verification Cluster</span>
-          </div>
+    <PageShell width="7xl" className="space-y-16 py-6">
+      {/* Minimal, High-Impact Hero Banner */}
+      <section className="space-y-6">
+        <div className="flex flex-col items-center text-center max-w-2xl mx-auto space-y-3 pt-2">
+          <span className="font-mono text-xs uppercase px-2.5 py-0.5 bg-surface-container-low text-primary rounded font-semibold tracking-wider border border-border inline-flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+            Work-Sample Assessment Platform
+          </span>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-primary text-balance">
+            Turn any job description into an AI skill test.
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-xl">
+            Paste a job ad. Build the project with an AI co-pilot. Get evaluated on your actual reasoning with cited evidence.
+          </p>
         </div>
 
-        {/* Intake Workspace Form */}
+        {/* Giant Intake Workspace Form */}
         <JdIntake signedIn={!!user} isCandidate={user?.role === "CANDIDATE"} demoMode={isDemoMode()} />
 
-        {/* 3 Dimension Feature Cards */}
+        {/* 3 Clear Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
-          <div className="bg-surface-container-low p-5 rounded border border-border flex flex-col gap-2">
+          <div className="bg-surface-container-lowest p-5 rounded border border-border flex flex-col gap-2">
             <div className="flex items-center justify-between text-secondary">
-              <span className="font-mono text-[11px] uppercase tracking-wider font-semibold">Suite A // 01–03</span>
-              <Cpu className="size-4 text-primary" />
+              <span className="font-mono text-[11px] uppercase tracking-wider font-semibold text-primary">01 // Intake</span>
+              <FileCheck2 className="size-4 text-primary" />
             </div>
-            <h3 className="font-semibold text-primary text-sm">System Integrity & 4D Lifecycle</h3>
+            <h3 className="font-semibold text-primary text-sm">Role-Tailored Challenge</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Evaluates Discover, Define, Develop, Deliver phases: boundary definition, memory constraints, and async state reconciliation.
+              We extract the core technical mandate from the job description and create a 2–4 hour real-world engineering project with a transparent rubric visible upfront.
             </p>
           </div>
 
-          <div className="bg-surface-container-low p-5 rounded border border-border flex flex-col gap-2">
+          <div className="bg-surface-container-lowest p-5 rounded border border-border flex flex-col gap-2">
             <div className="flex items-center justify-between text-secondary">
-              <span className="font-mono text-[11px] uppercase tracking-wider font-semibold">Suite B // 04–05</span>
+              <span className="font-mono text-[11px] uppercase tracking-wider font-semibold text-primary">02 // In-App Studio</span>
               <Terminal className="size-4 text-primary" />
             </div>
-            <h3 className="font-semibold text-primary text-sm">AI Usage & Zero Trust (Barron Rubric)</h3>
+            <h3 className="font-semibold text-primary text-sm">Build with AI Co-Pilot</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Assesses how you guide AI: Scope Boundaries, Decomposition, Prompt Quality, Zero-Trust Verification, and Stack Decisions.
+              Work inside our browser code editor and terminal with an AI assistant. We record your prompts, decomposition, and architectural choices in real time.
             </p>
           </div>
 
-          <div className="bg-surface-container-low p-5 rounded border border-border flex flex-col gap-2">
+          <div className="bg-surface-container-lowest p-5 rounded border border-border flex flex-col gap-2">
             <div className="flex items-center justify-between text-secondary">
-              <span className="font-mono text-[11px] uppercase tracking-wider font-semibold">Governance // 06–07</span>
-              <ShieldAlert className="size-4 text-primary" />
+              <span className="font-mono text-[11px] uppercase tracking-wider font-semibold text-primary">03 // Verification</span>
+              <BadgeCheck className="size-4 text-primary" />
             </div>
-            <h3 className="font-semibold text-primary text-sm">Auditable Evidence & Tamper Receipt</h3>
+            <h3 className="font-semibold text-primary text-sm">Auditable Proof of Skill</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Every score cites exact transcript turns and code files. Sealed with non-repudiable SHA256 session audit verification.
+              Receive an objective scorecard citing verbatim quotes from your session as evidence. Borderline scores route directly to human mentors for secondary review.
             </p>
           </div>
         </div>
@@ -151,49 +137,6 @@ export default async function HomePage() {
               </Card>
             ))}
           </div>
-        </section>
-      )}
-
-      {/* Example posting */}
-      {example && (
-        <section className="space-y-4">
-          <SectionTitle eyebrow="Pre-calibrated benchmark" title="Culture Amp People Intelligence Engineer" description="A real public Australian posting. The brief, 2-tier rubric and contrasting sample transcripts are pre-loaded." />
-          <Card className="border border-border rounded overflow-hidden">
-            <CardContent className="grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-center p-6">
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-primary text-white font-semibold uppercase">Real Posting</span>
-                  <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-surface-container border border-border text-muted-foreground">Cached Research</span>
-                  <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-surface-container border border-border text-muted-foreground">{example.barrierCount} barriers excluded</span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold tracking-tight text-primary">
-                    {example.roleTitle} <span className="font-normal text-muted-foreground">at {example.employer}</span>
-                  </h3>
-                  <p className="mt-1 text-xs text-muted-foreground font-mono">{example.domain}</p>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {example.skills.map((s) => (
-                    <span key={s} className="rounded bg-surface-container-low border border-border px-2 py-0.5 font-mono text-[11px] text-foreground">
-                      {s.length > 64 ? `${s.slice(0, 62)}…` : s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 md:items-end">
-                <Link href={`/challenge/${example.challengeId}`} className={buttonVariants({ size: "lg", className: "gap-2 rounded bg-primary text-white hover:bg-primary/90" })}>
-                  Use this example
-                  <ArrowRight className="size-4" aria-hidden />
-                </Link>
-                {example.sourceUrl && (
-                  <a href={example.sourceUrl} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
-                    View original ad
-                    <ExternalLink className="size-3" aria-hidden />
-                  </a>
-                )}
-              </div>
-            </CardContent>
-          </Card>
         </section>
       )}
 
