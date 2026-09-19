@@ -279,7 +279,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
             <div className="space-y-1">
               <span className="text-muted-foreground text-[11px] block">ISSUING ENGINE</span>
-              <span className="font-bold text-primary">ProofCraft Autonomous Verification Engine v2.4</span>
+              <span className="font-bold text-primary">codecraft Autonomous Verification Engine v2.4</span>
             </div>
             <div className="space-y-1">
               <span className="text-muted-foreground text-[11px] block">TIMESTAMP (UTC)</span>

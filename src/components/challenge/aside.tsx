@@ -1,120 +1,109 @@
-import { ArrowRight, Clock, EyeOff, Info, Lock, Play } from "lucide-react";
+import { AppWindow, ArrowRight, Clock, ExternalLink, EyeOff, Lock, MessageSquareText } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 import type { ChallengeView, UserView } from "@/lib/data/types";
 import { formatTimebox } from "@/lib/format";
 
 import { StartBuildButton } from "./start-button";
 
+const panel = "rounded-2xl border border-border bg-card p-5";
+
 export function StartCard({ challenge, user }: { challenge: ChallengeView; user: UserView | null }) {
+  const facts = [
+    { icon: Clock, text: `~${formatTimebox(challenge.timeboxMinutes)}` },
+    { icon: MessageSquareText, text: "Chat is evidence" },
+    { icon: AppWindow, text: "Chrome / Edge" },
+  ];
   return (
-    <Card className="border-primary/20 shadow-sm">
-      <CardHeader>
-        <CardTitle className="text-base">Ready when you are</CardTitle>
-        <CardDescription>Your workspace opens with a chat on the left and a live preview on the right.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {user?.role === "CANDIDATE" ? (
-          <StartBuildButton challengeId={challenge.id} />
-        ) : user ? (
-          <div className="flex items-start gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-            <Lock className="mt-0.5 size-4 shrink-0" aria-hidden />
-            Mentor accounts review submissions; they cannot start builds. Switch to a candidate account from the header.
-          </div>
-        ) : (
-          <Link href={`/login?next=${encodeURIComponent(`/challenge/${challenge.id}`)}`} className={buttonVariants({ size: "lg", className: "w-full gap-2" })}>
-            Sign in to start
-            <ArrowRight className="size-4" aria-hidden />
-          </Link>
-        )}
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          <li className="flex gap-2">
-            <Clock className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <span>
-              About <b className="font-medium text-foreground">{formatTimebox(challenge.timeboxMinutes)}</b>. A guide, not a hard stop.
-            </span>
+    <div className={`${panel} space-y-4 shadow-[var(--shadow-lift)] dark:shadow-none`}>
+      <h2 className="font-title text-base">Workspace</h2>
+      {user?.role === "CANDIDATE" ? (
+        <StartBuildButton challengeId={challenge.id} />
+      ) : user ? (
+        <div className="flex items-center gap-2 rounded-xl bg-muted p-3 text-[13px] text-muted-foreground">
+          <Lock className="size-4 shrink-0" aria-hidden />
+          Candidates only
+        </div>
+      ) : (
+        <Link href={`/login?next=${encodeURIComponent(`/challenge/${challenge.id}`)}`} className={buttonVariants({ variant: "signal", size: "xl", className: "w-full" })}>
+          Sign in to start
+          <ArrowRight aria-hidden />
+        </Link>
+      )}
+      <ul className="flex flex-wrap gap-1.5 text-xs">
+        {facts.map(({ icon: Icon, text }) => (
+          <li key={text} className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 font-medium text-muted-foreground">
+            <Icon className="size-3.5" aria-hidden />
+            {text}
           </li>
-          <li className="flex gap-2">
-            <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <span>Everything you type is recorded. That transcript is what we score, so think out loud.</span>
-          </li>
-          <li className="flex gap-2">
-            <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <span>Works best in Chrome or Edge.</span>
-          </li>
-        </ul>
-      </CardContent>
-    </Card>
+        ))}
+      </ul>
+    </div>
   );
 }
 
 export function JobCard({ challenge }: { challenge: ChallengeView }) {
   const { job } = challenge;
-  const shown = job.mustHaveSkills.slice(0, 5);
+  const shown = job.mustHaveSkills.slice(0, 6);
   const more = job.mustHaveSkills.length - shown.length;
   return (
-    <Card size="sm">
-      <CardHeader>
-        <CardTitle className="text-sm">Built from this role</CardTitle>
-        <CardDescription>
-          {job.roleTitle} · {job.employer}
-          {job.location ? ` · ${job.location}` : ""}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <ul className="space-y-1.5 text-sm text-foreground/80">
-          {shown.map((s, idx) => (
-            <li key={`${s}-${idx}`} className="leading-snug">
-              {s}
-            </li>
-          ))}
-          {more > 0 && <li className="text-muted-foreground">+ {more} more must-have skills</li>}
-        </ul>
-        {job.sourceUrl && (
-          <a href={job.sourceUrl} target="_blank" rel="noreferrer noopener" className="inline-flex text-sm font-medium text-primary underline underline-offset-2">
-            View the original posting
-          </a>
-        )}
-      </CardContent>
-    </Card>
+    <div className={`${panel} space-y-3`}>
+      <div>
+        <h2 className="text-sm font-semibold">Role skills</h2>
+      </div>
+      <ul className="flex flex-wrap gap-1.5">
+        {shown.map((s, idx) => (
+          <li key={`${s}-${idx}`} className="rounded-md bg-muted px-2 py-1 text-xs leading-snug">
+            {s}
+          </li>
+        ))}
+        {more > 0 && <li className="px-1 py-1 text-xs text-muted-foreground">+{more} more</li>}
+      </ul>
+      {job.sourceUrl && (
+        <a
+          href={job.sourceUrl}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex items-center gap-1 text-[13px] font-medium text-signal-ink underline-offset-2 hover:underline"
+        >
+          Original posting
+          <ExternalLink className="size-3" aria-hidden />
+        </a>
+      )}
+    </div>
   );
 }
 
 export function NotAssessedCard({ challenge }: { challenge: ChallengeView }) {
   const barriers = challenge.job.barriers;
   return (
-    <Card size="sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <EyeOff className="size-4 text-muted-foreground" aria-hidden />
-          Not part of your score
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 text-sm">
-        <ul className="space-y-1.5 text-foreground/80">
-          <li>English fluency, grammar, spelling or writing style</li>
-          <li>Your name, CV, nationality or background. The evaluator never sees them.</li>
-        </ul>
-        {barriers.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">From the posting</span>
-              <Badge variant="secondary">{barriers.length} excluded</Badge>
-            </div>
-            <p className="text-xs text-muted-foreground">These filter people rather than measure ability, so they are kept out of the rubric.</p>
-            <ul className="space-y-2.5">
-              {barriers.map((b, idx) => (
-                <li key={`${b.text}-${idx}`} className="rounded-lg bg-muted/60 p-2.5">
-                  <p className="text-foreground/80 line-clamp-2">&ldquo;{b.text}&rdquo;</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{b.reason}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <div className={`${panel} space-y-3`}>
+      <h2 className="flex items-center gap-2 text-sm font-semibold">
+        <EyeOff className="size-4 text-muted-foreground" aria-hidden />
+        Never scored
+      </h2>
+      <ul className="flex flex-wrap gap-1.5 text-xs">
+        {["Grammar & fluency", "Writing style", "Name & CV", "Nationality"].map((t) => (
+          <li key={t} className="rounded-full border border-border px-2.5 py-1 text-muted-foreground line-through decoration-foreground/30">
+            {t}
+          </li>
+        ))}
+      </ul>
+      {barriers.length > 0 && (
+        <details className="group/barriers border-t border-border pt-3">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[13px] [&::-webkit-details-marker]:hidden">
+            <span className="font-medium">Filtered from posting</span>
+            <span className="rounded-full bg-warn-soft px-2 py-0.5 text-xs font-medium text-warn">{barriers.length}</span>
+          </summary>
+          <ul className="slide-in mt-3 space-y-2">
+            {barriers.map((b, idx) => (
+              <li key={`${b.text}-${idx}`} className="rounded-lg bg-muted/70 p-2.5 text-[13px]">
+                <p className="line-clamp-2 text-foreground/85">&ldquo;{b.text}&rdquo;</p>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </div>
   );
 }

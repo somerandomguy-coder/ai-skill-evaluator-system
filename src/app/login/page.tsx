@@ -2,18 +2,14 @@ import { Info } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { switchUser } from "@/app/actions/auth";
-import { LogoMark } from "@/components/site/logo";
+import { Logo } from "@/components/ui/logo";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser, safeNext } from "@/lib/auth";
-import { APP_NAME } from "@/lib/brand";
-import { data } from "@/lib/data";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DEMO_USERS } from "@/lib/data/demo-users";
 import { AuthForm } from "./auth-form";
+import { OAuthButtons } from "./oauth-buttons";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -30,64 +26,70 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (user && !need) redirect(safeNext(next));
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-4 py-10 sm:py-14">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <LogoMark className="size-10 rounded-xl [&_svg]:size-5" />
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Welcome to {APP_NAME}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Sign in to build a project and see how your reasoning scores.</p>
-        </div>
+    <div className="relative isolate mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-5 overflow-x-clip px-4 py-10 sm:py-14">
+      {/* Ambient orange light behind the card. */}
+      <div className="ambient -top-24 -left-24 size-[30rem]" aria-hidden />
+      <div className="ambient -right-28 -bottom-20 size-[26rem] [animation-delay:-4s]" aria-hidden />
+
+      <div className="flex flex-col items-center gap-4 text-center">
+        <Logo size={40} showWordmark={false} priority />
+        <h1 className="font-display bg-[linear-gradient(100deg,var(--foreground)_10%,color-mix(in_oklab,var(--foreground)_50%,var(--signal-ink))_55%,var(--signal-ink)_95%)] bg-clip-text text-4xl text-transparent">
+          {need ? "Switch account" : "Welcome back"}
+        </h1>
       </div>
 
       {need && (
-        <Alert>
+        <Alert className="rounded-2xl border-signal/30 bg-card/80 backdrop-blur-md">
           <Info aria-hidden />
-          <AlertTitle>That page needs a {need.toLowerCase()} account</AlertTitle>
-          <AlertDescription>Pick one of the {need.toLowerCase()} accounts below to continue.</AlertDescription>
+          <AlertTitle>Needs a {need.toLowerCase()} account</AlertTitle>
+          <AlertDescription>Pick one below.</AlertDescription>
         </Alert>
       )}
 
-      <Card>
-        <CardContent className="pt-1">
-          <AuthForm next={next} error={error} />
-        </CardContent>
-      </Card>
+      {/* Obsidian glass card */}
+      <div className="space-y-5 rounded-3xl border border-signal/30 bg-card/80 p-6 shadow-2xl backdrop-blur-2xl">
+        <AuthForm next={next} error={error} initialMode={one(sp.mode) === "signup" ? "signup" : "signin"} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Demo accounts
-            <Badge variant="secondary">mock auth</Badge>
-          </CardTitle>
-          <CardDescription>
-            Authentication is mocked: there are no passwords. Pick a seeded account to jump straight in, and switch any time from the menu in the header.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+          <span className="h-px flex-1 bg-border" aria-hidden />
+          or
+          <span className="h-px flex-1 bg-border" aria-hidden />
+        </div>
+
+        <OAuthButtons />
+      </div>
+
+      {/* Mock auth: one tap into a seeded account. */}
+      <div className="space-y-2.5 rounded-3xl border border-border bg-card/70 p-5 backdrop-blur-md">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">Demo accounts</h2>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">no passwords</span>
+        </div>
+        <ul className="grid gap-1.5">
           {users.map((u) => (
-            <form key={u.id} action={switchUser.bind(null, u.id, need ? (u.role === need ? next : undefined) : next)}>
-              <Button type="submit" variant="outline" className="h-auto w-full justify-start gap-3 px-3 py-2 text-left">
-                <span
-                  className={cn(
-                    "grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold",
-                    u.role === "MENTOR" ? "bg-amber-100 text-amber-800" : "bg-indigo-100 text-indigo-800"
-                  )}
-                  aria-hidden
+            <li key={u.id}>
+              <form action={switchUser.bind(null, u.id, need ? (u.role === need ? next : undefined) : next)}>
+                <button
+                  type="submit"
+                  className="flex w-full items-center gap-3 rounded-xl border border-transparent px-2.5 py-2 text-left transition-colors hover:border-signal/40 hover:bg-signal-soft/50"
                 >
-                  {initials(u.name)}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">{u.name}</span>
-                  <span className="block truncate text-xs font-normal text-muted-foreground">{u.email}</span>
-                </span>
-                <Badge variant="outline" className="shrink-0">
-                  {u.role === "MENTOR" ? "Mentor" : "Candidate"}
-                </Badge>
-              </Button>
-            </form>
+                  <span
+                    className={cn(
+                      "grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold",
+                      u.role === "MENTOR" ? "bg-warn-soft text-warn" : "bg-signal-soft text-signal-ink"
+                    )}
+                    aria-hidden
+                  >
+                    {initials(u.name)}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{u.name}</span>
+                  <span className="shrink-0 text-[11px] text-muted-foreground">{u.role === "MENTOR" ? "Mentor" : "Candidate"}</span>
+                </button>
+              </form>
+            </li>
           ))}
-        </CardContent>
-      </Card>
+        </ul>
+      </div>
     </div>
   );
 }

@@ -1,13 +1,12 @@
 "use client";
 
-import { ArrowRight, CircleAlert, Sparkles, FileText, CheckCircle2, Upload, Trash2, LoaderCircle } from "lucide-react";
+import { ArrowRight, CircleAlert, FileText, LoaderCircle, Upload, X, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { runPipeline } from "@/lib/client/api";
+import { cn } from "@/lib/utils";
 import type { PipelineEvent } from "@/lib/pipeline-events";
 import { PIPELINE_STEPS, PipelineProgress, type ProgressStep } from "./pipeline-progress";
 
@@ -73,7 +72,7 @@ function applyEvent(steps: ProgressStep[], e: Extract<PipelineEvent, { type: "st
   return steps.map((s) => (s.id === e.step ? { ...s, state: e.status === "start" ? "active" : "done", detail: e.detail ?? s.detail } : s));
 }
 
-export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolean; isCandidate: boolean; demoMode: boolean }) {
+export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandidate: boolean }) {
   const router = useRouter();
   const [text, setText] = useState(PRESETS[0].text);
   const [activePreset, setActivePreset] = useState<string | null>("resume-screener");
@@ -142,157 +141,139 @@ export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolea
     }
   }
 
+  const count = text.trim().length;
+  const needed = Math.max(0, MIN_CHARS - count);
+
   return (
-    <div className="w-full space-y-4">
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".txt,.md,.text"
-        onChange={handleFileUpload}
-        className="hidden"
-      />
+    <div className="w-full space-y-3">
+      <input ref={fileInputRef} type="file" accept=".txt,.md,.text" onChange={handleFileUpload} className="hidden" />
 
-      {/* Main Intake Box */}
-      <Card className="border border-border bg-surface-container-lowest rounded overflow-hidden">
-        {/* Top Control Strip */}
-        <div className="bg-surface-container-low/60 border-b border-border px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-wider">
-              Try sample role:
-            </span>
-            {PRESETS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => handlePreset(p)}
-                className={`px-3 py-1 rounded text-xs font-mono transition-colors cursor-pointer border ${
-                  activePreset === p.id
-                    ? "bg-primary text-white border-primary font-semibold"
-                    : "bg-surface-container-lowest text-foreground/80 border-border hover:bg-surface-container hover:text-primary"
-                }`}
-              >
-                {p.name}
-              </button>
-            ))}
-            {text.length > 0 && (
-              <button
-                type="button"
-                onClick={handleClear}
-                className="px-2 py-1 rounded text-xs text-muted-foreground hover:text-destructive hover:bg-surface-container transition-colors cursor-pointer flex items-center gap-1 font-mono"
-                title="Clear text"
-              >
-                <Trash2 className="size-3" />
-                <span>Clear</span>
-              </button>
-            )}
+      {/* An editor frame: presets are open files, the status bar carries state and the one action. */}
+      <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-lift)] dark:shadow-[0_24px_60px_-30px_rgb(255_107_0/0.35)]">
+        <div className="flex items-center gap-1 border-b border-border bg-surface-container-low pr-2">
+          <div className="scrollbar-none flex min-w-0 flex-1 overflow-x-auto" role="group" aria-label="Sample job descriptions">
+            {PRESETS.map((p) => {
+              const active = activePreset === p.id;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  aria-pressed={active}
+                  disabled={busy}
+                  onClick={() => handlePreset(p)}
+                  className={cn(
+                    "relative flex shrink-0 items-center gap-2 border-r border-border px-3.5 py-2.5 text-[13px] transition-colors disabled:opacity-60",
+                    active ? "bg-card font-medium text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                  )}
+                >
+                  {active && <span className="slide-in absolute inset-x-0 top-0 h-0.5 bg-signal" aria-hidden />}
+                  <FileText className={cn("size-3.5", active ? "text-signal" : "text-muted-foreground")} aria-hidden />
+                  {p.name}
+                </button>
+              );
+            })}
           </div>
-
-          <div className="flex items-center gap-3">
-            <Button
+          {text.length > 0 && !busy && (
+            <button
               type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              className="h-8 gap-1.5 rounded text-xs font-mono border-border bg-surface-container-lowest hover:bg-surface-container"
+              onClick={handleClear}
+              className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="Clear the job description"
+              title="Clear"
             >
-              <Upload className="size-3.5" />
-              <span>Upload JD file</span>
-            </Button>
-            <div className="text-xs font-mono text-muted-foreground">
-              <span className={text.trim().length >= MIN_CHARS ? "text-primary font-semibold" : "text-amber-600"}>
-                {text.length.toLocaleString()}
-              </span>
-              <span> / {MAX_CHARS.toLocaleString()} chars</span>
-            </div>
-          </div>
+              <X className="size-4" aria-hidden />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={busy}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-60"
+          >
+            <Upload className="size-3.5" aria-hidden />
+            <span className="hidden sm:inline">Upload</span>
+          </button>
         </div>
 
-        {/* Form Body */}
-        <CardContent className="p-4 sm:p-6">
-          {run.status === "running" || run.status === "error" ? (
-            <div className="space-y-5 py-4">
-              <PipelineProgress steps={run.steps} />
-              {run.status === "error" && (
-                <div className="space-y-3">
-                  <Alert variant="destructive">
-                    <CircleAlert aria-hidden />
-                    <AlertTitle>Could not build challenge</AlertTitle>
-                    <AlertDescription>{run.message}</AlertDescription>
-                  </Alert>
-                  <Button variant="outline" onClick={() => setRun({ status: "idle" })} className="rounded">
-                    Back to edit job description
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <form onSubmit={submit} className="space-y-4">
-              <div className="relative">
-                <Textarea
-                  id="jd"
-                  value={text}
-                  onChange={(e) => {
-                    setText(e.target.value);
-                    setActivePreset(null);
-                  }}
-                  placeholder="Paste any job description here (responsibilities, required tech stack, engineering scope)... or choose a sample above."
-                  className="min-h-[260px] sm:min-h-[300px] resize-y font-mono text-xs sm:text-sm leading-relaxed p-4 bg-surface-container-lowest border-border rounded focus-visible:ring-1 focus-visible:ring-primary"
-                />
-              </div>
-
-              {demoMode && (
-                <div className="p-3 rounded bg-surface-container-low border border-border text-xs flex items-center gap-2">
-                  <Sparkles className="size-4 text-primary shrink-0" />
-                  <span className="text-muted-foreground">
-                    <strong className="text-primary font-semibold">Demo Mode:</strong> Instant challenge generation using pre-cached benchmarks.
-                  </span>
-                </div>
-              )}
-
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-                <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono order-2 sm:order-1">
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                    <span>{valid ? "Ready to generate customized challenge & rubric" : `Please enter at least ${MIN_CHARS} characters`}</span>
-                  </div>
-                  <label className="flex items-center gap-1.5 cursor-pointer select-none text-xs font-medium text-muted-foreground hover:text-foreground bg-surface-container-low px-2 py-1 rounded border border-border">
-                    <input
-                      type="checkbox"
-                      checked={fastMode}
-                      onChange={(e) => setFastMode(e.target.checked)}
-                      className="size-3.5 rounded border-border accent-primary cursor-pointer"
-                    />
-                    <span className="flex items-center gap-1 font-sans">
-                      <Sparkles className="size-3 text-amber-500" />
-                      <span>Fast Simulation (5s)</span>
-                    </span>
-                  </label>
-                </div>
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full sm:w-auto px-8 bg-primary text-white hover:bg-primary/90 font-semibold tracking-wide rounded cursor-pointer transition-all flex items-center justify-center gap-2 py-6 text-sm sm:text-base order-1 sm:order-2"
-                  disabled={busy || (signedIn && (!valid || !isCandidate))}
-                >
-                  {busy ? (
-                    <>
-                      <LoaderCircle className="size-4.5 animate-spin" aria-hidden />
-                      <span>Generating Challenge...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>{signedIn ? "Generate Assessment Challenge" : "Sign in to Generate Challenge"}</span>
-                      <ArrowRight className="size-4.5" aria-hidden />
-                    </>
-                  )}
+        {run.status === "running" || run.status === "error" ? (
+          <div className="min-h-[19rem] space-y-5 p-5 sm:p-6">
+            <PipelineProgress steps={run.steps} />
+            {run.status === "error" && (
+              <div className="slide-in space-y-3">
+                <Alert variant="destructive" className="border-bad/30 bg-bad-soft">
+                  <CircleAlert aria-hidden />
+                  <AlertTitle>Couldn&apos;t build the challenge</AlertTitle>
+                  <AlertDescription>{run.message}</AlertDescription>
+                </Alert>
+                <Button variant="outline" onClick={() => setRun({ status: "idle" })}>
+                  Edit job description
                 </Button>
               </div>
-            </form>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </div>
+        ) : (
+          <form onSubmit={submit}>
+            <label htmlFor="jd" className="sr-only">
+              Job description
+            </label>
+            <textarea
+              id="jd"
+              value={text}
+              onChange={(e) => {
+                setText(e.target.value);
+                setActivePreset(null);
+              }}
+              placeholder="Paste a job description: the role, the stack, what the team builds."
+              spellCheck={false}
+              className="block min-h-60 w-full resize-y sm:min-h-[19rem] bg-transparent px-5 py-4 font-mono text-[13px] leading-6 text-foreground outline-none placeholder:text-muted-foreground sm:px-6"
+            />
+
+            <div className="flex flex-col gap-3 border-t border-border bg-surface-container-low px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:pl-5">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5" aria-live="polite">
+                  <span className={cn("size-1.5 rounded-full", valid ? "bg-ok" : "bg-warn")} aria-hidden />
+                  {valid ? "Ready" : needed > 0 ? `${needed} more characters` : "Too long"}
+                </span>
+                <span className="tabular font-mono">
+                  {text.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}
+                </span>
+                <label className="inline-flex cursor-pointer items-center gap-2 select-none">
+                  <input type="checkbox" role="switch" checked={fastMode} onChange={(e) => setFastMode(e.target.checked)} className="peer sr-only" />
+                  <span
+                    className="relative h-4 w-7 rounded-full bg-foreground/15 transition-colors peer-checked:bg-signal peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring after:absolute after:top-0.5 after:left-0.5 after:size-3 after:rounded-full after:bg-card after:shadow-sm after:transition-transform after:duration-200 peer-checked:after:translate-x-3"
+                    aria-hidden
+                  />
+                  <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                    <Zap className="size-3" aria-hidden />
+                    Fast simulation
+                  </span>
+                </label>
+              </div>
+
+              <Button
+                type="submit"
+                variant="signal"
+                size="xl"
+                className="w-full sm:w-auto"
+                disabled={busy || (signedIn && (!valid || !isCandidate))}
+              >
+                {busy ? (
+                  <>
+                    <LoaderCircle className="animate-spin" aria-hidden />
+                    Generating…
+                  </>
+                ) : (
+                  <>
+                    {signedIn ? "Generate challenge" : "Sign in to generate"}
+                    <ArrowRight className="transition-transform duration-200 group-hover/button:translate-x-0.5" aria-hidden />
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        )}
+      </div>
+
     </div>
   );
 }

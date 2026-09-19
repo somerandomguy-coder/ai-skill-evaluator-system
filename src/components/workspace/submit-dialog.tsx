@@ -66,7 +66,7 @@ export function SubmitDialog({
         if (!next) setPhase("confirm");
       }}
     >
-      <DialogTrigger render={<Button size="sm" className="gap-1.5" disabled={disabled} />}>
+      <DialogTrigger render={<Button variant="signal" size="sm" className="gap-1.5 px-3" disabled={disabled} />}>
         <Send className="size-3.5" aria-hidden />
         Submit
       </DialogTrigger>
@@ -75,19 +75,19 @@ export function SubmitDialog({
           <>
             <DialogHeader>
               <DialogTitle>Evaluating your work</DialogTitle>
-              <DialogDescription>This usually takes under a minute. Please keep this tab open.</DialogDescription>
+              <DialogDescription>Keep this tab open.</DialogDescription>
             </DialogHeader>
             <ol className="space-y-3 py-1" aria-live="polite">
               {PHASES.map((label, i) => (
                 <li key={label} className="flex items-center gap-3 text-sm">
                   {i < step ? (
-                    <span className="grid size-5 place-items-center rounded-full bg-emerald-500 text-white">
+                    <span className="pop-in grid size-5 place-items-center rounded-full bg-ok text-white dark:text-background">
                       <Check className="size-3" strokeWidth={3} aria-hidden />
                     </span>
                   ) : i === step ? (
-                    <LoaderCircle className="size-5 animate-spin text-primary" aria-hidden />
+                    <LoaderCircle className="size-5 animate-spin text-signal" aria-hidden />
                   ) : (
-                    <span className="size-5 rounded-full border-2 border-dashed border-foreground/20" aria-hidden />
+                    <span className="size-5 rounded-full border-2 border-dashed border-foreground/15" aria-hidden />
                   )}
                   <span className={cn(i > step && "text-muted-foreground")}>{label}</span>
                 </li>
@@ -97,24 +97,19 @@ export function SubmitDialog({
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Submit your work?</DialogTitle>
-              <DialogDescription>
-                We&apos;ll snapshot your files and score your session against the rubric you saw at the start. You can&apos;t keep building after this.
-              </DialogDescription>
+              <DialogTitle className="font-title text-lg">Submit your work?</DialogTitle>
+              <DialogDescription>Building ends here.</DialogDescription>
             </DialogHeader>
-            <ul className="space-y-1.5 rounded-lg bg-muted/60 p-3 text-sm">
-              <li className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Messages you sent</span>
-                <span className="tabular font-medium">{turnCount}</span>
-              </li>
-              <li className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Files in your project</span>
-                <span className="tabular font-medium">{fileCount}</span>
-              </li>
-            </ul>
-            <p className="text-xs text-muted-foreground">
-              Scores cite the exact turn or file they&apos;re based on. If the AI isn&apos;t confident, a human mentor checks the result.
-            </p>
+            <dl className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl bg-muted p-3">
+                <dt className="text-xs text-muted-foreground">Messages</dt>
+                <dd className="tabular font-display mt-1 text-2xl">{turnCount}</dd>
+              </div>
+              <div className="rounded-xl bg-muted p-3">
+                <dt className="text-xs text-muted-foreground">Files</dt>
+                <dd className="tabular font-display mt-1 text-2xl">{fileCount}</dd>
+              </div>
+            </dl>
             {phase === "error" && error && (
               <Alert variant="destructive">
                 <CircleAlert aria-hidden />
@@ -123,9 +118,9 @@ export function SubmitDialog({
             )}
             <DialogFooter>
               <DialogClose render={<Button variant="ghost" />}>Keep building</DialogClose>
-              <Button onClick={go} className="gap-1.5">
+              <Button variant="signal" onClick={go} className="gap-1.5">
                 <Send className="size-4" aria-hidden />
-                {phase === "error" ? "Try again" : "Submit and get my report"}
+                {phase === "error" ? "Try again" : "Submit and get report"}
               </Button>
             </DialogFooter>
           </>

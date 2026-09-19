@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { contestScore } from "@/lib/client/api";
 
-export function CopyLinkButton({ url, label = "Share Report (Public Link)" }: { url?: string; label?: string }) {
+export function CopyLinkButton({ url, label = "Copy link" }: { url?: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   async function copy() {
     const target = url ?? window.location.href;
@@ -24,9 +24,9 @@ export function CopyLinkButton({ url, label = "Share Report (Public Link)" }: { 
     }
   }
   return (
-    <Button variant="outline" size="sm" onClick={copy} className="gap-1.5 font-mono text-xs rounded border-border hover:bg-surface-container">
-      {copied ? <Check className="size-3.5 text-emerald-600" aria-hidden /> : <Link2 className="size-3.5" aria-hidden />}
-      <span>{copied ? "Link copied to clipboard" : label}</span>
+    <Button variant="outline" size="lg" onClick={copy} className="gap-1.5 rounded-full px-3.5 text-[13px]" aria-live="polite">
+      {copied ? <Check className="pop-in size-3.5 text-ok" aria-hidden /> : <Link2 className="size-3.5" aria-hidden />}
+      <span>{copied ? "Copied" : label}</span>
     </Button>
   );
 }
@@ -35,12 +35,12 @@ export function PrintExecutivePdfButton() {
   return (
     <Button
       variant="outline"
-      size="sm"
+      size="lg"
       onClick={() => window.print()}
-      className="gap-1.5 font-mono text-xs rounded border-border hover:bg-surface-container no-print"
+      className="no-print gap-1.5 rounded-full px-3.5 text-[13px]"
     >
       <Printer className="size-3.5" aria-hidden />
-      <span>Print Executive PDF</span>
+      <span>Print</span>
     </Button>
   );
 }
@@ -49,10 +49,10 @@ export function ViewEmployerDeckButton({ evaluationId }: { evaluationId: string 
   return (
     <Link
       href={`/report/${evaluationId}/employer`}
-      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded bg-primary text-white hover:bg-primary/90 text-xs font-mono font-semibold transition-colors"
+      className="inline-flex h-9 items-center gap-1.5 rounded-full bg-action px-3.5 text-[13px] font-semibold text-[var(--action-ink)] shadow-[inset_0_1px_0_rgb(255_255_255/0.35),inset_0_-3px_0_rgb(0_0_0/0.22)] transition-[box-shadow,transform] active:translate-y-[2px] hover:shadow-[0_0_20px_rgb(255_107_0/0.4)]"
     >
       <Layers className="size-3.5" aria-hidden />
-      <span>Share to Employer (Card Deck)</span>
+      <span>Interviewer deck</span>
       <ArrowRight className="size-3" aria-hidden />
     </Link>
   );
@@ -62,11 +62,10 @@ export function ViewCredentialButton({ evaluationId }: { evaluationId: string })
   return (
     <Link
       href={`/report/${evaluationId}/credential`}
-      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-foreground text-xs font-mono font-medium border border-border transition-colors"
+      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-[13px] font-medium transition-colors hover:bg-muted"
     >
-      <Award className="size-3.5" aria-hidden />
-      <span>Credential Dossier</span>
-      <ArrowRight className="size-3" aria-hidden />
+      <Award className="size-3.5 text-signal" aria-hidden />
+      <span>Credential</span>
     </Link>
   );
 }
@@ -101,38 +100,35 @@ export function ContestDialog({ evaluationId }: { evaluationId: string }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="sm" className="gap-1.5 font-mono text-xs rounded border-border hover:bg-surface-container text-foreground" />}>
+      <DialogTrigger render={<Button variant="outline" size="lg" className="gap-1.5 rounded-full px-3.5 text-[13px]" />}>
         <Gavel className="size-3.5" aria-hidden />
-        Contest Score / Secondary Audit
+        Contest score
       </DialogTrigger>
-      <DialogContent className="rounded border-border bg-surface-container-lowest">
+      <DialogContent className="rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="font-bold text-primary">Contest this score</DialogTitle>
-          <DialogDescription className="text-xs">
-            This routes your submission straight to a senior human mentor with a 2-3 business day turnaround. The mentor inspects your full transcript, code files, and AI reasoning to confirm or adjust scores.
-          </DialogDescription>
+          <DialogTitle className="font-title text-lg">Contest score</DialogTitle>
+          <DialogDescription className="text-xs">Goes to a human mentor.</DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label htmlFor="contest-reason" className="text-xs font-semibold">What requirement or criterion was scored wrongly?</Label>
+          <Label htmlFor="contest-reason" className="text-xs font-semibold">What was scored wrongly?</Label>
           <Textarea
             id="contest-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="For example: in turn 5 I identified the counting defect in peopleIn(), but the verification criterion does not reflect this catch."
-            className="min-h-28 text-xs font-mono rounded border-border"
+            className="min-h-28 rounded-xl text-[13px]"
           />
-          <p className="text-[11px] text-muted-foreground">Any phrasing is fine. Only the substance and evidence citations are evaluated.</p>
         </div>
         {error && (
-          <Alert variant="destructive" className="rounded text-xs">
+          <Alert variant="destructive" className="rounded-xl border-bad/30 bg-bad-soft text-xs">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
         <DialogFooter className="gap-2">
-          <DialogClose render={<Button variant="ghost" size="sm" className="rounded text-xs" />}>Cancel</DialogClose>
-          <Button onClick={submit} disabled={!ok || pending} size="sm" className="gap-1.5 rounded bg-primary text-white hover:bg-primary/90 text-xs">
+          <DialogClose render={<Button variant="ghost" className="rounded-full" />}>Cancel</DialogClose>
+          <Button variant="signal" onClick={submit} disabled={!ok || pending} className="gap-1.5 rounded-full px-4">
             {pending && <LoaderCircle className="size-3.5 animate-spin" aria-hidden />}
-            Submit for Mentor Review
+            Send to mentor
           </Button>
         </DialogFooter>
       </DialogContent>

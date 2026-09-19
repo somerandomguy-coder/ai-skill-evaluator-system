@@ -8,22 +8,22 @@ import { cn } from "@/lib/utils";
 
 export const useRuntime = () => useSyncExternalStore(subscribeRuntime, getRuntimeSnapshot, getServerRuntimeSnapshot);
 
-const PILL: Record<RuntimeStatus, { label: string; dot: string }> = {
-  idle: { label: "Starting…", dot: "bg-slate-400" },
-  booting: { label: "Booting…", dot: "bg-amber-500 animate-pulse" },
-  installing: { label: "Installing…", dot: "bg-amber-500 animate-pulse" },
-  starting: { label: "Starting…", dot: "bg-amber-500 animate-pulse" },
-  ready: { label: "Preview live", dot: "bg-emerald-500" },
-  error: { label: "Preview error", dot: "bg-rose-500" },
-  unsupported: { label: "No live preview", dot: "bg-slate-400" },
+const PILL: Record<RuntimeStatus, { label: string; dot: string; live?: boolean }> = {
+  idle: { label: "Starting", dot: "text-muted-foreground" },
+  booting: { label: "Booting", dot: "text-warn", live: true },
+  installing: { label: "Installing", dot: "text-warn", live: true },
+  starting: { label: "Starting", dot: "text-warn", live: true },
+  ready: { label: "Live", dot: "text-ok", live: true },
+  error: { label: "Preview error", dot: "text-bad" },
+  unsupported: { label: "No preview", dot: "text-muted-foreground" },
 };
 
 export function RuntimePill() {
   const rt = useRuntime();
   const p = PILL[rt.status];
   return (
-    <span className="hidden items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-muted-foreground md:inline-flex" title={rt.detail}>
-      <span className={cn("size-2 rounded-full", p.dot)} aria-hidden />
+    <span className="hidden items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs font-medium md:inline-flex" title={rt.detail} aria-live="polite">
+      <span className={cn("size-1.5 rounded-full", p.dot, p.live ? "live-dot" : "bg-current")} aria-hidden />
       {p.label}
     </span>
   );
@@ -51,11 +51,8 @@ export function RuntimeProgress() {
   const lastLog = rt.logs.length ? rt.logs[rt.logs.length - 1] : null;
 
   return (
-    <div className="mx-auto flex h-full max-w-md flex-col justify-center gap-6 p-6">
-      <div>
-        <h3 className="text-base font-semibold">Getting your workspace ready</h3>
-        <p className="mt-1 text-sm text-muted-foreground">You can start writing to the assistant now. The preview appears here as soon as it&apos;s live.</p>
-      </div>
+    <div className="mx-auto flex h-full max-w-sm flex-col justify-center gap-6 p-6">
+      <h3 className="font-title text-base">Preparing preview</h3>
       <ol className="space-y-4" aria-live="polite">
         {STEPS.map((s, i) => {
           const state = stepState(rt, i);
@@ -63,27 +60,26 @@ export function RuntimeProgress() {
             <li key={s.label} className="flex gap-3">
               <span className="mt-0.5 grid size-5 shrink-0 place-items-center">
                 {state === "done" ? (
-                  <span className="grid size-5 place-items-center rounded-full bg-emerald-500 text-white">
+                  <span className="pop-in grid size-5 place-items-center rounded-full bg-ok text-white dark:text-background">
                     <Check className="size-3" strokeWidth={3} aria-hidden />
                   </span>
                 ) : state === "active" ? (
-                  <LoaderCircle className="size-5 animate-spin text-primary" aria-hidden />
+                  <LoaderCircle className="size-5 animate-spin text-signal" aria-hidden />
                 ) : (
-                  <span className="size-5 rounded-full border-2 border-dashed border-foreground/20" aria-hidden />
+                  <span className="size-5 rounded-full border-2 border-dashed border-foreground/15" aria-hidden />
                 )}
               </span>
               <div>
                 <div className={cn("text-sm font-medium", state === "pending" && "text-muted-foreground")}>
                   {s.label}
-                  {state === "active" && installing && <span className="tabular ml-2 font-normal text-muted-foreground">{seconds}s</span>}
+                  {state === "active" && installing && <span className="tabular ml-2 font-mono text-xs font-normal text-muted-foreground">{seconds}s</span>}
                 </div>
-                {state === "active" && <p className="text-xs text-muted-foreground">{s.hint}</p>}
               </div>
             </li>
           );
         })}
       </ol>
-      {lastLog && <p className="truncate rounded-md bg-muted px-2.5 py-1.5 font-mono text-[0.7rem] text-muted-foreground">{lastLog}</p>}
+      {lastLog && <p className="truncate rounded-lg bg-code px-3 py-2 font-mono text-[11px] text-code-foreground/80">{lastLog}</p>}
     </div>
   );
 }

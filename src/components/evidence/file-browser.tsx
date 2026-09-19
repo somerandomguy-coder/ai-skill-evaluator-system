@@ -50,7 +50,7 @@ export function FileBrowser({ files, changed, selected, onSelect, highlightQuote
     if (range) codeRef.current?.querySelector('[data-hl="true"]')?.scrollIntoView({ block: "center" });
   }, [current?.path, range?.[0]]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!visible.length) return <p className={cn("p-4 text-sm text-muted-foreground", className)}>No files yet.</p>;
+  if (!visible.length) return <p className={cn("p-4 text-sm text-muted-foreground", className)}>No files yet. Ask the assistant to start the project.</p>;
 
   const renderNode = (node: TreeEntry, depth: number) => {
     const pad = { paddingLeft: `${depth * 12 + 8}px` };
@@ -58,7 +58,7 @@ export function FileBrowser({ files, changed, selected, onSelect, highlightQuote
       const open = !collapsed.has(node.path);
       return (
         <li key={node.path}>
-          <button type="button" onClick={() => toggle(node.path)} style={pad} className="flex w-full items-center gap-1.5 rounded py-1 pr-2 text-left text-xs text-muted-foreground hover:bg-muted">
+          <button type="button" onClick={() => toggle(node.path)} style={pad} className="flex w-full items-center gap-1.5 rounded-md py-1 pr-2 text-left text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
             {open ? <ChevronDown className="size-3" aria-hidden /> : <ChevronRight className="size-3" aria-hidden />}
             {open ? <FolderOpen className="size-3.5" aria-hidden /> : <Folder className="size-3.5" aria-hidden />}
             <span className="truncate">{node.name}</span>
@@ -75,34 +75,37 @@ export function FileBrowser({ files, changed, selected, onSelect, highlightQuote
           onClick={() => select(node.path)}
           style={pad}
           aria-current={isCurrent ? "true" : undefined}
-          className={cn("flex w-full items-center gap-1.5 rounded py-1 pr-2 text-left text-xs hover:bg-muted", isCurrent && "bg-accent font-medium text-accent-foreground")}
+          className={cn(
+            "flex w-full items-center gap-1.5 rounded-md py-1 pr-2 text-left font-mono text-xs transition-colors hover:bg-muted",
+            isCurrent ? "bg-signal-soft font-medium text-signal-ink hover:bg-signal-soft" : "text-foreground/85"
+          )}
         >
-          <FileCode className="ml-4 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+          <FileCode className={cn("ml-4 size-3.5 shrink-0", isCurrent ? "text-signal-ink" : "text-muted-foreground")} aria-hidden />
           <span className="truncate">{node.name}</span>
-          {changed?.has(node.path) && <span className="ml-auto size-1.5 shrink-0 rounded-full bg-emerald-500" title="Written in the latest turn" />}
+          {changed?.has(node.path) && <span className="pop-in ml-auto size-1.5 shrink-0 rounded-full bg-signal" title="Written in the latest turn" />}
         </button>
       </li>
     );
   };
 
   return (
-    <div className={cn("grid min-h-0 grid-cols-[12.5rem_minmax(0,1fr)] overflow-hidden", className)}>
-      <ul className="min-h-0 overflow-auto border-r p-1.5" aria-label="Files">
+    <div className={cn("grid min-h-0 grid-cols-[minmax(9rem,12.5rem)_minmax(0,1fr)] overflow-hidden", className)}>
+      <ul className="min-h-0 overflow-auto border-r border-border bg-surface-container-low p-1.5" aria-label="Files">
         {tree.map((n) => renderNode(n, 0))}
       </ul>
       <div className="flex min-h-0 min-w-0 flex-col">
         {current && (
           <>
-            <div className="flex items-center justify-between gap-3 border-b px-3 py-1.5 text-xs text-muted-foreground">
-              <span className="truncate font-mono">{current.path}</span>
-              <span className="tabular shrink-0">{lines.length} lines</span>
+            <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-2 text-xs text-muted-foreground">
+              <span className="truncate font-mono text-foreground">{current.path}</span>
+              <span className="tabular shrink-0 font-mono">{lines.length} lines</span>
             </div>
-            <div ref={codeRef} className="min-h-0 flex-1 overflow-auto py-2 font-mono text-xs leading-5">
+            <div ref={codeRef} key={current.path} className="fade-in min-h-0 flex-1 overflow-auto py-3 font-mono text-[12.5px] leading-[1.35rem]">
               {lines.map((line, i) => {
                 const hl = !!range && i >= range[0] && i <= range[1];
                 return (
-                  <div key={i} data-hl={hl || undefined} className={cn("flex", hl && "bg-amber-100")}>
-                    <span className="tabular w-10 shrink-0 pr-3 text-right text-muted-foreground/60 select-none">{i + 1}</span>
+                  <div key={i} data-hl={hl || undefined} className={cn("flex", hl && "bg-mark")}>
+                    <span className="tabular w-12 shrink-0 pr-4 text-right text-muted-foreground/50 select-none">{i + 1}</span>
                     <span className="pr-4 whitespace-pre">{line || " "}</span>
                   </div>
                 );

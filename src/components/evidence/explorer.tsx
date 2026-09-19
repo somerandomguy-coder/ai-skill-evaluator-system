@@ -70,9 +70,9 @@ export function EvidenceExplorer({
   }, [target]);
 
   return (
-    <div ref={root} className={cn("overflow-hidden rounded-xl border bg-card", className)}>
+    <div ref={root} className={cn("overflow-hidden rounded-xl border border-border bg-card", className)}>
       <Tabs value={tab} onValueChange={(v) => setTab(String(v))}>
-        <div className="border-b bg-muted/40 px-3 py-2">
+        <div className="border-b border-border bg-surface-container-low px-3 py-2">
           <TabsList>
             {extraTabs.map((t) => (
               <TabsTrigger key={t.value} value={t.value} className="gap-1.5">

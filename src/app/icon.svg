@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-77 -77 154 154" fill="#FC6705" role="img" aria-label="codecraft">
+  <!-- Rebuilt from the official codecraft logo: four dots, two short bars and one long diagonal, all 34.6 units thick. -->
+  <circle cx="0" cy="-59.6" r="17.3"/>
+  <circle cx="-59.6" cy="0" r="17.3"/>
+  <circle cx="59.6" cy="0" r="17.3"/>
+  <circle cx="0" cy="59.6" r="17.3"/>
+  <rect x="-25.8" y="-17.3" width="51.6" height="34.6" rx="17.3" transform="translate(-35.9 -35.9) rotate(45)"/>
+  <rect x="-25.8" y="-17.3" width="51.6" height="34.6" rx="17.3" transform="translate(35.95 35.95) rotate(45)"/>
+  <rect x="-76.35" y="-17.3" width="152.7" height="34.6" rx="17.3" transform="rotate(-45)"/>
+</svg>
