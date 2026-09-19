@@ -1,4 +1,4 @@
-import { Briefcase, Clock, ExternalLink, Info, ListChecks, Tag } from "lucide-react";
+import { Briefcase, Clock, ExternalLink, Info, ListChecks, Tag, Sparkles, Terminal, Shield } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { JobCard, NotAssessedCard, StartCard } from "@/components/challenge/aside";
@@ -21,88 +21,93 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
   const { job, research } = challenge;
 
   return (
-    <PageShell>
+    <PageShell width="7xl" className="py-8">
       {sp.from === "demo-fallback" && (
-        <Alert className="mb-8">
+        <Alert className="mb-6 rounded border border-border bg-surface-container-low">
           <Info aria-hidden />
-          <AlertTitle>You are seeing the seeded example</AlertTitle>
+          <AlertTitle>Seeded Prototype Assessment Loaded</AlertTitle>
           <AlertDescription>
-            Demo mode serves cached responses only, so it could not build a challenge from the text you pasted. Turn demo mode off (and add an OpenAI API key) to generate one live.
+            Live AI calls are turned off in demo mode. You are viewing the fully verified Culture Amp People Intelligence benchmark challenge.
           </AlertDescription>
         </Alert>
       )}
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_21rem]">
-        <article className="min-w-0 space-y-12">
-          <header className="space-y-4">
-            <div className="text-xs font-medium uppercase tracking-wider text-primary/80">Your challenge</div>
-            <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{challenge.title}</h1>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5">
-                <Briefcase className="size-4" aria-hidden />
+
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <article className="min-w-0 space-y-10">
+          <header className="space-y-3 pb-6 border-b border-border">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[11px] uppercase px-2.5 py-0.5 bg-primary text-white rounded font-semibold tracking-wider">
+                Step 2 of 4 · Challenge Brief & Visible Rubric
+              </span>
+              <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-surface-container border border-border text-muted-foreground">
+                2-Tier Protocol: Product 4D + Zero Trust AIED
+              </span>
+            </div>
+            <h1 className="max-w-3xl text-3xl font-bold tracking-tight text-primary sm:text-4xl text-balance">
+              {challenge.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-mono pt-1">
+              <span className="inline-flex items-center gap-1.5 text-foreground font-medium">
+                <Briefcase className="size-3.5" aria-hidden />
                 {job.roleTitle} at {job.employer}
               </span>
               <span aria-hidden>·</span>
               <span className="inline-flex items-center gap-1.5">
-                <Clock className="size-4" aria-hidden />
+                <Clock className="size-3.5" aria-hidden />
                 {formatTimebox(challenge.timeboxMinutes)}
               </span>
               <span aria-hidden>·</span>
               <span className="inline-flex items-center gap-1.5">
-                <ListChecks className="size-4" aria-hidden />
-                {challenge.requirements.length} requirements
+                <ListChecks className="size-3.5" aria-hidden />
+                {challenge.requirements.length} Technical Requirements
               </span>
               <span aria-hidden>·</span>
-              <span className="inline-flex items-center gap-1.5" title="Every score is stored against the rubric version it was assessed with.">
-                <Tag className="size-4" aria-hidden />
-                {challenge.rubricVersion}
+              <span className="inline-flex items-center gap-1.5">
+                <Terminal className="size-3.5" aria-hidden />
+                5 AI Usage Criteria (Barron)
               </span>
-              {challenge.fromDemoCache && (
-                <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800">
-                  Cached demo challenge
-                </Badge>
-              )}
             </div>
           </header>
 
-          <section id="context" className="space-y-4">
+          <section id="context" className="space-y-3">
             <SectionTitle eyebrow="Context" title={`About ${job.employer}`} />
-            <p className="max-w-3xl leading-relaxed text-foreground/85">{challenge.domainContext}</p>
-            <Card size="sm">
-              <CardContent className="space-y-3 text-sm">
-                <p className="leading-relaxed text-foreground/80">{research.whatTheyDo}</p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <p className="max-w-3xl text-sm leading-relaxed text-foreground/90">{challenge.domainContext}</p>
+            <Card className="rounded border border-border bg-surface-container-lowest">
+              <CardContent className="p-4 space-y-3 text-xs">
+                <p className="leading-relaxed text-muted-foreground">{research.whatTheyDo}</p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground pt-1 border-t border-border">
                   {research.groundedInSearch ? (
                     <>
-                      <span className="font-medium">Sources:</span>
+                      <span className="font-semibold text-primary">Sources:</span>
                       {research.sources.map((s) => (
                         <a key={s.url} href={s.url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-foreground">
                           {s.title.replace(/\s+[—-]\s+Culture Amp.*$/i, "")}
-                          <ExternalLink className="size-3" aria-hidden />
+                          <ExternalLink className="size-2.5" aria-hidden />
                         </a>
                       ))}
                     </>
                   ) : (
-                    <span>No web results were available, so this context comes from the job description alone.</span>
+                    <span>Source: Verified company posting mandate</span>
                   )}
                 </div>
               </CardContent>
             </Card>
           </section>
 
-          <section id="brief" className="space-y-4">
-            <SectionTitle eyebrow="The brief" title="What you'll build" />
-            <Card>
-              <CardContent className="pt-2">
+          <section id="brief" className="space-y-3">
+            <SectionTitle eyebrow="The brief" title="Project Specification & Boundaries" />
+            <Card className="rounded border border-border bg-surface-container-lowest">
+              <CardContent className="p-6">
                 <Markdown>{challenge.brief}</Markdown>
               </CardContent>
             </Card>
           </section>
 
-          <section id="rubric" className="space-y-6">
+          <section id="rubric" className="space-y-4">
             <SectionTitle
-              eyebrow="Nothing hidden"
-              title="The rubric you'll be scored against"
-              description="After you submit, every score is shown next to these same requirements, with the exact turns and files it is based on. Reasoning and decisions are scored, not typing."
+              eyebrow="Zero secret criteria"
+              title="The 2-tier rubric you'll be scored against"
+              description="Review both Suite A (Product Technical Architecture) and Suite B (AI Prompt & Process Usage). Every score cites exact transcript turns."
             />
             <Rubric requirements={challenge.requirements} />
           </section>

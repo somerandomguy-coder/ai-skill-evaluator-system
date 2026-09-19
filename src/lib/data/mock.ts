@@ -20,6 +20,7 @@ import type {
   DataSource,
   EvaluationView,
   HomeView,
+  MentorReviewView,
   QueueItemView,
   RequirementView,
   SuiteAView,
