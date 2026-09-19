@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, CircleAlert, LoaderCircle, Send } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -40,13 +40,18 @@ export function SubmitDialog({
     return () => clearInterval(id);
   }, [phase]);
 
+  const isSubmittingRef = useRef(false);
+
   async function go() {
+    if (isSubmittingRef.current || phase === "running") return;
+    isSubmittingRef.current = true;
     setPhase("running");
     setStep(0);
     setError(null);
     try {
       await onSubmit(); // navigates to the report on success
     } catch (e) {
+      isSubmittingRef.current = false;
       setError(e instanceof Error ? e.message : "Something went wrong while submitting.");
       setPhase("error");
     }

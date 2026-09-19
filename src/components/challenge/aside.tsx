@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { ChallengeView, UserView } from "@/lib/data/types";
 import { formatTimebox } from "@/lib/format";
 
+import { StartBuildButton } from "./start-button";
+
 export function StartCard({ challenge, user }: { challenge: ChallengeView; user: UserView | null }) {
   return (
     <Card className="border-primary/20 shadow-sm">
@@ -17,10 +19,7 @@ export function StartCard({ challenge, user }: { challenge: ChallengeView; user:
       <CardContent className="space-y-4">
         {user?.role === "CANDIDATE" ? (
           <form action={startBuild.bind(null, challenge.id)}>
-            <Button type="submit" size="lg" className="w-full gap-2">
-              <Play className="size-4" aria-hidden />
-              Start building
-            </Button>
+            <StartBuildButton />
           </form>
         ) : user ? (
           <div className="flex items-start gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">

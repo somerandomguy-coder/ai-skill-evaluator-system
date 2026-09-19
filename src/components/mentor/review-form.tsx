@@ -2,7 +2,7 @@
 
 import { CircleCheckBig, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +23,7 @@ export function ReviewForm({ evaluationId, aiScore, hasAiScores, reviewedBefore 
   const [comments, setComments] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const scoreNum = Number(score);
   const scoreOk = score.trim() !== "" && Number.isFinite(scoreNum) && scoreNum >= 0 && scoreNum <= 100;
@@ -30,7 +31,8 @@ export function ReviewForm({ evaluationId, aiScore, hasAiScores, reviewedBefore 
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!valid || pending) return;
+    if (!valid || pending || isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setPending(true);
     setError(null);
     try {
@@ -38,6 +40,7 @@ export function ReviewForm({ evaluationId, aiScore, hasAiScores, reviewedBefore 
       router.push("/mentor");
       router.refresh();
     } catch (err) {
+      isSubmittingRef.current = false;
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setPending(false);
     }

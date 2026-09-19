@@ -117,12 +117,21 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
   const blocked = pending || (error?.retryable ?? false);
   const canSend = draft.trim().length > 0 && draft.length <= MAX_CHARS && !blocked;
 
+  const isSendingRef = useRef(false);
+
   async function submit() {
-    if (!canSend) return;
+    if (!canSend || isSendingRef.current) return;
+    isSendingRef.current = true;
     const text = draft;
     setDraft("");
-    const accepted = await onSend(text);
-    if (!accepted) setDraft(text);
+    try {
+      const accepted = await onSend(text);
+      if (!accepted) setDraft(text);
+    } finally {
+      setTimeout(() => {
+        isSendingRef.current = false;
+      }, 400);
+    }
   }
 
   return (

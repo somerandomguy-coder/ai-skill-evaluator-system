@@ -95,17 +95,33 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
     }
   }
 
+  const isSendingRef = useRef(false);
+  const isSubmittingBuildRef = useRef(false);
+
   function send(text: string) {
+    if (pending || isSendingRef.current) return Promise.resolve(false);
+    isSendingRef.current = true;
     const last = turnsRef.current[turnsRef.current.length - 1];
     const optimistic: TurnView = { seq: (last?.seq ?? 0) + 1, role: "USER", content: text, filesWritten: [], reasoning: null, createdAt: new Date().toISOString() };
     setTurns((prev) => [...prev, optimistic]);
-    return runChat({ message: text }, optimistic);
+    return runChat({ message: text }, optimistic).finally(() => {
+      setTimeout(() => {
+        isSendingRef.current = false;
+      }, 300);
+    });
   }
 
   async function submit() {
-    const { evaluationId } = await submitBuild(workspace.sessionId);
-    await stopRuntime();
-    router.push(`/report/${evaluationId}`);
+    if (isSubmittingBuildRef.current) return;
+    isSubmittingBuildRef.current = true;
+    try {
+      const { evaluationId } = await submitBuild(workspace.sessionId);
+      await stopRuntime();
+      router.push(`/report/${evaluationId}`);
+    } catch (err) {
+      isSubmittingBuildRef.current = false;
+      throw err;
+    }
   }
 
   const openFile = (path: string) => {

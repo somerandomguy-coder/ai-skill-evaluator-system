@@ -3,7 +3,7 @@
 import { Check, Gavel, Link2, LoaderCircle, Printer, Award, ArrowRight, Layers } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -79,9 +79,12 @@ export function ContestDialog({ evaluationId }: { evaluationId: string }) {
   const [reason, setReason] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
   const ok = reason.trim().length >= 10;
 
   async function submit() {
+    if (isSubmittingRef.current || pending || !ok) return;
+    isSubmittingRef.current = true;
     setPending(true);
     setError(null);
     try {
@@ -91,6 +94,7 @@ export function ContestDialog({ evaluationId }: { evaluationId: string }) {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
+      isSubmittingRef.current = false;
       setPending(false);
     }
   }

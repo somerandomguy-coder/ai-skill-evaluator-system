@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CircleAlert, Sparkles, FileText, CheckCircle2, Upload, Trash2 } from "lucide-react";
+import { ArrowRight, CircleAlert, Sparkles, FileText, CheckCircle2, Upload, Trash2, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -110,11 +110,15 @@ export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolea
     e.target.value = "";
   }
 
+  const isSubmittingRef = useRef(false);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (isSubmittingRef.current || busy) return;
     if (!signedIn) return router.push("/login?next=/");
-    if (!valid || busy) return;
+    if (!valid || !isCandidate) return;
 
+    isSubmittingRef.current = true;
     steps.current = initialSteps();
     setRun({ status: "running", steps: steps.current });
     let done: Extract<PipelineEvent, { type: "done" }> | null = null;
@@ -133,6 +137,7 @@ export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolea
       if (!target) throw new Error("The challenge builder finished without a result. Please try again.");
       router.push(`/challenge/${target.challengeId}${target.notice ? "?from=demo-fallback" : ""}`);
     } catch (err) {
+      isSubmittingRef.current = false;
       setRun({ status: "error", steps: steps.current, message: err instanceof Error ? err.message : "Something went wrong. Please try again." });
     }
   }
@@ -269,10 +274,19 @@ export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolea
                   type="submit"
                   size="lg"
                   className="w-full sm:w-auto px-8 bg-primary text-white hover:bg-primary/90 font-semibold tracking-wide rounded cursor-pointer transition-all flex items-center justify-center gap-2 py-6 text-sm sm:text-base order-1 sm:order-2"
-                  disabled={signedIn && (!valid || !isCandidate)}
+                  disabled={busy || (signedIn && (!valid || !isCandidate))}
                 >
-                  <span>{signedIn ? "Generate Assessment Challenge" : "Sign in to Generate Challenge"}</span>
-                  <ArrowRight className="size-4.5" aria-hidden />
+                  {busy ? (
+                    <>
+                      <LoaderCircle className="size-4.5 animate-spin" aria-hidden />
+                      <span>Generating Challenge...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{signedIn ? "Generate Assessment Challenge" : "Sign in to Generate Challenge"}</span>
+                      <ArrowRight className="size-4.5" aria-hidden />
+                    </>
+                  )}
                 </Button>
               </div>
             </form>

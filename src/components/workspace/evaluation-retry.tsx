@@ -2,7 +2,7 @@
 
 import { CircleAlert, LoaderCircle, RotateCw } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PageShell } from "@/components/common/layout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -18,14 +18,18 @@ export function EvaluationRetry({ sessionId }: { sessionId: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isRetryingRef = useRef(false);
 
   async function retry() {
+    if (isRetryingRef.current || pending) return;
+    isRetryingRef.current = true;
     setPending(true);
     setError(null);
     try {
       const { evaluationId } = await submitBuild(sessionId);
       router.push(`/report/${evaluationId}`);
     } catch (e) {
+      isRetryingRef.current = false;
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setPending(false);
     }
