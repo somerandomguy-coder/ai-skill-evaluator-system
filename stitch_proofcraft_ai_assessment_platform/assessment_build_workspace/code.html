@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed": "#d8e3fb", "outline-variant": "#c5c6cd", "surface": "#fbf8ff", "on-tertiary": "#ffffff", "surface-container-high": "#e8e7f1", "on-secondary-fixed": "#0d1c2f", "surface-container-low": "#f4f2fd", "on-tertiary-fixed": "#0d1c2e", "primary-fixed-dim": "#bcc7de", "on-primary-fixed": "#111c2d", "surface-tint": "#545f73", "tertiary": "#051426", "secondary-fixed": "#d5e3fd", "background": "#fbf8ff", "on-tertiary-fixed-variant": "#3a485b", "on-secondary": "#ffffff", "inverse-primary": "#bcc7de", "error-container": "#ffdad6", "surface-bright": "#fbf8ff", "secondary": "#515f74", "on-error": "#ffffff", "surface-dim": "#dad9e3", "primary-container": "#1e293b", "inverse-surface": "#2f3038", "primary": "#091426", "inverse-on-surface": "#f1effa", "on-surface": "#1a1b22", "surface-variant": "#e3e1ec", "secondary-fixed-dim": "#b9c7e0", "tertiary-container": "#1b293b", "on-background": "#1a1b22", "surface-container-highest": "#e3e1ec", "on-error-container": "#93000a", "on-secondary-container": "#57657b", "error": "#ba1a1a", "surface-container-lowest": "#ffffff", "tertiary-fixed-dim": "#b9c7df", "on-secondary-fixed-variant": "#3a485c", "on-primary": "#ffffff", "surface-container": "#eeedf7", "outline": "#75777d", "secondary-container": "#d5e3fd", "on-primary-container": "#8590a6", "on-tertiary-container": "#8290a6", "tertiary-fixed": "#d5e3fc", "on-primary-fixed-variant": "#3c475a", "on-surface-variant": "#45474c" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-lg": "1.5rem", "gutter-mobile": "1rem", "margin-mobile": "1.25rem", "space-sm": "0.5rem", "margin": "3rem", "gutter": "1.5rem", "space-md": "1rem", "space-xs": "0.25rem", "space-xl": "2.5rem" }, "fontFamily": { "body-md": ["Hanken Grotesk"], "mono-timestamp": ["JetBrains Mono"], "body-sm": ["Hanken Grotesk"], "label-md": ["Hanken Grotesk"], "headline-md": ["Hanken Grotesk"], "headline-xl-mobile": ["Hanken Grotesk"], "headline-sm": ["Hanken Grotesk"], "mono-cite": ["JetBrains Mono"], "headline-lg": ["Hanken Grotesk"], "body-lg": ["Hanken Grotesk"], "label-sm": ["Hanken Grotesk"], "headline-lg-mobile": ["Hanken Grotesk"], "headline-xl": ["Hanken Grotesk"] }, "fontSize": { "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }], "mono-timestamp": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }], "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }], "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-xl-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600" }], "mono-cite": ["11px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "400" }], "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }], "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }], "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "600" }] } } } }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between gap-6"><div class="flex items-baseline gap-2 shrink-0"><span class="font-headline-sm text-headline-sm font-semibold tracking-tight text-primary">ProofCraft</span><span class="font-mono-cite text-mono-cite text-on-surface-variant tracking-wider uppercase hidden sm:inline">// Work-Sample Assessment</span></div><nav class="hidden xl:flex items-center gap-1 bg-surface-container-low px-2 py-1 rounded" data-active-classes="bg-primary-container text-on-primary font-medium rounded"><a class="font-label-md text-label-md px-3 py-1 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="input-jd" href="#">1. Input JD</a><span class="text-outline-variant font-mono-cite text-mono-cite">→</span><a class="font-label-md text-label-md px-3 py-1 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="challenge-rubric" href="#">2. Challenge &amp; Rubric</a><span class="text-outline-variant font-mono-cite text-mono-cite">→</span><a aria-current="page" class="px-3 py-1 transition-all bg-primary-container text-on-primary font-medium rounded" data-path="build-workspace" href="#">3. Build Workspace</a><span class="text-outline-variant font-mono-cite text-mono-cite">→</span><a class="font-label-md text-label-md px-3 py-1 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="assessment-report" href="#">4. Assessment Report</a></nav><div class="flex items-center gap-4 shrink-0"><div class="flex items-center gap-2 font-mono-cite text-mono-cite bg-surface-container-lowest px-2.5 py-1 rounded text-on-surface"><span class="font-medium text-primary">Candidate View</span><span class="text-outline-variant">|</span><a class="text-secondary hover:text-primary transition-colors underline decoration-outline-variant underline-offset-2" data-path="mentor-queue" href="#">Mentor Queue (1 pending)</a></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface min-h-[calc(100vh-80px)]"><div class="flex flex-col w-full">
+<!-- Top Utility Context Bar (Workspace Header) -->
+<section class="bg-surface-container-lowest px-6 lg:px-12 py-3.5 shadow-sm">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+<!-- Challenge Identity & Metadata -->
+<div class="flex items-center gap-3 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full bg-primary shrink-0 animate-pulse"></span>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm font-semibold tracking-tight text-primary truncate">Atlassian · Resilient In-Memory LRU &amp; Webhook Backoff</span>
+<span class="font-mono-cite text-mono-cite uppercase px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant shrink-0">PROD-ENV-SESSION #8942</span>
+</div>
+<span class="font-mono-timestamp text-mono-timestamp text-on-surface-variant flex items-center gap-2">
+<span>TRACK: SENIOR INFRASTRUCTURE ARCHITECT</span>
+<span>•</span>
+<span>SPECIFICATION v2.4</span>
+</span>
+</div>
+</div>
+<!-- Controls: Rubric Toggle, Timer, & Primary Action -->
+<div class="flex items-center gap-3 shrink-0 self-end md:self-center">
+<!-- Countdown Timer -->
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded text-on-surface">
+<span class="material-symbols-outlined text-[16px] text-secondary">timer</span>
+<span class="font-mono-timestamp text-mono-timestamp font-semibold tracking-tight text-primary" id="countdown-timer">54:12 remaining</span>
+</div>
+<!-- Slide-over Brief Trigger -->
+<button class="font-label-md text-label-md px-3 py-1.5 rounded bg-surface-container-high text-on-surface hover:bg-surface-container hover:text-primary transition-all flex items-center gap-1.5" id="open-brief-btn">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>
+<span>View Full Brief &amp; Rubric</span>
+</button>
+<!-- Primary Action Button (Header Rule: 1 Primary Action) -->
+<button class="font-label-md text-label-md px-4 py-1.5 rounded bg-primary text-on-primary hover:bg-primary-container transition-all flex items-center gap-2 shadow-sm" id="submit-assessment-btn">
+<span>Submit for Assessment Review</span>
+<span class="font-mono-cite text-mono-cite">→</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Main Three-Pane / Split-Pane Workspace Grid -->
+<div class="max-w-7xl mx-auto w-full px-4 lg:px-8 py-5">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start min-h-[780px]">
+<!-- ================= LEFT PANE (~35% -> 4 cols): AI Technical Co-pilot ================= -->
+<aside class="lg:col-span-4 flex flex-col bg-surface-container-lowest rounded-lg shadow-sm h-[780px] overflow-hidden">
+<!-- AI Pane Header -->
+<div class="p-3.5 bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-6 h-6 rounded bg-primary-container text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div>
+<p class="font-label-md text-label-md font-semibold text-primary">Assessment Co-pilot</p>
+<p class="font-mono-cite text-mono-cite text-on-surface-variant">Llama 3.3 70B Engine · Read/Write Context Active</p>
+</div>
+</div>
+<span class="font-mono-cite text-mono-cite px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant">TURN 4 OF 20</span>
+</div>
+<!-- Chat Dialogue History -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4 bg-surface-container-lowest" id="chat-stream">
+<!-- Turn 1: Candidate Request -->
+<div class="space-y-1">
+<div class="flex items-center justify-between font-mono-cite text-mono-cite text-on-surface-variant px-1">
+<span class="font-semibold text-primary">CANDIDATE</span>
+<span>10:04:12 UTC</span>
+</div>
+<div class="bg-surface-container-low p-3 rounded text-on-surface font-body-sm text-body-sm leading-relaxed">
+              Before we write the cache eviction, let's establish strict memory bounds. If heap approaches 64MB, we need deterministic LRU eviction without unhandled rejections.
+            </div>
+</div>
+<!-- Turn 2: Assistant Reply -->
+<div class="space-y-1">
+<div class="flex items-center justify-between font-mono-cite text-mono-cite text-on-surface-variant px-1">
+<span class="font-semibold text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">terminal</span> CO-PILOT
+              </span>
+<span>10:04:29 UTC</span>
+</div>
+<div class="bg-surface-container p-3 rounded text-on-surface font-body-sm text-body-sm leading-relaxed">
+              Agreed. Creating <code class="font-mono-cite text-mono-cite bg-surface-container-high px-1 py-0.5 rounded text-primary">lib/cache-worker.ts</code> with explicit capacity checks and LRU doubly linked list.
+            </div>
+</div>
+<!-- Turn 3: Candidate Correction & Guardrails -->
+<div class="space-y-1">
+<div class="flex items-center justify-between font-mono-cite text-mono-cite text-on-surface-variant px-1">
+<span class="font-semibold text-primary">CANDIDATE</span>
+<span>10:07:05 UTC</span>
+</div>
+<div class="bg-surface-container-low p-3 rounded text-on-surface font-body-sm text-body-sm leading-relaxed">
+              Wait, look at line 42 in your snippet: you used <code class="font-mono-cite text-mono-cite bg-surface-container-high px-1 py-0.5 rounded text-primary">setTimeout</code> without handling 429 header <code class="font-mono-cite text-mono-cite bg-surface-container-high px-1 py-0.5 rounded text-primary">Retry-After</code>. We need exponential backoff with jitter.
+            </div>
+</div>
+<!-- Turn 4: Assistant Generation & Written Files -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between font-mono-cite text-mono-cite text-on-surface-variant px-1">
+<span class="font-semibold text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">terminal</span> CO-PILOT
+              </span>
+<span>10:07:44 UTC</span>
+</div>
+<div class="bg-surface-container p-3 rounded text-on-surface font-body-sm text-body-sm leading-relaxed space-y-2">
+<p>Understood. Replaced naive delay with full Decorrelated Jitter formula and incorporated the <code class="font-mono-cite text-mono-cite bg-surface-container-high px-1 py-0.5 rounded text-primary">Retry-After</code> delta parser.</p>
+<!-- Files Written Pill / Status Badge -->
+<div class="p-2 bg-surface-container-lowest rounded flex flex-col gap-1.5">
+<div class="flex items-center gap-2 font-mono-cite text-mono-cite text-primary font-medium">
+<span class="material-symbols-outlined text-[14px] text-secondary">inventory_2</span>
+<span>FILES COMMITTED TO WORKSPACE</span>
+</div>
+<div class="flex flex-wrap gap-1.5">
+<span class="font-mono-cite text-mono-cite bg-surface-container-high text-primary px-2 py-0.5 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> lib/cache-worker.ts
+                  </span>
+<span class="font-mono-cite text-mono-cite bg-surface-container-high text-primary px-2 py-0.5 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> tests/eviction.test.ts
+                  </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Co-pilot Audit Metadata Footnote -->
+<div class="px-4 py-2 bg-surface-container-low flex items-center justify-between font-mono-cite text-mono-cite text-on-surface-variant">
+<span>CO-PILOT REASONING: LOGGED &amp; WATERMARKED</span>
+<span class="text-primary font-medium">TOKEN BUDGET: 74%</span>
+</div>
+<!-- Chat Input Form -->
+<div class="p-3 bg-surface-container-low">
+<form class="flex flex-col gap-2" id="chat-form">
+<div class="relative">
+<textarea class="w-full font-body-sm text-body-sm bg-surface-container-lowest text-on-surface p-2.5 rounded resize-none focus:outline-none focus:bg-surface transition-all placeholder:text-outline-variant" id="chat-input" placeholder="Message AI assistant... (e.g. Ask for edge case tests or challenge implementation)" rows="3"></textarea>
+<div class="absolute bottom-2.5 right-2.5 flex items-center gap-1.5">
+<span class="font-mono-cite text-mono-cite text-on-surface-variant text-[10px]">⌘ + Enter</span>
+<button class="w-7 h-7 rounded bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container transition-colors" type="submit">
+<span class="material-symbols-outlined text-[15px]">arrow_upward</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between font-mono-cite text-mono-cite text-on-surface-variant">
+<span>Shift+Enter for newline</span>
+<span class="hover:text-primary cursor-pointer transition-colors" onclick="document.getElementById('chat-input').value = 'Add property-based tests for sudden memory spikes';">Suggested: Add property-based tests</span>
+</div>
+</form>
+</div>
+</aside>
+<!-- ================= RIGHT PANE (~65% -> 8 cols): Files & Live Simulation ================= -->
+<main class="lg:col-span-8 flex flex-col bg-surface-container-lowest rounded-lg shadow-sm h-[780px] overflow-hidden">
+<!-- Top Workspace Bar & Tabs -->
+<div class="px-4 py-2.5 bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-1 bg-surface-container-high p-0.5 rounded">
+<button class="font-label-md text-label-md px-3.5 py-1 rounded bg-surface-container-lowest text-primary font-medium shadow-sm transition-all flex items-center gap-1.5" id="tab-files-btn">
+<span class="material-symbols-outlined text-[15px]">code</span>
+<span>Files</span>
+</button>
+<button class="font-label-md text-label-md px-3.5 py-1 rounded text-on-surface-variant hover:text-primary transition-all flex items-center gap-1.5" id="tab-preview-btn">
+<span class="material-symbols-outlined text-[15px]">speed</span>
+<span>Live Preview</span>
+<span class="w-2 h-2 rounded-full bg-secondary animate-ping ml-1"></span>
+</button>
+</div>
+<!-- Quick Action & Rubric Drawer Toggle -->
+<div class="flex items-center gap-2">
+<span class="font-mono-cite text-mono-cite text-on-surface-variant hidden sm:inline">AUTOSAVED 10:07:44 UTC</span>
+<button class="font-label-md text-label-md px-2.5 py-1 rounded bg-surface-container-highest text-on-surface hover:text-primary transition-colors flex items-center gap-1" id="toggle-rubric-dock">
+<span class="material-symbols-outlined text-[15px]">fact_check</span>
+<span class="hidden md:inline">Rubric Checklist</span>
+</button>
+</div>
+</div>
+<!-- ================= TAB 1: FILES & CODE EDITOR VIEW ================= -->
+<div class="flex-1 flex flex-col md:flex-row overflow-hidden" id="view-files">
+<!-- File System Tree Sidebar -->
+<div class="w-full md:w-56 bg-surface-container-lowest p-3 flex flex-col justify-between shrink-0">
+<div>
+<div class="font-mono-cite text-mono-cite font-semibold text-on-surface-variant uppercase tracking-wider mb-2 px-1 flex items-center justify-between">
+<span>PROJECT TREE</span>
+<span class="material-symbols-outlined text-[14px]">folder_open</span>
+</div>
+<ul class="space-y-0.5 font-mono-cite text-mono-cite">
+<li>
+<div class="px-2 py-1 text-on-surface-variant flex items-center gap-1.5 font-medium">
+<span class="material-symbols-outlined text-[14px]">folder</span>
+<span>src/</span>
+</div>
+<ul class="pl-4 space-y-0.5">
+<li>
+<button class="w-full text-left px-2 py-1 rounded bg-surface-container text-primary font-semibold flex items-center justify-between">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[13px] text-primary">javascript</span>
+<span>cache-worker.ts</span>
+</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+</button>
+</li>
+<li>
+<button class="w-full text-left px-2 py-1 rounded text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[13px]">javascript</span>
+<span>resilient-dispatcher.ts</span>
+</button>
+</li>
+<li>
+<button class="w-full text-left px-2 py-1 rounded text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-between">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[13px]">folder</span>
+<span>__tests__/</span>
+</span>
+</button>
+<ul class="pl-3 space-y-0.5 mt-0.5">
+<li>
+<button class="w-full text-left px-2 py-0.5 rounded text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-between">
+<span class="truncate">eviction.test.ts</span>
+<span class="text-[9px] text-secondary font-semibold">100%</span>
+</button>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="pt-1">
+<button class="w-full text-left px-2 py-1 rounded text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[13px]">data_object</span>
+<span>package.json</span>
+</button>
+</li>
+<li>
+<button class="w-full text-left px-2 py-1 rounded text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[13px]">tune</span>
+<span>tsconfig.json</span>
+</button>
+</li>
+</ul>
+</div>
+<!-- Test Summary Banner -->
+<div class="mt-4 p-2.5 bg-surface-container-low rounded">
+<div class="flex items-center justify-between mb-1">
+<span class="font-mono-cite text-mono-cite uppercase font-semibold text-primary">VITEST SUITE</span>
+<span class="font-mono-cite text-mono-cite text-secondary font-bold">8/8 PASSED</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded overflow-hidden">
+<div class="h-full bg-primary" style="width: 100%"></div>
+</div>
+<p class="font-mono-cite text-mono-cite text-on-surface-variant mt-1.5 text-[10px]">Deterministic heap stress passed under 62.4MB peak.</p>
+</div>
+</div>
+<!-- Code View Area -->
+<div class="flex-1 flex flex-col bg-surface-container-lowest overflow-hidden">
+<!-- File Tab Breadcrumb -->
+<div class="px-4 py-2 bg-surface-container-low flex items-center justify-between font-mono-cite text-mono-cite text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="text-primary font-medium">src / cache-worker.ts</span>
+<span>•</span>
+<span>124 lines (TypeScript 5.4, strict mode)</span>
+</div>
+<span class="text-[10px] uppercase text-secondary font-semibold">READ-ONLY AUDIT MODE</span>
+</div>
+<!-- Editor Code Content -->
+<div class="flex-1 overflow-y-auto p-4 font-mono-cite text-mono-cite text-on-surface bg-surface-container-lowest leading-relaxed select-text">
+<pre class="space-y-1"><code><span class="text-outline-variant select-none mr-3">01</span><span class="text-secondary font-semibold">import</span> { EventEmitter } <span class="text-secondary font-semibold">from</span> <span class="text-tertiary-container">'node:events'</span>;
+<span class="text-outline-variant select-none mr-3">02</span>
+<span class="text-outline-variant select-none mr-3">03</span><span class="text-secondary font-semibold">export interface</span> <span class="text-primary font-semibold">LRUNode&lt;K, V&gt;</span> {
+<span class="text-outline-variant select-none mr-3">04</span>  key: K;
+<span class="text-outline-variant select-none mr-3">05</span>  value: V;
+<span class="text-outline-variant select-none mr-3">06</span>  byteWeight: <span class="text-secondary">number</span>;
+<span class="text-outline-variant select-none mr-3">07</span>  prev: LRUNode&lt;K, V&gt; | <span class="text-secondary">null</span>;
+<span class="text-outline-variant select-none mr-3">08</span>  next: LRUNode&lt;K, V&gt; | <span class="text-secondary">null</span>;
+<span class="text-outline-variant select-none mr-3">09</span>}
+<span class="text-outline-variant select-none mr-3">10</span>
+<span class="text-outline-variant select-none mr-3">11</span><span class="text-secondary font-semibold">export class</span> <span class="text-primary font-semibold">BoundedLRUCache&lt;K, V&gt;</span> <span class="text-secondary font-semibold">extends</span> EventEmitter {
+<span class="text-outline-variant select-none mr-3">12</span>  <span class="text-secondary font-semibold">private</span> readonly maxBytes: <span class="text-secondary">number</span>;
+<span class="text-outline-variant select-none mr-3">13</span>  <span class="text-secondary font-semibold">private</span> currentBytes = 0;
+<span class="text-outline-variant select-none mr-3">14</span>  <span class="text-secondary font-semibold">private</span> map = <span class="text-secondary font-semibold">new</span> Map&lt;K, LRUNode&lt;K, V&gt;&gt;();
+<span class="text-outline-variant select-none mr-3">15</span>  <span class="text-secondary font-semibold">private</span> head: LRUNode&lt;K, V&gt; | <span class="text-secondary">null</span> = <span class="text-secondary">null</span>;
+<span class="text-outline-variant select-none mr-3">16</span>  <span class="text-secondary font-semibold">private</span> tail: LRUNode&lt;K, V&gt; | <span class="text-secondary">null</span> = <span class="text-secondary">null</span>;
+<span class="text-outline-variant select-none mr-3">17</span>
+<span class="text-outline-variant select-none mr-3">18</span>  <span class="text-secondary font-semibold">constructor</span>(maxBytes: <span class="text-secondary">number</span> = 64 * 1024 * 1024) {
+<span class="text-outline-variant select-none mr-3">19</span>    <span class="text-secondary font-semibold">super</span>();
+<span class="text-outline-variant select-none mr-3">20</span>    <span class="text-secondary font-semibold">this</span>.maxBytes = maxBytes;
+<span class="text-outline-variant select-none mr-3">21</span>  }
+<span class="text-outline-variant select-none mr-3">22</span>
+<span class="text-outline-variant select-none mr-3">23</span>  <span class="text-secondary font-semibold">public set</span>(key: K, value: V, byteWeight: <span class="text-secondary">number</span>): <span class="text-secondary">void</span> {
+<span class="text-outline-variant select-none mr-3">24</span>    <span class="text-outline-variant">// Evict defensively until incoming node fits inside hard ceiling</span>
+<span class="text-outline-variant select-none mr-3">25</span>    <span class="text-secondary font-semibold">while</span> (<span class="text-secondary font-semibold">this</span>.currentBytes + byteWeight &gt; <span class="text-secondary font-semibold">this</span>.maxBytes &amp;&amp; <span class="text-secondary font-semibold">this</span>.tail) {
+<span class="text-outline-variant select-none mr-3">26</span>      <span class="text-secondary font-semibold">this</span>.evictTail();
+<span class="text-outline-variant select-none mr-3">27</span>    }
+<span class="text-outline-variant select-none mr-3">28</span>
+<span class="text-outline-variant select-none mr-3">29</span>    <span class="text-secondary font-semibold">const</span> node: LRUNode&lt;K, V&gt; = { key, value, byteWeight, prev: <span class="text-secondary">null</span>, next: <span class="text-secondary font-semibold">this</span>.head };
+<span class="text-outline-variant select-none mr-3">30</span>    <span class="text-secondary font-semibold">this</span>.attachToHead(node);
+<span class="text-outline-variant select-none mr-3">31</span>    <span class="text-secondary font-semibold">this</span>.map.set(key, node);
+<span class="text-outline-variant select-none mr-3">32</span>    <span class="text-secondary font-semibold">this</span>.currentBytes += byteWeight;
+<span class="text-outline-variant select-none mr-3">33</span>  }
+<span class="text-outline-variant select-none mr-3">34</span>
+<span class="text-outline-variant select-none mr-3">35</span>  <span class="text-outline-variant">// Turn 3 Candidate Guardrail: Webhook Dispatch with Exponential Backoff + Full Jitter</span>
+<span class="text-outline-variant select-none mr-3">36</span>  <span class="text-secondary font-semibold">public async dispatchWithBackoff</span>(endpoint: <span class="text-secondary">string</span>, payload: <span class="text-secondary">unknown</span>, attempt = 1): Promise&lt;<span class="text-secondary">void</span>&gt; {
+<span class="text-outline-variant select-none mr-3">37</span>    <span class="text-secondary font-semibold">try</span> {
+<span class="text-outline-variant select-none mr-3">38</span>      <span class="text-secondary font-semibold">const</span> res = <span class="text-secondary font-semibold">await</span> fetch(endpoint, { method: <span class="text-tertiary-container">'POST'</span>, body: JSON.stringify(payload) });
+<span class="text-outline-variant select-none mr-3">39</span>      <span class="text-secondary font-semibold">if</span> (res.status === 429) {
+<span class="text-outline-variant select-none mr-3">40</span>        <span class="text-secondary font-semibold">const</span> retryAfter = res.headers.get(<span class="text-tertiary-container">'Retry-After'</span>);
+<span class="text-outline-variant select-none mr-3">41</span>        <span class="text-secondary font-semibold">const</span> delayMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : Math.random() * (Math.pow(2, attempt) * 100);
+<span class="text-outline-variant select-none mr-3">42</span>        <span class="text-secondary font-semibold">await new</span> Promise(resolve =&gt; setTimeout(resolve, delayMs));
+<span class="text-outline-variant select-none mr-3">43</span>        <span class="text-secondary font-semibold">return this</span>.dispatchWithBackoff(endpoint, payload, attempt + 1);
+<span class="text-outline-variant select-none mr-3">44</span>      }
+<span class="text-outline-variant select-none mr-3">45</span>    } <span class="text-secondary font-semibold">catch</span> (err) {
+<span class="text-outline-variant select-none mr-3">46</span>      <span class="text-secondary font-semibold">this</span>.emit(<span class="text-tertiary-container">'dispatch:failure'</span>, { endpoint, attempt, error: err });
+<span class="text-outline-variant select-none mr-3">47</span>    }
+<span class="text-outline-variant select-none mr-3">48</span>  }
+<span class="text-outline-variant select-none mr-3">49</span>}</code></pre>
+</div>
+</div>
+</div>
+<!-- ================= TAB 2: LIVE SIMULATION VIEW (Hidden by default) ================= -->
+<div class="flex-1 flex-col overflow-y-auto p-6 space-y-6 hidden bg-surface-container-lowest" id="view-preview">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Jira Service Management Webhook Stream</h3>
+<p class="font-mono-cite text-mono-cite text-on-surface-variant">Real-time mock ingestion engine · Emulating high burst traffic</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-mono-timestamp text-mono-timestamp bg-surface-container px-2.5 py-1 rounded text-primary font-semibold flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span> CLUSTER: US-WEST-2
+              </span>
+</div>
+</div>
+<!-- Real-Time Metric Tiles -->
+<div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+<div class="p-4 bg-surface-container-low rounded">
+<p class="font-mono-cite text-mono-cite text-on-surface-variant uppercase">THROUGHPUT</p>
+<p class="font-headline-lg text-headline-lg font-bold text-primary mt-1">2,400 <span class="font-mono-cite text-mono-cite font-normal text-on-surface-variant">req/s</span></p>
+<span class="font-mono-cite text-mono-cite text-secondary">Peak Load 100% nominal</span>
+</div>
+<div class="p-4 bg-surface-container-low rounded">
+<p class="font-mono-cite text-mono-cite text-on-surface-variant uppercase">DROPPED EVENTS</p>
+<p class="font-headline-lg text-headline-lg font-bold text-primary mt-1">0</p>
+<span class="font-mono-cite text-mono-cite text-secondary">Zero-loss guarantee valid</span>
+</div>
+<div class="p-4 bg-surface-container-low rounded">
+<p class="font-mono-cite text-mono-cite text-on-surface-variant uppercase">HEAP CONSUMPTION</p>
+<p class="font-headline-lg text-headline-lg font-bold text-primary mt-1">54.8 <span class="font-mono-cite text-mono-cite font-normal text-on-surface-variant">MB</span></p>
+<span class="font-mono-cite text-mono-cite text-secondary">Ceiling: 64.0 MB target</span>
+</div>
+<div class="p-4 bg-surface-container-low rounded">
+<p class="font-mono-cite text-mono-cite text-on-surface-variant uppercase">P99 LATENCY</p>
+<p class="font-headline-lg text-headline-lg font-bold text-primary mt-1">11.4 <span class="font-mono-cite text-mono-cite font-normal text-on-surface-variant">ms</span></p>
+<span class="font-mono-cite text-mono-cite text-secondary">Backoff handling active</span>
+</div>
+</div>
+<!-- Inline Real-Time SVG Sparkline / Throughput Graph -->
+<div class="p-4 bg-surface-container-low rounded space-y-2">
+<div class="flex items-center justify-between font-mono-cite text-mono-cite">
+<span class="font-medium text-primary uppercase">Event Dispatch Velocity (Last 60 Seconds)</span>
+<span class="text-on-surface-variant">429 THROTTLE: 0.8% RATE (ADAPTIVE DELAY)</span>
+</div>
+<div class="w-full h-28 bg-surface-container-lowest rounded p-2 flex items-end">
+<svg class="w-full h-full text-primary" fill="none" preserveaspectratio="none" viewbox="0 0 600 80">
+<path d="M0 65 Q 40 40, 80 50 T 160 30 T 240 55 T 320 20 T 400 35 T 480 15 T 560 25 T 600 18" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+<path d="M0 65 Q 40 40, 80 50 T 160 30 T 240 55 T 320 20 T 400 35 T 480 15 T 560 25 T 600 18 L 600 80 L 0 80 Z" fill="currentColor" fill-opacity="0.06"></path>
+</svg>
+</div>
+</div>
+<!-- Live Event Simulation Log -->
+<div class="p-4 bg-surface-container-low rounded space-y-2">
+<p class="font-mono-cite text-mono-cite uppercase font-semibold text-primary">Webhook Dispatch Stream Feed</p>
+<div class="font-mono-cite text-mono-cite space-y-1 text-on-surface max-h-40 overflow-y-auto">
+<div class="flex items-center gap-3">
+<span class="text-on-surface-variant">10:07:58.102</span>
+<span class="bg-surface-container-high px-1.5 py-0.2 rounded text-primary">200 OK</span>
+<span class="truncate">POST /v1/events/jira-issue-updated payload: { issueId: "INFRA-4819", action: "transition" }</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-on-surface-variant">10:07:58.240</span>
+<span class="bg-surface-container-high px-1.5 py-0.2 rounded text-primary">429 RATE_LIMIT</span>
+<span class="text-secondary truncate">POST /v1/events/jira-issue-updated Retry-After: 3s → Decorrelated Jitter delay engaged</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-on-surface-variant">10:07:58.310</span>
+<span class="bg-surface-container-high px-1.5 py-0.2 rounded text-primary">200 OK</span>
+<span class="truncate">POST /v1/events/jira-incident-created payload: { severity: "P2", region: "eu-central-1" }</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<!-- ================= DOCKED COLLAPSIBLE RUBRIC PANEL (Floating / Slide-out) ================= -->
+<aside class="fixed top-16 right-0 bottom-0 w-96 bg-surface-container-lowest shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out z-40 flex flex-col" id="rubric-dock">
+<div class="p-4 bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">fact_check</span>
+<h4 class="font-headline-sm text-headline-sm font-semibold text-primary">Active Rubric Criteria</h4>
+</div>
+<button class="p-1 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors" id="close-rubric-dock">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="p-4 flex-1 overflow-y-auto space-y-4">
+<div class="p-2.5 bg-surface-container-low rounded flex items-center justify-between">
+<span class="font-mono-cite text-mono-cite font-semibold text-primary uppercase">EVALUATION WEIGHTING</span>
+<span class="font-mono-cite text-mono-cite text-secondary">7 CRITERIA TOTAL</span>
+</div>
+<!-- Rubric Criteria 1 -->
+<div class="p-3 bg-surface-container-low rounded space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-semibold text-primary">1. Bounded Memory Discipline</span>
+<span class="font-mono-cite text-mono-cite px-1.5 py-0.5 rounded bg-surface-container-highest text-primary">WEIGHT: 20%</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Strict memory usage ceiling (64MB) strictly maintained without relying on garbage collection delay.</p>
+<span class="font-mono-cite text-mono-cite text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">check</span> VERIFIED BY TEST SUITE
+        </span>
+</div>
+<!-- Rubric Criteria 2 -->
+<div class="p-3 bg-surface-container-low rounded space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-semibold text-primary">2. Rate Limit &amp; Backoff Handling</span>
+<span class="font-mono-cite text-mono-cite px-1.5 py-0.5 rounded bg-surface-container-highest text-primary">WEIGHT: 20%</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Deterministic exponential backoff honoring explicit Retry-After headers with full random jitter.</p>
+<span class="font-mono-cite text-mono-cite text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">check</span> DETECTED IN LIB/CACHE-WORKER.TS
+        </span>
+</div>
+<!-- Rubric Criteria 3 -->
+<div class="p-3 bg-surface-container-low rounded space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-semibold text-primary">3. O(1) Cache Operation Complexity</span>
+<span class="font-mono-cite text-mono-cite px-1.5 py-0.5 rounded bg-surface-container-highest text-primary">WEIGHT: 15%</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Doubly linked list combined with hash map for guaranteed constant time read, insertion, and eviction.</p>
+</div>
+<!-- Rubric Criteria 4 -->
+<div class="p-3 bg-surface-container-low rounded space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-semibold text-primary">4. AI Collaboration &amp; Critical Scrutiny</span>
+<span class="font-mono-cite text-mono-cite px-1.5 py-0.5 rounded bg-surface-container-highest text-primary">WEIGHT: 15%</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Proactive identification of hallucinated logic or naive implementations generated by the AI assistant.</p>
+<span class="font-mono-cite text-mono-cite text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">verified</span> DEMONSTRATED IN TURN 3
+        </span>
+</div>
+<!-- Rubric Criteria 5 -->
+<div class="p-3 bg-surface-container-low rounded space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-semibold text-primary">5. TypeScript Type Safety</span>
+<span class="font-mono-cite text-mono-cite px-1.5 py-0.5 rounded bg-surface-container-highest text-primary">WEIGHT: 10%</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Zero use of `any` types; strictly typed generics and custom type predicates.</p>
+</div>
+<!-- Rubric Criteria 6 -->
+<div class="p-3 bg-surface-container-low rounded space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-semibold text-primary">6. Test Coverage &amp; Edge Verification</span>
+<span class="font-mono-cite text-mono-cite px-1.5 py-0.5 rounded bg-surface-container-highest text-primary">WEIGHT: 10%</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Coverage of zero-weight nodes, concurrent eviction storms, and network timeout handling.</p>
+</div>
+<!-- Rubric Criteria 7 -->
+<div class="p-3 bg-surface-container-low rounded space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-semibold text-primary">7. Clean Production Packaging</span>
+<span class="font-mono-cite text-mono-cite px-1.5 py-0.5 rounded bg-surface-container-highest text-primary">WEIGHT: 10%</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Proper module exports, lockfile consistency, and clean diagnostic logging.</p>
+</div>
+</div>
+</aside>
+<!-- ================= FULL BRIEF MODAL / SLIDE-OVER ================= -->
+<div class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" id="brief-modal">
+<div class="bg-surface-container-lowest max-w-3xl w-full rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
+<div class="p-5 bg-surface-container-low flex items-center justify-between">
+<div>
+<span class="font-mono-cite text-mono-cite uppercase text-on-surface-variant">ATLASSIAN CLOUD ARCHITECTURE</span>
+<h3 class="font-headline-md text-headline-md font-semibold text-primary">Work-Sample Specification: Resilient In-Memory LRU &amp; Webhook Backoff</h3>
+</div>
+<button class="p-1 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors" id="close-brief-btn">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="p-6 overflow-y-auto space-y-5 font-body-md text-body-md text-on-surface">
+<section class="space-y-2">
+<h4 class="font-headline-sm text-headline-sm font-semibold text-primary">1. Scenario Context</h4>
+<p class="text-on-surface-variant leading-relaxed">
+            During peak incident cycles in Jira Service Management, high-velocity automation webhooks can trigger sudden throughput spikes. If customer callback endpoints respond with HTTP 429 (Too Many Requests), naive retries cause stampeding herds, while unconstrained in-memory queues cause heap exhaustion.
+          </p>
+</section>
+<section class="space-y-2">
+<h4 class="font-headline-sm text-headline-sm font-semibold text-primary">2. Deliverables Expected</h4>
+<ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+<li>An in-memory LRU cache bounded by byte size rather than count alone (64MB limit).</li>
+<li>Constant O(1) eviction using linked nodes with backward/forward references.</li>
+<li>A webhook dispatcher applying Decorrelated Jitter and Retry-After header adherence.</li>
+<li>Comprehensive Vitest unit test suite covering boundary cases and high concurrent load.</li>
+</ul>
+</section>
+<section class="p-4 bg-surface-container-low rounded space-y-2">
+<div class="flex items-center gap-2 font-mono-cite text-mono-cite text-primary font-semibold">
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
+<span>EVALUATION PROTOCOL</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            This workspace monitors prompt dynamics, critical review of AI recommendations, time distribution, and code correctness. The evaluation panel will receive the complete transcript and commit history upon submission.
+          </p>
+</section>
+</div>
+<div class="p-4 bg-surface-container-low flex items-center justify-end">
+<button class="font-label-md text-label-md px-4 py-1.5 rounded bg-primary text-on-primary hover:bg-primary-container transition-all" id="close-brief-btn-footer">
+          Return to Workspace
+        </button>
+</div>
+</div>
+</div>
+<!-- Submission Confirmation Modal -->
+<div class="fixed inset-0 bg-primary/45 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" id="submit-confirm-modal">
+<div class="bg-surface-container-lowest max-w-md w-full rounded-lg shadow-xl p-6 space-y-4">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">send</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Submit for Assessment Review?</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1.5 leading-relaxed">
+          Your code repository, automated test results (8/8 passing), and AI collaboration audit trail will be sealed and handed off to the executive review panel.
+        </p>
+</div>
+<div class="p-3 bg-surface-container-low rounded font-mono-cite text-mono-cite space-y-1 text-on-surface">
+<div class="flex justify-between"><span>Tests Passed:</span><span class="font-semibold text-primary">8 of 8</span></div>
+<div class="flex justify-between"><span>Files Modified:</span><span class="font-semibold text-primary">2 files</span></div>
+<div class="flex justify-between"><span>Session Duration:</span><span class="font-semibold text-primary">35m 48s elapsed</span></div>
+</div>
+<div class="flex items-center justify-end gap-2 pt-2">
+<button class="font-label-md text-label-md px-3.5 py-1.5 rounded bg-surface-container-high text-on-surface hover:bg-surface-container transition-all" id="cancel-submit-btn">
+          Cancel
+        </button>
+<button class="font-label-md text-label-md px-4 py-1.5 rounded bg-primary text-on-primary hover:bg-primary-container transition-all" id="confirm-submit-btn">
+          Confirm &amp; Finalize Dossier
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    // 1. Tab Switching (Files vs Live Preview)
+    const tabFilesBtn = document.getElementById('tab-files-btn');
+    const tabPreviewBtn = document.getElementById('tab-preview-btn');
+    const viewFiles = document.getElementById('view-files');
+    const viewPreview = document.getElementById('view-preview');
+
+    function selectTab(isFiles) {
+      if (isFiles) {
+        viewFiles.classList.remove('hidden');
+        viewFiles.classList.add('flex');
+        viewPreview.classList.add('hidden');
+        viewPreview.classList.remove('flex');
+
+        tabFilesBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-medium');
+        tabFilesBtn.classList.remove('text-on-surface-variant');
+        tabPreviewBtn.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-medium');
+        tabPreviewBtn.classList.add('text-on-surface-variant');
+      } else {
+        viewFiles.classList.add('hidden');
+        viewFiles.classList.remove('flex');
+        viewPreview.classList.remove('hidden');
+        viewPreview.classList.add('flex');
+
+        tabPreviewBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-medium');
+        tabPreviewBtn.classList.remove('text-on-surface-variant');
+        tabFilesBtn.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-medium');
+        tabFilesBtn.classList.add('text-on-surface-variant');
+      }
+    }
+
+    if (tabFilesBtn && tabPreviewBtn) {
+      tabFilesBtn.addEventListener('click', () => selectTab(true));
+      tabPreviewBtn.addEventListener('click', () => selectTab(false));
+    }
+
+    // 2. Rubric Checklist Dock Slide-over
+    const rubricDock = document.getElementById('rubric-dock');
+    const toggleRubricDock = document.getElementById('toggle-rubric-dock');
+    const closeRubricDock = document.getElementById('close-rubric-dock');
+
+    function toggleRubric() {
+      if (rubricDock.classList.contains('translate-x-full')) {
+        rubricDock.classList.remove('translate-x-full');
+      } else {
+        rubricDock.classList.add('translate-x-full');
+      }
+    }
+
+    if (toggleRubricDock) toggleRubricDock.addEventListener('click', toggleRubric);
+    if (closeRubricDock) closeRubricDock.addEventListener('click', () => rubricDock.classList.add('translate-x-full'));
+
+    // 3. Full Brief Modal
+    const briefModal = document.getElementById('brief-modal');
+    const openBriefBtn = document.getElementById('open-brief-btn');
+    const closeBriefBtn = document.getElementById('close-brief-btn');
+    const closeBriefBtnFooter = document.getElementById('close-brief-btn-footer');
+
+    function openBrief() { briefModal.classList.remove('hidden'); }
+    function closeBrief() { briefModal.classList.add('hidden'); }
+
+    if (openBriefBtn) openBriefBtn.addEventListener('click', openBrief);
+    if (closeBriefBtn) closeBriefBtn.addEventListener('click', closeBrief);
+    if (closeBriefBtnFooter) closeBriefBtnFooter.addEventListener('click', closeBrief);
+
+    // 4. Submit Assessment Review Confirmation Flow
+    const submitBtn = document.getElementById('submit-assessment-btn');
+    const submitModal = document.getElementById('submit-confirm-modal');
+    const cancelSubmitBtn = document.getElementById('cancel-submit-btn');
+    const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
+
+    if (submitBtn) {
+      submitBtn.addEventListener('click', () => {
+        submitModal.classList.remove('hidden');
+      });
+    }
+
+    if (cancelSubmitBtn) {
+      cancelSubmitBtn.addEventListener('click', () => {
+        submitModal.classList.add('hidden');
+      });
+    }
+
+    if (confirmSubmitBtn) {
+      confirmSubmitBtn.addEventListener('click', () => {
+        confirmSubmitBtn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> Sealing Evaluation Dossier...`;
+        setTimeout(() => {
+          window.location.href = '#assessment-report';
+        }, 800);
+      });
+    }
+
+    // 5. Chat Input micro-interaction
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatStream = document.getElementById('chat-stream');
+
+    if (chatForm && chatInput && chatStream) {
+      chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        const candidateMsg = document.createElement('div');
+        candidateMsg.className = 'space-y-1';
+        candidateMsg.innerHTML = `
+          <div class="flex items-center justify-between font-mono-cite text-mono-cite text-on-surface-variant px-1">
+            <span class="font-semibold text-primary">CANDIDATE</span>
+            <span>Just now</span>
+          </div>
+          <div class="bg-surface-container-low p-3 rounded text-on-surface font-body-sm text-body-sm leading-relaxed">
+            ${text}
+          </div>
+        `;
+        chatStream.appendChild(candidateMsg);
+        chatInput.value = '';
+        chatStream.scrollTop = chatStream.scrollHeight;
+
+        // Simulate Assistant Response
+        setTimeout(() => {
+          const assistantMsg = document.createElement('div');
+          assistantMsg.className = 'space-y-1';
+          assistantMsg.innerHTML = `
+            <div class="flex items-center justify-between font-mono-cite text-mono-cite text-on-surface-variant px-1">
+              <span class="font-semibold text-secondary flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">terminal</span> CO-PILOT
+              </span>
+              <span>Just now</span>
+            </div>
+            <div class="bg-surface-container p-3 rounded text-on-surface font-body-sm text-body-sm leading-relaxed">
+              Evaluating requested constraints against criteria #1 and #6. Updated test suites dispatched to Vitest engine.
+            </div>
+          `;
+          chatStream.appendChild(assistantMsg);
+          chatStream.scrollTop = chatStream.scrollHeight;
+        }, 700);
+      });
+    }
+
+    // 6. Running Countdown Timer decrement
+    let totalSeconds = 54 * 60 + 12;
+    const timerElem = document.getElementById('countdown-timer');
+    if (timerElem) {
+      setInterval(() => {
+        if (totalSeconds > 0) {
+          totalSeconds--;
+          const m = Math.floor(totalSeconds / 60);
+          const s = totalSeconds % 60;
+          timerElem.textContent = `${m}:${s < 10 ? '0' : ''}${s} remaining`;
+        }
+      }, 1000);
+    }
+  })();
+</script></main><footer class="w-full bg-surface-container-low"><div class="max-w-7xl mx-auto px-6 lg:px-12 py-6 flex flex-col md:flex-row items-center justify-between gap-4"><div class="flex items-center gap-3 text-on-surface-variant font-mono-cite text-mono-cite"><span class="uppercase font-medium text-primary">CONFIDENTIAL DOSSIER</span><span>•</span><span>Authorized Executive Evaluation Panel Only</span></div><div class="flex items-center gap-4 font-mono-timestamp text-mono-timestamp text-on-surface-variant"><span>INTEGRITY SEAL: VALIDATED</span><span>•</span><span>UTC AUDIT LOGGED</span></div></div></footer></body></html>

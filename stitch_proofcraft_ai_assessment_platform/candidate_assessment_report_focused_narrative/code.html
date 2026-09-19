@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_standard" name="shell-type"/>
+<title>Assessment Dossier // Alex Vance — ProofCraft</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d5e3fd; border-radius: 4px; }
+    .section-snap {
+      scroll-margin-top: 5rem;
+    }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#091426",
+            "primary-container": "#1e293b",
+            "on-primary": "#ffffff",
+            "surface": "#fbf8ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f4f2fd",
+            "surface-container": "#eeedf7",
+            "surface-container-high": "#e8e7f1",
+            "surface-container-highest": "#e3e1ec",
+            "on-surface": "#1a1b22",
+            "on-surface-variant": "#45474c",
+            "outline": "#75777d",
+            "outline-variant": "#c5c6cd",
+            "secondary": "#515f74",
+            "secondary-container": "#d5e3fd",
+            "on-secondary-container": "#57657b"
+          },
+          fontFamily: {
+            "body-md": ["Hanken Grotesk", "sans-serif"],
+            "headline-xl": ["Hanken Grotesk", "sans-serif"],
+            "headline-lg": ["Hanken Grotesk", "sans-serif"],
+            "headline-md": ["Hanken Grotesk", "sans-serif"],
+            "headline-sm": ["Hanken Grotesk", "sans-serif"],
+            "label-md": ["Hanken Grotesk", "sans-serif"],
+            "mono-cite": ["JetBrains Mono", "monospace"],
+            "mono-timestamp": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased selection:bg-secondary-container selection:text-primary">
+<!-- Subtle Minimal Sticky Navigation -->
+<header class="fixed top-0 left-0 right-0 w-full z-40 bg-surface/85 backdrop-blur-md border-b border-surface-container-highest/50">
+<div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<a class="font-headline-sm font-semibold tracking-tight text-primary flex items-center gap-2 hover:opacity-80 transition-opacity" href="#section-hero">
+<span>ProofCraft</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
+<span class="font-mono-cite text-[11px] font-normal uppercase tracking-wider text-on-surface-variant hidden sm:inline">Executive Dossier</span>
+</a>
+</div>
+<!-- Quick Scroll Progress Anchors -->
+<nav class="hidden md:flex items-center gap-6 text-mono-cite text-[11px] text-on-surface-variant font-medium">
+<a class="hover:text-primary transition-colors" href="#section-hero">01. Verdict</a>
+<a class="hover:text-primary transition-colors" href="#section-synthesis">02. Synthesis</a>
+<a class="hover:text-primary transition-colors" href="#section-suite-a">03. 4Ds Architecture</a>
+<a class="hover:text-primary transition-colors" href="#section-suite-b">04. Prompt Rubric</a>
+<a class="hover:text-primary transition-colors" href="#section-guardrails">05. Guardrails</a>
+<a class="hover:text-primary transition-colors" href="#section-decision">06. Sign-off</a>
+</nav>
+<div class="flex items-center gap-3">
+<span class="font-mono-timestamp text-[11px] bg-surface-container-low px-2.5 py-1 rounded text-primary font-medium border border-surface-container-highest/60">
+          REF: CAN-8921
+        </span>
+</div>
+</div>
+</header>
+<!-- Narrative Document Wrapper -->
+<main class="w-full pt-16 flex flex-col items-center">
+<!-- ========================================== -->
+<!-- SECTION 1: HERO & OVERALL RECOMMENDATION  -->
+<!-- ========================================== -->
+<section class="section-snap w-full min-h-[90vh] flex flex-col justify-center items-center px-6 py-16" id="section-hero">
+<div class="max-w-2xl w-full text-center flex flex-col items-center">
+<!-- Top Category Badge -->
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/30 text-mono-cite text-xs tracking-wide uppercase text-on-surface-variant mb-6 shadow-sm">
+<span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+          Non-Repudiable Work-Sample Assessment
+        </div>
+<!-- Candidate & Target Role -->
+<h1 class="text-4xl sm:text-5xl lg:text-6xl font-headline-xl font-bold tracking-tight text-primary leading-tight mb-3">
+          Alex Vance
+        </h1>
+<p class="text-lg sm:text-xl text-on-surface-variant font-medium mb-12">
+          Senior Distributed Systems Engineer <span class="text-outline-variant mx-1.5">•</span> Atlassian (JSM Core)
+        </p>
+<!-- Bold Editorial Verdict Card (Single Clear Focal Object) -->
+<div class="w-full bg-surface-container-lowest rounded-2xl p-8 sm:p-12 border border-outline-variant/20 shadow-sm transition-all hover:shadow-md flex flex-col items-center">
+<span class="font-mono-cite text-xs uppercase tracking-widest text-on-surface-variant mb-3 font-semibold">
+            Final Calibrated Recommendation
+          </span>
+<div class="inline-block px-4 py-1.5 rounded-full bg-primary text-on-primary font-mono-timestamp text-xs sm:text-sm font-bold tracking-wider uppercase mb-6">
+            STRONG HIRE • TOP 4% TIER
+          </div>
+<div class="flex items-baseline justify-center gap-2 mb-4">
+<span class="text-6xl sm:text-7xl font-bold font-headline-xl text-primary tracking-tight">92</span>
+<span class="text-2xl sm:text-3xl font-medium text-outline">/ 100</span>
+</div>
+<p class="text-body-md text-on-surface-variant max-w-md mx-auto leading-relaxed">
+            Consistently performed in the 96th percentile across async runtime safety, edge-case pressure testing, and adversarial AI directive steerage.
+          </p>
+</div>
+<!-- Gentle Down Scroll Cue -->
+<a class="mt-14 inline-flex flex-col items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group" href="#section-synthesis">
+<span class="font-mono-cite text-xs uppercase tracking-wider group-hover:translate-y-0.5 transition-transform">Scroll to explore assessment evidence</span>
+<span class="material-symbols-outlined text-[20px] animate-bounce">arrow_downward</span>
+</a>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- SECTION 2: EXECUTIVE SYNTHESIS             -->
+<!-- ========================================== -->
+<section class="section-snap w-full min-h-[85vh] flex flex-col justify-center items-center px-6 py-20 bg-surface-container-low/40" id="section-synthesis">
+<div class="max-w-2xl w-full">
+<!-- Section Tracker -->
+<div class="font-mono-cite text-xs uppercase text-outline tracking-wider mb-3">02 // Executive Synthesis</div>
+<h2 class="text-2xl sm:text-3xl font-headline-lg font-bold text-primary tracking-tight mb-8">
+          The Hiring Manager Takeaway
+        </h2>
+<!-- Beautiful Central Reading Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 sm:p-10 border border-outline-variant/20 shadow-sm space-y-8">
+<!-- Primary Pull Quote -->
+<blockquote class="text-lg sm:text-xl font-normal text-primary leading-relaxed border-l-2 border-primary pl-5 italic">
+            “Alex drives the AI rather than letting the AI drive the architecture. Exceptional boundary control, proactive verification of code, and caught all planted bugs.”
+          </blockquote>
+<div class="border-t border-surface-container-highest/80 pt-6">
+<span class="font-mono-cite text-xs uppercase font-semibold text-primary block mb-3">
+              Core Demonstrated Strengths
+            </span>
+<ul class="space-y-3">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">check_circle</span>
+<span class="text-body-md text-on-surface">
+<strong class="font-semibold text-primary">Autonomous AI Supervision:</strong> Intervened immediately when AI proposed static backoff retry loops, replacing them with full jitter.
+                </span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">check_circle</span>
+<span class="text-body-md text-on-surface">
+<strong class="font-semibold text-primary">Deterministic Bounds:</strong> Imposed 64MB hard memory queues and defensive tenant-key isolation before touching business logic.
+                </span>
+</li>
+</ul>
+</div>
+<div class="border-t border-surface-container-highest/80 pt-6">
+<span class="font-mono-cite text-xs uppercase font-semibold text-secondary block mb-3">
+              Noted Development Area
+            </span>
+<div class="flex items-start gap-3 bg-surface-container-low/70 p-4 rounded-xl">
+<span class="material-symbols-outlined text-secondary text-[18px] mt-0.5 shrink-0">info</span>
+<p class="text-body-md text-on-surface">
+<strong class="font-semibold text-on-surface">Benchmarking Breadth:</strong> Relied on analytical proofs rather than running a live synthetic load generator against the webhook queue.
+              </p>
+</div>
+</div>
+</div>
+<div class="mt-8 text-center">
+<a class="inline-flex items-center gap-1.5 font-mono-cite text-xs uppercase text-on-surface-variant hover:text-primary transition-colors" href="#section-suite-a">
+            Next: Product Architecture Performance <span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</a>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- SECTION 3: TEST SUITE 01 - 4DS ARCHITECTURE -->
+<!-- ========================================== -->
+<section class="section-snap w-full min-h-[85vh] flex flex-col justify-center items-center px-6 py-20" id="section-suite-a">
+<div class="max-w-2xl w-full">
+<div class="font-mono-cite text-xs uppercase text-outline tracking-wider mb-3">03 // Test Suite 01</div>
+<div class="flex items-baseline justify-between mb-8 flex-wrap gap-2">
+<h2 class="text-2xl sm:text-3xl font-headline-lg font-bold text-primary tracking-tight">
+            Product Architecture (4Ds)
+          </h2>
+<span class="font-mono-timestamp text-sm font-semibold text-primary bg-surface-container-low px-3 py-1 rounded-full border border-surface-container-highest">
+            Score: 90 / 100
+          </span>
+</div>
+<!-- Focused 4Ds Execution Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 sm:p-10 border border-outline-variant/20 shadow-sm space-y-6">
+<p class="text-body-md text-on-surface-variant">
+            Evaluates the full lifecycle of software reasoning: problem deconstruction, system boundary definition, robust code development, and operational telemetry.
+          </p>
+<!-- 4Ds Execution Metrics -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+<div class="bg-surface-container-low p-4 rounded-xl text-center">
+<span class="font-mono-cite text-[11px] uppercase text-outline block mb-1">Discover</span>
+<span class="text-xl font-bold font-headline-md text-primary">9 / 10</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl text-center">
+<span class="font-mono-cite text-[11px] uppercase text-outline block mb-1">Define</span>
+<span class="text-xl font-bold font-headline-md text-primary">9 / 10</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl text-center">
+<span class="font-mono-cite text-[11px] uppercase text-outline block mb-1">Develop</span>
+<span class="text-xl font-bold font-headline-md text-primary">9 / 10</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl text-center">
+<span class="font-mono-cite text-[11px] uppercase text-outline block mb-1">Deliver</span>
+<span class="text-xl font-bold font-headline-md text-primary">9 / 10</span>
+</div>
+</div>
+<!-- Highlighted Quote Box -->
+<div class="mt-4 p-5 rounded-xl bg-surface-container-low border-l-2 border-primary">
+<span class="font-mono-cite text-[11px] uppercase font-semibold text-on-surface-variant block mb-1.5">
+              Verified Observational Note
+            </span>
+<p class="text-body-md font-medium text-primary italic">
+              “Tested AI code under load; caught unhandled async rejections before committing.”
+            </p>
+</div>
+</div>
+<div class="mt-8 text-center">
+<a class="inline-flex items-center gap-1.5 font-mono-cite text-xs uppercase text-on-surface-variant hover:text-primary transition-colors" href="#section-suite-b">
+            Next: Prompt Usage Rubric <span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</a>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- SECTION 4: TEST SUITE 02 - PROMPT RUBRIC    -->
+<!-- ========================================== -->
+<section class="section-snap w-full min-h-[85vh] flex flex-col justify-center items-center px-6 py-20 bg-surface-container-low/40" id="section-suite-b">
+<div class="max-w-2xl w-full">
+<div class="font-mono-cite text-xs uppercase text-outline tracking-wider mb-3">04 // Test Suite 02</div>
+<div class="flex items-baseline justify-between mb-8 flex-wrap gap-2">
+<h2 class="text-2xl sm:text-3xl font-headline-lg font-bold text-primary tracking-tight">
+            Prompt Usage Rubric
+          </h2>
+<span class="font-mono-timestamp text-sm font-semibold text-primary bg-surface-container-lowest px-3 py-1 rounded-full border border-surface-container-highest">
+            Score: 24 / 25
+          </span>
+</div>
+<!-- 5 Prompt Criteria Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 sm:p-10 border border-outline-variant/20 shadow-sm space-y-6">
+<p class="text-body-md text-on-surface-variant">
+            Assessment of prompt engineering discipline, LLM decomposition capabilities, and zero-trust verification of generated snippets.
+          </p>
+<div class="space-y-3 pt-2">
+<div class="flex items-center justify-between p-3.5 bg-surface-container-low rounded-xl">
+<div>
+<span class="font-label-md font-semibold text-primary block">Scope Boundary</span>
+<span class="font-mono-cite text-[11px] text-on-surface-variant">Strict instruction containment &amp; zero prompt drift</span>
+</div>
+<span class="font-mono-timestamp font-bold text-primary bg-surface-container-lowest px-3 py-1 rounded-lg text-sm border border-surface-container-highest">5 / 5</span>
+</div>
+<div class="flex items-center justify-between p-3.5 bg-surface-container-low rounded-xl">
+<div>
+<span class="font-label-md font-semibold text-primary block">Decomposition</span>
+<span class="font-mono-cite text-[11px] text-on-surface-variant">Modular prompt chunks over broad monolith queries</span>
+</div>
+<span class="font-mono-timestamp font-bold text-primary bg-surface-container-lowest px-3 py-1 rounded-lg text-sm border border-surface-container-highest">5 / 5</span>
+</div>
+<div class="flex items-center justify-between p-3.5 bg-surface-container-low rounded-xl">
+<div>
+<span class="font-label-md font-semibold text-primary block">Prompt Quality</span>
+<span class="font-mono-cite text-[11px] text-on-surface-variant">Explicit constraints, test cases, and edge inputs supplied</span>
+</div>
+<span class="font-mono-timestamp font-bold text-primary bg-surface-container-lowest px-3 py-1 rounded-lg text-sm border border-surface-container-highest">5 / 5</span>
+</div>
+<div class="flex items-center justify-between p-3.5 bg-surface-container-low rounded-xl">
+<div>
+<span class="font-label-md font-semibold text-primary block">Zero-Trust Verification</span>
+<span class="font-mono-cite text-[11px] text-on-surface-variant">Audited all syntax, assumptions, and libraries generated</span>
+</div>
+<span class="font-mono-timestamp font-bold text-primary bg-surface-container-lowest px-3 py-1 rounded-lg text-sm border border-surface-container-highest">5 / 5</span>
+</div>
+<div class="flex items-center justify-between p-3.5 bg-surface-container-low rounded-xl">
+<div>
+<span class="font-label-md font-semibold text-primary block">Stack Decision</span>
+<span class="font-mono-cite text-[11px] text-on-surface-variant">Targeted runtime library selections &amp; minimal dependencies</span>
+</div>
+<span class="font-mono-timestamp font-bold text-primary bg-surface-container-lowest px-3 py-1 rounded-lg text-sm border border-surface-container-highest">4 / 5</span>
+</div>
+</div>
+</div>
+<div class="mt-8 text-center">
+<a class="inline-flex items-center gap-1.5 font-mono-cite text-xs uppercase text-on-surface-variant hover:text-primary transition-colors" href="#section-guardrails">
+            Next: Adversarial Guardrails <span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</a>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- SECTION 5: ADVERSARIAL GUARDRAILS & FLAGS  -->
+<!-- ========================================== -->
+<section class="section-snap w-full min-h-[85vh] flex flex-col justify-center items-center px-6 py-20" id="section-guardrails">
+<div class="max-w-2xl w-full">
+<div class="font-mono-cite text-xs uppercase text-outline tracking-wider mb-3">05 // Security &amp; Guardrails</div>
+<h2 class="text-2xl sm:text-3xl font-headline-lg font-bold text-primary tracking-tight mb-2">
+          Automated Adversarial Checks
+        </h2>
+<p class="text-body-md text-on-surface-variant mb-8">
+          Real-time safety probes planted to detect hallucination compliance, credential leaks, and injection vulnerabilities.
+        </p>
+<!-- Spacious Flags Grid -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 sm:p-10 border border-outline-variant/20 shadow-sm space-y-4">
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/60 border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-700 text-[20px]">verified</span>
+<div>
+<span class="font-mono-timestamp text-sm font-semibold text-primary">Flaw Caught</span>
+<span class="text-body-sm text-on-surface-variant block text-xs">Identified planted race condition in buffer queue</span>
+</div>
+</div>
+<span class="font-mono-timestamp text-xs px-3 py-1 bg-emerald-100 text-emerald-900 rounded-md font-bold">TRUE (PASS)</span>
+</div>
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/60 border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-700 text-[20px]">lock</span>
+<div>
+<span class="font-mono-timestamp text-sm font-semibold text-primary">Privacy Breach</span>
+<span class="text-body-sm text-on-surface-variant block text-xs">No PII or tenant credentials emitted into prompt tokens</span>
+</div>
+</div>
+<span class="font-mono-timestamp text-xs px-3 py-1 bg-surface-container text-on-surface rounded-md font-medium">FALSE (CLEAN)</span>
+</div>
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/60 border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-700 text-[20px]">shield</span>
+<div>
+<span class="font-mono-timestamp text-sm font-semibold text-primary">Scope Creep Resisted</span>
+<span class="text-body-sm text-on-surface-variant block text-xs">Declined adding unnecessary distributed consensus protocols</span>
+</div>
+</div>
+<span class="font-mono-timestamp text-xs px-3 py-1 bg-emerald-100 text-emerald-900 rounded-md font-bold">TRUE (PASS)</span>
+</div>
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/60 border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-700 text-[20px]">terminal</span>
+<div>
+<span class="font-mono-timestamp text-sm font-semibold text-primary">Injection Attempt</span>
+<span class="text-body-sm text-on-surface-variant block text-xs">No payload escaping or model jailbreak behaviors detected</span>
+</div>
+</div>
+<span class="font-mono-timestamp text-xs px-3 py-1 bg-surface-container text-on-surface rounded-md font-medium">FALSE (CLEAN)</span>
+</div>
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/60 border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-700 text-[20px]">domain_verification</span>
+<div>
+<span class="font-mono-timestamp text-sm font-semibold text-primary">Out of Scope</span>
+<span class="text-body-sm text-on-surface-variant block text-xs">All commits strictly adhered to the assigned sprint criteria</span>
+</div>
+</div>
+<span class="font-mono-timestamp text-xs px-3 py-1 bg-surface-container text-on-surface rounded-md font-medium">FALSE (CLEAN)</span>
+</div>
+</div>
+<div class="mt-8 text-center">
+<a class="inline-flex items-center gap-1.5 font-mono-cite text-xs uppercase text-on-surface-variant hover:text-primary transition-colors" href="#section-decision">
+            Next: Staff Mentor Sign-off <span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</a>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- SECTION 6: MENTOR SIGN-OFF & DECISION      -->
+<!-- ========================================== -->
+<section class="section-snap w-full min-h-[85vh] flex flex-col justify-center items-center px-6 py-20 bg-surface-container-low/40" id="section-decision">
+<div class="max-w-2xl w-full">
+<div class="font-mono-cite text-xs uppercase text-outline tracking-wider mb-3">06 // Human Attestation &amp; Next Steps</div>
+<h2 class="text-2xl sm:text-3xl font-headline-lg font-bold text-primary tracking-tight mb-8">
+          Mentor Sign-off &amp; Decision
+        </h2>
+<!-- Staff Mentor Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 sm:p-10 border border-outline-variant/20 shadow-sm mb-8 space-y-6">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary font-bold">
+                EV
+              </div>
+<div>
+<span class="font-headline-sm font-semibold text-primary block">E. Vance</span>
+<span class="text-xs text-on-surface-variant font-mono-cite">Staff Systems Architect • Human Reviewer</span>
+</div>
+</div>
+<span class="font-mono-timestamp text-xs uppercase bg-primary text-on-primary px-3 py-1 rounded-full font-bold">
+              VERIFIED ATTESTATION
+            </span>
+</div>
+<p class="text-body-md text-on-surface italic leading-relaxed pt-2 border-l-2 border-primary/40 pl-4">
+            “Candidate operates with exceptional agency. Instead of rubber-stamping AI routines, established strict memory ceilings and backoff jitter immediately. Ready for staff-level architectural responsibility.”
+          </p>
+<div class="pt-4 border-t border-surface-container-highest flex items-center justify-between text-on-surface-variant font-mono-timestamp text-xs">
+<span>Tamper-proof Seal: SHA256-8b02c44...</span>
+<span class="text-emerald-700 font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span> Validated
+            </span>
+</div>
+</div>
+<!-- Prominent Decision Action Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 border border-outline-variant/20 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+<button class="w-full sm:w-auto bg-primary hover:bg-primary/90 text-on-primary font-label-md px-6 py-3.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2" onclick="approveOffer()">
+<span class="material-symbols-outlined text-[18px]">thumb_up</span>
+<span>Approve for Offer Deliberation</span>
+</button>
+<button class="w-full sm:w-auto bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md px-5 py-3.5 rounded-xl transition-all border border-outline-variant/20 flex items-center justify-center gap-2" onclick="shareReport()">
+<span class="material-symbols-outlined text-[18px]">share</span>
+<span>Share Dossier Link</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Minimal Footer -->
+<footer class="w-full border-t border-surface-container-highest/60 bg-surface py-8 text-center text-xs font-mono-cite text-on-surface-variant">
+<div class="max-w-2xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+<span>ProofCraft Audit Hash: 0x9f4a8b72e1</span>
+<span>Confidential Evaluation Document</span>
+</div>
+</footer>
+<script>
+    function shareReport() {
+      const url = window.location.origin + "/dossier/verify/CAN-8921";
+      navigator.clipboard.writeText(url);
+      alert("Authenticated Candidate Dossier link copied to clipboard:\n" + url);
+    }
+
+    function approveOffer() {
+      alert("Candidate Alex Vance (CAN-8921) approved for Offer Deliberation committee.");
+    }
+  </script>
+</body></html>
