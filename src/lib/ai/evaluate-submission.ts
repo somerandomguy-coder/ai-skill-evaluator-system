@@ -9,14 +9,16 @@
 import type { FileMap } from "../files";
 import { isDemoMode } from "../env";
 import { RUBRIC_VERSION } from "../constants";
-import { generateStructured } from "./client";
+import { generateStructured, type TraceContext } from "./client";
 import { EVALUATOR_SYSTEM_PROMPT, buildEvaluatorUserMessage } from "./prompts/evaluator";
 import { EvaluatorOutputSchema, type EvaluationResult } from "./schemas";
 import { finalizeEvaluation, type RequirementRef, type TranscriptTurn } from "./scoring";
 
 export interface EvaluateOptions {
   rubricVersion?: string;
+  traceContext?: TraceContext;
 }
+
 
 /**
  * DEMO_MODE has no model to ask. Rather than invent a judgment, every
@@ -67,7 +69,9 @@ export async function evaluateSubmission(
     schema: EvaluatorOutputSchema,
     maxTokens: 24_000,
     effort: "high",
+    traceContext: options.traceContext,
   });
 
   return finalizeEvaluation(data, { requirements, turns: chatTurns, files: fileSnapshot });
+
 }

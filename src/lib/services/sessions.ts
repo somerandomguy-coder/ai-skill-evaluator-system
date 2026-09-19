@@ -21,6 +21,7 @@ import { parseFileList, parseFileMap, toJson } from "../json";
 import { guardPackageJson } from "../starter";
 import { evaluateAndStore } from "./evaluations";
 import { RetryableError, ServiceError } from "./errors";
+import { trackEvent, trackUserTurn } from "../ai/langfuse";
 
 export const MAX_MESSAGE_CHARS = 8_000;
 export const MAX_TURNS = 200;
@@ -111,13 +112,30 @@ export async function sendMessage(input: {
   }
 
   try {
-    const files = reconstructFiles(parseFileMap(session.challenge.starterTemplate), turns);
-    const reply = await buildAssistant(historyOf(turns), files, {
-      title: session.challenge.title,
-      brief: session.challenge.brief,
-      domainContext: session.challenge.domainContext,
-      timeboxMinutes: session.challenge.timeboxMinutes,
+    trackUserTurn({
+      sessionId: session.id,
+      userId: session.userId,
+      message: userTurn.content,
+      challengeTitle: session.challenge.title,
     });
+
+    const files = reconstructFiles(parseFileMap(session.challenge.starterTemplate), turns);
+    const reply = await buildAssistant(
+      historyOf(turns),
+      files,
+      {
+        title: session.challenge.title,
+        brief: session.challenge.brief,
+        domainContext: session.challenge.domainContext,
+        timeboxMinutes: session.challenge.timeboxMinutes,
+      },
+      {
+        sessionId: session.id,
+        userId: session.userId,
+        tags: ["workspace_chat"],
+        metadata: { challengeTitle: session.challenge.title, turnSeq: userTurn.seq },
+      }
+    );
 
     // Whatever the model returned is checked before it is persisted: what we store is exactly what runs.
     const { valid, rejected } = sanitizeWrites(reply.files, files);
@@ -168,6 +186,11 @@ export async function submitSession(sessionId: string, userId: string): Promise<
         prisma.buildSession.update({ where: { id: session.id }, data: { status: "SUBMITTED", submittedAt: new Date() } }),
         prisma.fileSnapshot.create({ data: { buildSessionId: session.id, tree: toJson(toFileList(files)) } }),
       ]);
+      trackEvent("session_submitted", {
+        sessionId: session.id,
+        userId: session.userId,
+        metadata: { challengeTitle: session.challenge.title, turnsCount: session.turns.length },
+      });
     } catch (err) {
       // A concurrent submit already took the snapshot: carry on to the evaluation.
       if ((err as Prisma.PrismaClientKnownRequestError).code !== "P2002") throw err;

@@ -15,6 +15,7 @@ import { ContentFilterFinishReasonError, LengthFinishReasonError } from "openai/
 import { zodResponseFormat } from "openai/helpers/zod";
 import type { z } from "zod";
 import { isDemoMode, modelFor, openaiApiKey, type AiStage } from "../env";
+import { flushLangfuse, observeOpenAiClient } from "./langfuse";
 
 export class AiError extends Error {
   constructor(
@@ -47,6 +48,13 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface TraceContext {
+  sessionId?: string;
+  userId?: string;
+  tags?: string[];
+  metadata?: Record<string, unknown>;
+}
+
 export interface StructuredRequest<T> {
   stage: AiStage;
   system: string;
@@ -54,7 +62,9 @@ export interface StructuredRequest<T> {
   schema: z.ZodType<T>;
   maxTokens: number;
   effort?: Effort;
+  traceContext?: TraceContext;
 }
+
 
 export interface StructuredResult<T> {
   data: T;
@@ -138,17 +148,30 @@ function withFeedback(messages: ChatMessage[], issue: string): ChatMessage[] {
 export async function generateStructured<T>(req: StructuredRequest<T>): Promise<StructuredResult<T>> {
   if (isDemoMode()) throw new DemoModeError(req.stage);
 
-  const openai = getClient();
+  const rawClient = getClient();
+  const openai = observeOpenAiClient(rawClient, {
+    traceName: `ai_stage:${req.stage}`,
+    sessionId: req.traceContext?.sessionId,
+    userId: req.traceContext?.userId,
+    tags: [req.stage, ...(req.traceContext?.tags ?? [])],
+    metadata: {
+      stage: req.stage,
+      effort: req.effort,
+      maxTokens: req.maxTokens,
+      ...req.traceContext?.metadata,
+    },
+  });
   const model = modelFor(req.stage);
 
   let messages = req.messages;
   let lastIssue = "";
 
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const completion = await openai.chat.completions.parse({
-        model,
-        max_completion_tokens: req.maxTokens,
+  try {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const completion = await openai.chat.completions.parse({
+          model,
+          max_completion_tokens: req.maxTokens,
         messages: [{ role: "system", content: req.system }, ...messages],
         response_format: zodResponseFormat(req.schema, `${req.stage}_output`),
         ...(supportsReasoningEffort(model) ? { reasoning_effort: toReasoningEffort(req.effort) } : {}),
@@ -195,4 +218,7 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
   }
   // Unreachable: the loop either returns or throws.
   throw new InvalidOutputError(`Structured generation failed (stage: ${req.stage}).`, "invalid_output");
+  } finally {
+    await flushLangfuse().catch(() => {});
+  }
 }

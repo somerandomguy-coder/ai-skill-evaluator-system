@@ -22,3 +22,20 @@ export function openaiApiKey(): string | undefined {
   const key = process.env.OPENAI_API_KEY?.trim();
   return key ? key : undefined;
 }
+
+export function langfusePublicKey(): string | undefined {
+  return process.env.LANGFUSE_PUBLIC_KEY?.trim() || undefined;
+}
+
+export function langfuseSecretKey(): string | undefined {
+  return process.env.LANGFUSE_SECRET_KEY?.trim() || undefined;
+}
+
+export function langfuseBaseUrl(): string {
+  return process.env.LANGFUSE_BASEURL?.trim() || process.env.LANGFUSE_HOST?.trim() || "https://cloud.langfuse.com";
+}
+
+export function isLangfuseEnabled(): boolean {
+  return Boolean(langfusePublicKey() && langfuseSecretKey());
+}
+

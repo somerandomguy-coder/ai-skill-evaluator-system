@@ -15,7 +15,7 @@
  */
 import type { FileMap } from "../files";
 import { isDemoMode } from "../env";
-import { generateStructured } from "./client";
+import { generateStructured, type TraceContext } from "./client";
 import { demoAssistantTurn } from "./demo";
 import { ASSISTANT_SYSTEM } from "./prompts/assistant";
 import { AssistantTurnSchema, type AssistantTurn } from "./schemas";
@@ -66,7 +66,8 @@ ${challenge.brief}
 export async function buildAssistant(
   history: ChatMessage[],
   files: FileMap,
-  challenge: ChallengeContext
+  challenge: ChallengeContext,
+  traceContext?: TraceContext
 ): Promise<AssistantTurn> {
   const last = history[history.length - 1];
   if (!last || last.role !== "user") throw new Error("buildAssistant needs a final user message to answer.");
@@ -86,6 +87,8 @@ export async function buildAssistant(
     schema: AssistantTurnSchema,
     maxTokens: 32_000,
     effort: "medium",
+    traceContext,
   });
   return data;
 }
+

@@ -559,11 +559,17 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
           <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
             {isOwner && <ContestDialog evaluationId={ev.id} />}
             <Link
-              href={`/report/${ev.id}/credential`}
+              href={`/report/${ev.id}/employer`}
               className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white text-xs font-mono font-semibold px-4 py-2 rounded transition-colors flex items-center justify-center gap-2"
             >
-              <span>View Verified Credential Dossier</span>
+              <span>Share to Employer (Deck View)</span>
               <ArrowRight className="size-3.5" />
+            </Link>
+            <Link
+              href={`/report/${ev.id}/credential`}
+              className="w-full sm:w-auto bg-surface-container hover:bg-surface-container-high text-foreground text-xs font-mono font-medium px-3.5 py-2 rounded border border-border transition-colors flex items-center justify-center gap-2"
+            >
+              <span>Credential Dossier</span>
             </Link>
           </div>
         </div>

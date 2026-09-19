@@ -51,15 +51,25 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Top Navigation & Breadcrumb */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
-          <Link href={`/report/${ev.id}`} className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="size-3.5" />
-            <span>← Back to Detailed Assessment Report</span>
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href={`/report/${ev.id}`} className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="size-3.5" />
+              <span>← Back to Detailed Assessment Report</span>
+            </Link>
+            <span className="text-border">|</span>
+            <Link
+              href={`/report/${ev.id}/employer`}
+              className="inline-flex items-center gap-1 text-xs font-mono text-primary font-semibold hover:underline bg-surface-container px-2.5 py-0.5 rounded border border-border"
+            >
+              <span>Switch to Focused Employer Deck (1-by-1) →</span>
+            </Link>
+          </div>
           <div className="flex items-center gap-2">
             <CopyLinkButton label="Copy Verified Link" />
             <PrintExecutivePdfButton />
           </div>
         </div>
+
 
         {/* Archival Metadata Ribbon */}
         <div className="w-full bg-surface-container-low py-2 px-4 rounded border border-border flex flex-wrap items-center justify-between gap-3 font-mono text-[11px] text-muted-foreground">

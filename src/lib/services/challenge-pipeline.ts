@@ -18,6 +18,7 @@ import { FetchJdError, fetchJobText } from "../fetch-jd";
 import { SEED_JD_SOURCE_URL } from "../fixtures/seed-jd";
 import { toJson } from "../json";
 import type { PipelineEvent } from "../pipeline-events";
+import { trackEvent } from "../ai/langfuse";
 
 
 type Emit = (e: PipelineEvent) => void;
@@ -74,6 +75,12 @@ export async function runChallengePipeline(
       emit({ type: "step", step: "read", status: "done" });
     }
     text = validateJdText(text);
+
+    trackEvent("jd_submitted", {
+      userId: input.userId,
+      input: { rawJd: text.slice(0, 500), sourceUrl },
+      tags: ["jd_pipeline"],
+    });
 
     if (isDemoMode()) return await runDemo(text, emit);
 

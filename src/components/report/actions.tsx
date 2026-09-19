@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Gavel, Link2, LoaderCircle, Printer, Award, ArrowRight } from "lucide-react";
+import { Check, Gavel, Link2, LoaderCircle, Printer, Award, ArrowRight, Layers } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -45,18 +45,32 @@ export function PrintExecutivePdfButton() {
   );
 }
 
-export function ViewCredentialButton({ evaluationId }: { evaluationId: string }) {
+export function ViewEmployerDeckButton({ evaluationId }: { evaluationId: string }) {
   return (
     <Link
-      href={`/report/${evaluationId}/credential`}
+      href={`/report/${evaluationId}/employer`}
       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded bg-primary text-white hover:bg-primary/90 text-xs font-mono font-semibold transition-colors"
     >
-      <Award className="size-3.5" aria-hidden />
-      <span>View Verified Credential Dossier</span>
+      <Layers className="size-3.5" aria-hidden />
+      <span>Share to Employer (Card Deck)</span>
       <ArrowRight className="size-3" aria-hidden />
     </Link>
   );
 }
+
+export function ViewCredentialButton({ evaluationId }: { evaluationId: string }) {
+  return (
+    <Link
+      href={`/report/${evaluationId}/credential`}
+      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-foreground text-xs font-mono font-medium border border-border transition-colors"
+    >
+      <Award className="size-3.5" aria-hidden />
+      <span>Credential Dossier</span>
+      <ArrowRight className="size-3" aria-hidden />
+    </Link>
+  );
+}
+
 
 /** Contesting sends the score straight to the mentor queue. */
 export function ContestDialog({ evaluationId }: { evaluationId: string }) {

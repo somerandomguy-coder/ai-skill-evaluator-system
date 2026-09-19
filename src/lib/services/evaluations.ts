@@ -17,6 +17,7 @@ import { sortRequirements } from "../data/mappers";
 import { fromFileList } from "../files";
 import { parseFileList, parseRequirementResults, toJson } from "../json";
 import { ServiceError } from "./errors";
+import { trackEvent } from "../ai/langfuse";
 
 export { effectiveScore, type EffectiveScore } from "./effective-score";
 
@@ -84,7 +85,15 @@ export async function evaluateAndStore(sessionId: string): Promise<Evaluation> {
     reasoning: t.reasoning,
   }));
 
-  const result = await evaluateSubmission(turns, files, requirements, { rubricVersion: session.challenge.rubricVersion });
+  const result = await evaluateSubmission(turns, files, requirements, {
+    rubricVersion: session.challenge.rubricVersion,
+    traceContext: {
+      sessionId,
+      userId: session.userId,
+      tags: ["evaluation"],
+      metadata: { challengeTitle: session.challenge.title },
+    },
+  });
 
   const end = session.submittedAt ?? new Date();
   const data = buildEvaluationData({
@@ -121,6 +130,12 @@ export async function contestEvaluation(evaluationId: string, userId: string, re
       needsHumanReview: true,
       reviewStatus: "PENDING",
     },
+  });
+
+  trackEvent("evaluation_contested", {
+    sessionId: ev.buildSessionId,
+    userId,
+    metadata: { reason: text },
   });
 }
 
@@ -162,6 +177,13 @@ export async function submitMentorReview(i: MentorReviewInput): Promise<MentorRe
     }),
     prisma.evaluation.update({ where: { id: i.evaluationId }, data: { reviewStatus: "REVIEWED" } }),
   ]);
+
+  trackEvent("mentor_review_submitted", {
+    sessionId: ev.buildSessionId,
+    userId: i.mentorId,
+    metadata: { verdict: i.verdict, adjustedScore, evaluationId: i.evaluationId },
+  });
+
   return review;
 }
 

@@ -4,6 +4,7 @@ import { APP_NAME } from "@/lib/brand";
 import { data } from "@/lib/data";
 import { isDemoMode } from "@/lib/env";
 import { RoleSwitcher } from "./role-switcher";
+import { StepperNav } from "./stepper-nav";
 import { ShieldCheck, Terminal, Cpu } from "lucide-react";
 
 export async function SiteHeader() {
@@ -22,37 +23,9 @@ export async function SiteHeader() {
           </Link>
         </div>
 
-        {/* Stepper Navigation */}
-        <nav className="hidden xl:flex items-center gap-1.5 bg-surface-container-low px-3 py-1 rounded border border-border text-xs font-medium">
-          <Link
-            href="/"
-            className="px-2.5 py-1 transition-all rounded flex items-center gap-1.5 text-primary hover:bg-surface-container font-semibold"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-            <span>1. Input JD</span>
-          </Link>
-          <span className="text-muted-foreground font-mono">→</span>
-          <Link
-            href="/challenge/seed-challenge"
-            className="px-2.5 py-1 text-muted-foreground hover:text-primary hover:bg-surface-container rounded transition-all flex items-center gap-1.5"
-          >
-            <span>2. Challenge & Rubric</span>
-          </Link>
-          <span className="text-muted-foreground font-mono">→</span>
-          <Link
-            href="/build/seed-session-active"
-            className="px-2.5 py-1 text-muted-foreground hover:text-primary hover:bg-surface-container rounded transition-all flex items-center gap-1.5"
-          >
-            <span>3. Build Workspace</span>
-          </Link>
-          <span className="text-muted-foreground font-mono">→</span>
-          <Link
-            href="/report/seed-eval-strong"
-            className="px-2.5 py-1 text-muted-foreground hover:text-primary hover:bg-surface-container rounded transition-all flex items-center gap-1.5"
-          >
-            <span>4. Assessment Report</span>
-          </Link>
-        </nav>
+        {/* Dynamic Stepper Navigation */}
+        <StepperNav />
+
 
         {/* Right Status & Controls */}
         <div className="flex items-center gap-3">
