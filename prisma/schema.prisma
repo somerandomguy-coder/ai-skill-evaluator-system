@@ -171,6 +171,9 @@ model Evaluation {
   gaps           String[]
   needsHumanReview Boolean @default(false)
   escalationReason String?
+  // added: the same routing decision as structured data ([{ code, message, requirementIds?, turns? }]),
+  // so the mentor UI can render reasons as chips without parsing the sentence above.
+  escalationDetail Json    @default("[]")
   rubricVersion  String
   createdAt      DateTime @default(now())
 

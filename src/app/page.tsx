@@ -90,14 +90,14 @@ export default async function HomePage() {
                       <span>{s.roleTitle}</span>
                       <span aria-hidden>·</span>
                       <span>started {timeAgo(s.startedAt)}</span>
-                      <Badge variant={s.status === "ACTIVE" ? "secondary" : "outline"}>{s.status === "ACTIVE" ? "In progress" : "Submitted"}</Badge>
+                      <Badge variant={s.status === "ACTIVE" ? "secondary" : "outline"}>{s.status === "ACTIVE" ? "In progress" : s.evaluationId ? "Submitted" : "Not yet evaluated"}</Badge>
                     </div>
                   </div>
                   <Link
                     href={s.evaluationId ? `/report/${s.evaluationId}` : `/build/${s.sessionId}`}
                     className={buttonVariants({ variant: s.status === "ACTIVE" ? "default" : "outline", size: "sm", className: "shrink-0 gap-1.5" })}
                   >
-                    {s.status === "ACTIVE" ? "Continue" : "View report"}
+                    {s.status === "ACTIVE" ? "Continue" : s.evaluationId ? "View report" : "Finish evaluation"}
                     <ArrowRight className="size-3.5" aria-hidden />
                   </Link>
                 </CardContent>

@@ -1,10 +1,14 @@
 /**
  * The one place pages, layouts and actions get their data.
- * (`DATA_SOURCE=mock` renders from fixtures; anything else is the database.)
+ *
+ * Postgres by default. `DATA_SOURCE=mock` renders every screen from the seed
+ * fixtures instead — a zero-setup way to browse the UI (read-only: chat, submit,
+ * contest and review need the database).
  */
 import { mockDataSource } from "./mock";
+import { prismaDataSource } from "./prisma";
 import type { DataSource } from "./types";
 
-export const data: DataSource = mockDataSource;
+export const data: DataSource = process.env.DATA_SOURCE === "mock" ? mockDataSource : prismaDataSource;
 
 export type * from "./types";

@@ -6,6 +6,7 @@
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import type { FileMap, FileWrite } from "./files";
+import type { EscalationReason } from "./ai/escalation";
 import { EvidenceSchema, type RequirementResult } from "./ai/schemas";
 
 export const toJson = (v: unknown) => v as Prisma.InputJsonValue;
@@ -46,4 +47,28 @@ const MetaSchema = z.object({
 export function parseChallengeMeta(v: unknown) {
   const r = MetaSchema.safeParse(v ?? {});
   return r.success ? r.data : { validApproaches: [], ambiguities: [], source: "ai" };
+}
+
+const CODES = [
+  "LOW_CONFIDENCE",
+  "NO_EVIDENCE",
+  "BORDERLINE_SCORE",
+  "UNADJUDICATED_DISAGREEMENT",
+  "SESSION_TOO_SHORT",
+  "SESSION_TOO_LONG",
+  "INTEGRITY_FLAG",
+  "NO_AI_EVALUATION",
+  "CONTESTED",
+] as const;
+
+const EscalationReasonSchema = z.object({
+  code: z.enum(CODES),
+  message: z.string(),
+  requirementIds: z.array(z.string()).optional(),
+  turns: z.array(z.number()).optional(),
+});
+
+export function parseEscalationReasons(v: unknown): EscalationReason[] {
+  const r = z.array(EscalationReasonSchema).safeParse(v);
+  return r.success ? r.data : [];
 }

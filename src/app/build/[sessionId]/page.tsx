@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { EvaluationRetry } from "@/components/workspace/evaluation-retry";
 import { Workspace } from "@/components/workspace/workspace";
 import { requireUser } from "@/lib/auth";
 import { data } from "@/lib/data";
@@ -12,8 +13,12 @@ export default async function BuildPage({ params }: PageProps<"/build/[sessionId
   const workspace = await data.getWorkspace(sessionId);
   // Someone else's workspace looks the same as one that doesn't exist.
   if (!workspace || workspace.ownerId !== user.id) notFound();
-  // Once submitted the workspace is closed; the report is what's left.
-  if (workspace.status === "SUBMITTED") redirect(workspace.evaluationId ? `/report/${workspace.evaluationId}` : "/");
+  // Once submitted the workspace is closed; the report is what's left. If the
+  // evaluation never finished, offer to run it again rather than stranding the work.
+  if (workspace.status === "SUBMITTED") {
+    if (workspace.evaluationId) redirect(`/report/${workspace.evaluationId}`);
+    return <EvaluationRetry sessionId={sessionId} />;
+  }
 
   return <Workspace workspace={workspace} />;
 }

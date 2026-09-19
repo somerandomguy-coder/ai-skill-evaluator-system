@@ -13,6 +13,7 @@ import { evaluateSubmission } from "../ai/evaluate-submission";
 import { shouldEscalate } from "../ai/escalation";
 import type { EvaluationResult } from "../ai/schemas";
 import { prisma } from "../db";
+import { sortRequirements } from "../data/mappers";
 import { fromFileList } from "../files";
 import { parseFileList, parseRequirementResults, toJson } from "../json";
 import { ServiceError } from "./errors";
@@ -47,6 +48,7 @@ export function buildEvaluationData(i: EvaluationRowInput): Prisma.EvaluationUnc
     gaps: i.result.gaps,
     needsHumanReview: decision.escalate,
     escalationReason: decision.summary,
+    escalationDetail: toJson(decision.reasons),
     rubricVersion: i.rubricVersion,
     reviewStatus: decision.escalate ? "PENDING" : "NONE",
     source: i.source,
@@ -60,13 +62,13 @@ export async function evaluateAndStore(sessionId: string): Promise<Evaluation> {
     include: {
       turns: { orderBy: { seq: "asc" } },
       snapshot: true,
-      challenge: { include: { requirements: { orderBy: { id: "asc" } } } },
+      challenge: { include: { requirements: true } },
     },
   });
   if (!session.snapshot) throw new ServiceError("This session has not been submitted yet.", 409);
 
   const files = fromFileList(parseFileList(session.snapshot.tree));
-  const requirements: RequirementRef[] = session.challenge.requirements.map((r) => ({
+  const requirements: RequirementRef[] = sortRequirements(session.challenge.requirements).map((r) => ({
     id: r.id,
     category: r.category as RequirementRef["category"],
     statement: r.statement,

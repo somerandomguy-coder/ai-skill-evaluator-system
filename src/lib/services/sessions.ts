@@ -15,10 +15,12 @@ import type { ChatTurn, Prisma } from "@prisma/client";
 import { buildAssistant, type ChatMessage } from "../ai/build-assistant";
 import { prisma } from "../db";
 import { applyWrites, sanitizeWrites, toFileList, type FileMap, type FileWrite } from "../files";
+import { toTurnView } from "../data/mappers";
+import type { TurnView } from "../data/types";
 import { parseFileList, parseFileMap, toJson } from "../json";
 import { guardPackageJson } from "../starter";
 import { evaluateAndStore } from "./evaluations";
-import { ServiceError } from "./errors";
+import { RetryableError, ServiceError } from "./errors";
 
 export const MAX_MESSAGE_CHARS = 8_000;
 export const MAX_TURNS = 200;
@@ -56,22 +58,6 @@ async function loadOwned(sessionId: string, userId: string) {
   return session;
 }
 
-export interface TurnDto {
-  seq: number;
-  role: "USER" | "ASSISTANT";
-  content: string;
-  filesWritten: FileWrite[];
-  createdAt: string;
-}
-
-export const toTurnDto = (t: ChatTurn): TurnDto => ({
-  seq: t.seq,
-  role: t.role,
-  content: t.content,
-  filesWritten: parseFileList(t.filesWritten),
-  createdAt: t.createdAt.toISOString(),
-});
-
 /** Assistant turns carry a note of which files they wrote, so later turns know the project's history. */
 function historyOf(turns: ChatTurn[]): ChatMessage[] {
   return turns.map((t) => {
@@ -82,7 +68,7 @@ function historyOf(turns: ChatTurn[]): ChatMessage[] {
 }
 
 export interface SendResult {
-  turns: TurnDto[];
+  turns: TurnView[];
   /** Sanitised writes to mount into the runtime (what was persisted). */
   writes: FileWrite[];
   /** Adjustments made to keep the environment bootable, shown to the candidate. */
@@ -107,7 +93,7 @@ export async function sendMessage(input: {
     if (!last || last.role !== "USER") throw new ServiceError("There is no unanswered message to retry.", 409);
     userTurn = last;
   } else {
-    if (last?.role === "USER") throw new ServiceError("Your previous message has not been answered yet. Retry it first.", 409);
+    if (last?.role === "USER") throw new ServiceError("Your previous message has not been answered yet. Retry it first.", 409, true);
     const text = input.message.trim();
     if (!text) throw new ServiceError("Write a message first.");
     if (text.length > MAX_MESSAGE_CHARS) throw new ServiceError(`Please keep messages under ${MAX_MESSAGE_CHARS.toLocaleString()} characters.`);
@@ -124,39 +110,44 @@ export async function sendMessage(input: {
     turns = [...turns, userTurn];
   }
 
-  const files = reconstructFiles(parseFileMap(session.challenge.starterTemplate), turns);
-  const reply = await buildAssistant(historyOf(turns), files, {
-    title: session.challenge.title,
-    brief: session.challenge.brief,
-    domainContext: session.challenge.domainContext,
-    timeboxMinutes: session.challenge.timeboxMinutes,
-  });
+  try {
+    const files = reconstructFiles(parseFileMap(session.challenge.starterTemplate), turns);
+    const reply = await buildAssistant(historyOf(turns), files, {
+      title: session.challenge.title,
+      brief: session.challenge.brief,
+      domainContext: session.challenge.domainContext,
+      timeboxMinutes: session.challenge.timeboxMinutes,
+    });
 
-  // Whatever the model returned is checked before it is persisted: what we store is exactly what runs.
-  const { valid, rejected } = sanitizeWrites(reply.files, files);
-  const notes = rejected.map((r) => `Skipped ${r.path || "(no path)"}: ${r.reason}.`);
-  let writes = valid;
-  const pkg = writes.find((w) => w.path === "package.json");
-  if (pkg) {
-    const guarded = guardPackageJson(pkg.contents, files["package.json"] ?? "");
-    notes.push(...guarded.notes);
-    writes = guarded.accepted
-      ? writes.map((w) => (w.path === "package.json" ? { ...w, contents: guarded.contents } : w))
-      : writes.filter((w) => w.path !== "package.json");
+    // Whatever the model returned is checked before it is persisted: what we store is exactly what runs.
+    const { valid, rejected } = sanitizeWrites(reply.files, files);
+    const notes = rejected.map((r) => `Skipped ${r.path || "(no path)"}: ${r.reason}.`);
+    let writes = valid;
+    const pkg = writes.find((w) => w.path === "package.json");
+    if (pkg) {
+      const guarded = guardPackageJson(pkg.contents, files["package.json"] ?? "");
+      notes.push(...guarded.notes);
+      writes = guarded.accepted
+        ? writes.map((w) => (w.path === "package.json" ? { ...w, contents: guarded.contents } : w))
+        : writes.filter((w) => w.path !== "package.json");
+    }
+
+    const assistantTurn = await prisma.chatTurn.create({
+      data: {
+        buildSessionId: session.id,
+        seq: userTurn.seq + 1,
+        role: "ASSISTANT",
+        content: reply.message,
+        filesWritten: toJson(writes),
+        reasoning: reply.reasoning || null,
+      },
+    });
+
+    return { turns: [toTurnView(userTurn), toTurnView(assistantTurn)], writes, notes };
+  } catch (err) {
+    // The candidate's message is saved: whatever went wrong from here on, a retry is safe.
+    throw err instanceof ServiceError ? err : new RetryableError(err);
   }
-
-  const assistantTurn = await prisma.chatTurn.create({
-    data: {
-      buildSessionId: session.id,
-      seq: userTurn.seq + 1,
-      role: "ASSISTANT",
-      content: reply.message,
-      filesWritten: toJson(writes),
-      reasoning: reply.reasoning || null,
-    },
-  });
-
-  return { turns: [toTurnDto(userTurn), toTurnDto(assistantTurn)], writes, notes };
 }
 
 /**
