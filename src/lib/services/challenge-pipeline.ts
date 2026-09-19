@@ -73,28 +73,28 @@ async function runFastPipeline(
 
   // Step 1: Parse
   emit({ type: "step", step: "parse", status: "start" });
-  await pause(1000);
+  await pause(250);
   emit({ type: "step", step: "parse", status: "done", detail: `${roleTitle} at ${employer}` });
 
   // Step 2: Research
   emit({ type: "step", step: "research", status: "start" });
-  await pause(1000);
+  await pause(250);
   emit({ type: "step", step: "research", status: "done", detail: `Cached domain signals (${employer})` });
 
   // Step 3: Challenge design
   emit({ type: "step", step: "challenge", status: "start" });
-  await pause(1500);
+  await pause(350);
   const challengeTitle = `${roleTitle.replace(/^(Senior|Staff|Junior|Lead)\s+/i, "")}: Prototype`;
   emit({ type: "step", step: "challenge", status: "done", detail: challengeTitle });
 
   // Step 4: Rubric
   emit({ type: "step", step: "rubric", status: "start" });
-  await pause(1000);
+  await pause(250);
   emit({ type: "step", step: "rubric", status: "done", detail: "12 requirements covering 4D lifecycle" });
 
   // Step 5: Save
   emit({ type: "step", step: "save", status: "start" });
-  await pause(500);
+  await pause(150);
 
   const id = `fast-${Date.now()}`;
   const fallbackChallengeView: ChallengeView = {
@@ -180,6 +180,16 @@ A technical lead or hiring manager reviewing your engineering judgment and code 
         rubricVersion: RUBRIC_VERSION,
         meta: toJson({ validApproaches: [], ambiguities: [] }),
       },
+    });
+    await prisma.requirement.createMany({
+      data: fallbackChallengeView.requirements.map((r) => ({
+        challengeId: id,
+        category: r.category,
+        statement: r.statement,
+        weight: r.weight,
+        successSignals: r.successSignals,
+        failureModes: r.failureModes,
+      })),
     });
   } catch (err) {
     console.warn(`[runFastPipeline] Database save failed (${err}). Stored in memory.`);

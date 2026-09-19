@@ -7,8 +7,16 @@ import { RoleSwitcher } from "./role-switcher";
 import { StepperNav } from "./stepper-nav";
 import { ShieldCheck, Terminal, Cpu } from "lucide-react";
 
+import type { UserView } from "@/lib/data/types";
+
+const DEMO_USERS: UserView[] = [
+  { id: "candidate-1", email: "candidate@proofcraft.dev", name: "Alex Chen", role: "CANDIDATE" },
+  { id: "mentor-1", email: "mentor@proofcraft.dev", name: "Dr. Sarah Lin", role: "MENTOR" },
+];
+
 export async function SiteHeader() {
-  const [user, users] = await Promise.all([getCurrentUser(), data.listUsers()]);
+  const user = await getCurrentUser();
+  const users = DEMO_USERS;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-surface/95 backdrop-blur-md">

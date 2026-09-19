@@ -74,7 +74,10 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
       if (res.writes.length) {
         setFiles((prev) => applyWrites(prev, res.writes));
         setChanged(new Set(res.writes.map((w) => w.path)));
-        await applyRuntimeWrites(res.writes);
+        // Decouple runtime write syncing so chat response renders immediately without lag
+        void applyRuntimeWrites(res.writes).catch((err) => {
+          console.warn("[workspace] Background runtime write sync warning:", err);
+        });
       }
       const reply = res.turns.find((t) => t.role === "ASSISTANT");
       if (reply && res.notes.length) setNotes((prev) => ({ ...prev, [reply.seq]: res.notes }));

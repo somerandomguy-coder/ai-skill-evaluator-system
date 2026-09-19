@@ -23,6 +23,7 @@ import { evaluateAndStore } from "./evaluations";
 import { RetryableError, ServiceError } from "./errors";
 import { trackEvent, trackUserTurn } from "../ai/langfuse";
 import { getInMemoryChallenge } from "../data/mock";
+import { SEED_CHALLENGE } from "../fixtures/seed-challenge";
 
 export const MAX_MESSAGE_CHARS = 8_000;
 export const MAX_TURNS = 200;
@@ -39,9 +40,6 @@ export function reconstructFiles(starter: FileMap, turns: Pick<ChatTurn, "filesW
 
 export async function startSession(challengeId: string, userId: string): Promise<string> {
   const mem = getInMemoryChallenge(challengeId);
-  if (mem) {
-    return `sess-${challengeId}`;
-  }
 
   try {
     // Ensure user exists before creating buildSession to prevent foreign key errors
@@ -51,7 +49,48 @@ export async function startSession(challengeId: string, userId: string): Promise
       create: { id: userId, email: `${userId}@proofcraft.dev`, name: "Candidate", role: "CANDIDATE" },
     });
 
-    const challenge = await prisma.challenge.findUnique({ where: { id: challengeId }, select: { id: true } });
+    let challenge = await prisma.challenge.findUnique({ where: { id: challengeId }, select: { id: true } });
+    if (!challenge && mem) {
+      try {
+        const sub = await prisma.jobSubmission.create({
+          data: {
+            userId,
+            rawJd: mem.job.teamContext || "Fast pipeline challenge",
+            parsedJd: toJson(mem.job),
+            companyResearch: toJson(mem.research),
+          },
+        });
+        challenge = await prisma.challenge.create({
+          data: {
+            id: mem.id,
+            jobSubmissionId: sub.id,
+            title: mem.title,
+            brief: mem.brief,
+            domainContext: mem.domainContext,
+            timeboxMinutes: mem.timeboxMinutes,
+            starterTemplate: toJson(SEED_CHALLENGE.starterTemplate),
+            rubricVersion: mem.rubricVersion,
+            meta: toJson({ validApproaches: [], ambiguities: [] }),
+          },
+          select: { id: true },
+        });
+        if (mem.requirements?.length) {
+          await prisma.requirement.createMany({
+            data: mem.requirements.map((r) => ({
+              challengeId: mem.id,
+              category: r.category,
+              statement: r.statement,
+              weight: r.weight,
+              successSignals: r.successSignals,
+              failureModes: r.failureModes,
+            })),
+          });
+        }
+      } catch (syncErr) {
+        console.warn(`[startSession] Could not sync in-memory challenge to DB:`, syncErr);
+      }
+    }
+
     if (!challenge) {
       if (mem) return `sess-${challengeId}`;
       throw new ServiceError("Challenge not found.", 404);

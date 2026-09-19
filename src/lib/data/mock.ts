@@ -509,7 +509,8 @@ export const mockDataSource: DataSource = {
       };
     }
 
-    const defaultSession = sessions.find((x) => !x.evaluation) || sessions[0];
+    const isSeedSession = sessionId === "seed-session-active" || sessionId === "demo-session";
+    const sessionForSeed = isSeedSession ? (sessions.find((x) => !x.evaluation) || sessions[0]) : null;
     return {
       sessionId,
       ownerId: "candidate-1",
@@ -517,8 +518,8 @@ export const mockDataSource: DataSource = {
       startedAt: new Date().toISOString(),
       challenge: targetChallenge,
       starter: { ...SEED_CHALLENGE.starterTemplate },
-      turns: defaultSession ? turnViews(defaultSession) : [],
-      files: defaultSession ? filesOf(defaultSession) : { ...SEED_CHALLENGE.starterTemplate },
+      turns: sessionForSeed ? turnViews(sessionForSeed) : [],
+      files: sessionForSeed ? filesOf(sessionForSeed) : { ...SEED_CHALLENGE.starterTemplate },
       evaluationId: null,
     };
   },

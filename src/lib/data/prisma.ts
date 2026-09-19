@@ -244,7 +244,7 @@ export const prismaDataSource: DataSource = {
   startSession,
 
   async getWorkspace(sessionId): Promise<WorkspaceView | null> {
-    if (sessionId.startsWith("sess-gen-") || sessionId.startsWith("demo-") || sessionId.startsWith("seed-")) {
+    if (sessionId.startsWith("demo-") || sessionId.startsWith("seed-")) {
       return mockDataSource.getWorkspace(sessionId);
     }
     try {
