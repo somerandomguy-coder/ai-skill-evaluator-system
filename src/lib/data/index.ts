@@ -9,6 +9,9 @@ import { mockDataSource } from "./mock";
 import { prismaDataSource } from "./prisma";
 import type { DataSource } from "./types";
 
-export const data: DataSource = process.env.DATA_SOURCE === "mock" ? mockDataSource : prismaDataSource;
+export const data: DataSource =
+  Boolean(process.env.DATABASE_URL) && process.env.DATA_SOURCE !== "mock"
+    ? prismaDataSource
+    : mockDataSource;
 
 export type * from "./types";
