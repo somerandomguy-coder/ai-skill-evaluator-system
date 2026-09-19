@@ -140,19 +140,19 @@ const FOUR_D_FRAMEWORK = [
   },
 ];
 
-export function Rubric({ requirements }: { requirements: RequirementView[] }) {
+export function Rubric({ requirements, compact = false }: { requirements: RequirementView[]; compact?: boolean }) {
   const groups = REQUIREMENT_CATEGORIES.map((category) => ({
     category,
     items: requirements.filter((r) => r.category === category),
   })).filter((g) => g.items.length);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 min-w-0">
       {/* 4D Assessment Framework Card */}
-      <div className="bg-surface-container-low border border-border p-5 rounded space-y-4">
+      <div className="bg-surface-container-low border border-border p-4 sm:p-5 rounded space-y-4 overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
           <div className="flex items-center gap-2 font-mono font-bold text-primary uppercase text-xs">
-            <ShieldCheck className="size-4 text-emerald-600" />
+            <ShieldCheck className="size-4 text-emerald-600 shrink-0" />
             <span>Product Assessment Framework (4D Engineering Lifecycle)</span>
           </div>
           <span className="font-mono text-[11px] text-muted-foreground">Comprehensive Work-Sample Evaluation</span>
@@ -160,30 +160,30 @@ export function Rubric({ requirements }: { requirements: RequirementView[] }) {
 
         <div className="p-3 bg-surface-container-lowest rounded border border-border flex items-start gap-2.5">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-1.5 shrink-0" />
-          <div className="space-y-0.5 text-xs">
+          <div className="space-y-0.5 text-xs min-w-0">
             <span className="font-mono text-[10px] uppercase font-bold text-primary block">
               EVALUATION THESIS: &ldquo;A POLISHED APP CAN STILL BE THE WRONG APP&rdquo;
             </span>
-            <p className="text-muted-foreground text-[11px] leading-relaxed">
+            <p className="text-muted-foreground text-[11px] leading-relaxed break-words">
               We assess whether you skip Define &amp; Design, jump straight to Build, trust AI assumptions, or create fake completeness with no evidence gate.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+        <div className={cn("grid gap-3 pt-1", compact ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4")}>
           {FOUR_D_FRAMEWORK.map((f) => (
-            <div key={f.phase} className="bg-surface-container-lowest p-3 rounded border border-border space-y-1.5 flex flex-col justify-between">
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] uppercase font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+            <div key={f.phase} className="bg-surface-container-lowest p-3 rounded border border-border space-y-2 flex flex-col justify-between min-w-0 overflow-hidden">
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-mono text-[10px] uppercase font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">
                     {f.phase}
                   </span>
                   <span className="font-mono text-[10px] text-muted-foreground font-semibold">{f.icon}</span>
                 </div>
-                <h4 className="font-semibold text-primary text-xs">{f.title}</h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">{f.desc}</p>
+                <h4 className="font-semibold text-primary text-xs leading-snug break-words">{f.title}</h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed break-words">{f.desc}</p>
               </div>
-              <div className="pt-2 border-t border-border/60 text-[10px] text-amber-700 font-mono">
+              <div className="pt-2 border-t border-border/60 text-[10px] text-amber-700 font-mono leading-tight break-words">
                 ⚠ {f.warning}
               </div>
             </div>

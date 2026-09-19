@@ -136,8 +136,24 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
     },
   };
 
-  // Sample or real verbatim evidence turns
-  const evidenceQuotes = isStrong
+  // Real verbatim evidence turns from candidate, with fallback to seed presets
+  const userTurns = ev.turns.filter((t) => t.role === "USER" || (t as any).role === "user");
+  const evidenceQuotes = userTurns.length > 0
+    ? userTurns.map((t, idx) => {
+        const badge =
+          idx === 0
+            ? "Initial Scoping & Boundaries"
+            : idx === userTurns.length - 1
+            ? "Verification & Submission"
+            : "Directing AI Assistant";
+        return {
+          role: candidateName,
+          badge,
+          text: t.content,
+          context: `Turn ${t.seq || idx + 1} · Verbatim message from candidate`,
+        };
+      })
+    : isStrong
     ? [
         {
           role: "Candidate",

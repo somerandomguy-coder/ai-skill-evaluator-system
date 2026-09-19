@@ -10,7 +10,7 @@ import { formatTimebox } from "@/lib/format";
 export function BriefSheet({ challenge, open, onOpenChange }: { challenge: WorkspaceView["challenge"]; open: boolean; onOpenChange: (open: boolean) => void }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl">
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-3xl">
         <SheetHeader>
           <SheetTitle>{challenge.title}</SheetTitle>
           <SheetDescription>
@@ -24,7 +24,7 @@ export function BriefSheet({ challenge, open, onOpenChange }: { challenge: Works
           <section className="space-y-4">
             <h3 className="text-base font-semibold">What you&apos;re scored on</h3>
             <p className="text-sm text-muted-foreground">Reasoning and decisions. Never grammar, spelling or fluency.</p>
-            <Rubric requirements={challenge.requirements} />
+            <Rubric requirements={challenge.requirements} compact />
           </section>
         </div>
       </SheetContent>

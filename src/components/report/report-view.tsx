@@ -36,11 +36,20 @@ import type { EvaluationView, UserView } from "@/lib/data/types";
 import { formatMinutes, formatTimebox, scoreBand, timeAgo } from "@/lib/format";
 import { ContestDialog, CopyLinkButton, PrintExecutivePdfButton, ViewCredentialButton } from "./actions";
 import { RequirementResultCard } from "./requirement-result";
+import { buildCognitiveSuites } from "@/lib/services/cognitive-rubric";
 
 interface Props {
   evaluation: EvaluationView;
   viewer: UserView | null;
 }
+
+const CRITERION_LABELS: Record<string, string> = {
+  scope_boundary: "SCOPE BOUNDARY",
+  decomposition: "DECOMPOSITION",
+  prompt_quality: "PROMPT QUALITY",
+  verification: "VERIFICATION (ZT)",
+  stack_decision: "STACK DECISION",
+};
 
 export function ReportView({ evaluation: ev, viewer }: Props) {
   const isOwner = viewer?.id === ev.ownerId;
@@ -50,84 +59,15 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
   const isPending = ev.reviewStatus === "PENDING";
   const [selectedCitation, setSelectedCitation] = useState<{ title: string; content: string; meta: string } | null>(null);
 
-  const suiteA = ev.suiteA ?? {
-    title: "Product 4D & Zero Trust Architecture",
-    score: Math.round(ev.overallScore * 0.95),
-    maxScore: 100,
-    status: ev.overallScore >= 80 ? "EXEMPLARY" : "DEVELOPING",
-    phases: [
-      { name: "Define" as const, phase: 1, score: ev.overallScore >= 80 ? 9 : 2, maxScore: 10, summary: ev.overallScore >= 80 ? "Interrogated brief boundaries prior to code." : "Define skipped: jumped straight to build without scope agreement." },
-      { name: "Design" as const, phase: 2, score: ev.overallScore >= 80 ? 9 : 2, maxScore: 10, summary: ev.overallScore >= 80 ? "Enforced decoupled modular architecture." : "Design skipped: monolithic prompt with tangled UI and logic." },
-      { name: "Develop" as const, phase: 3, score: ev.overallScore >= 80 ? 9 : 3, maxScore: 10, summary: ev.overallScore >= 80 ? "Tested edge cases in live preview; avoided bloat." : "Develop bloated: accepted AI hallucinations without inspection." },
-      { name: "Demonstrate" as const, phase: 4, score: ev.overallScore >= 80 ? 9 : 2, maxScore: 10, summary: ev.overallScore >= 80 ? "Documented verified limits and trade-offs." : "Demonstrate unclear: fake completeness with broken edge cases." },
-    ],
-    takeaway: ev.overallScore >= 80
-      ? "Evaluated across end-to-end product development lifecycle with zero-trust verification."
-      : "A polished app can still be the wrong app. Skips Define/Design, trusts AI assumptions, creates fake completeness.",
-  };
+  const dynamicCognitive = buildCognitiveSuites({
+    sessionId: ev.sessionId,
+    challengeTitle: ev.challenge.title,
+    overallScore: ev.overallScore,
+    turns: ev.turns,
+  });
 
-
-  const suiteB = ev.suiteB ?? {
-    title: "AI Prompt & Process Usage Rubric",
-    score: ev.overallScore >= 80 ? 24 : 6,
-    maxScore: 25,
-    averageScore: ev.overallScore >= 80 ? 4.8 : 1.2,
-    criteria: [
-      {
-        criterion: "scope_boundary" as const,
-        label: "1. Scope Boundary",
-        score: ev.overallScore >= 80 ? 5 : 1,
-        evidenceQuotes: ev.overallScore >= 80 ? ["Please answer these and propose the rules in plain words first. No code yet."] : ["build a dashboard to review the survey summaries"],
-        confidence: 0.95,
-        rationale: "Evaluated candidate's ability to maintain tight scope.",
-      },
-      {
-        criterion: "decomposition" as const,
-        label: "2. Decomposition",
-        score: ev.overallScore >= 80 ? 5 : 1,
-        evidenceQuotes: ev.overallScore >= 80 ? ["Now write src/lib/gate.js only, pure functions with no React"] : ["build a dashboard in one prompt"],
-        confidence: 0.92,
-        rationale: "Evaluated atomic phasing of implementation tasks.",
-      },
-      {
-        criterion: "prompt_quality" as const,
-        label: "3. Prompt Quality",
-        score: ev.overallScore >= 80 ? 5 : 1,
-        evidenceQuotes: ev.overallScore >= 80 ? ["do we count respondents (people) or comments?"] : ["make it look nicer and then i am done"],
-        confidence: 0.94,
-        rationale: "Evaluated context density and constraint specificity.",
-      },
-      {
-        criterion: "verification" as const,
-        label: "4. Verification (Zero Trust)",
-        score: ev.overallScore >= 80 ? 5 : 1,
-        evidenceQuotes: ev.overallScore >= 80 ? ["peopleIn() filters with r.comment.trim(), so it counts only respondents who wrote a comment."] : ["great thanks."],
-        confidence: 0.96,
-        rationale: "Evaluated scrutiny of AI code and detection of planted flaws.",
-      },
-      {
-        criterion: "stack_decision" as const,
-        label: "5. Stack Decision",
-        score: ev.overallScore >= 80 ? 4 : 1,
-        evidenceQuotes: ev.overallScore >= 80 ? ["pure functions with no React... auditable rule"] : ["can you add the minimum group size thing"],
-        confidence: 0.88,
-        rationale: "Evaluated comparison of technical approaches and conscious trade-offs.",
-      },
-    ],
-    flags: {
-      flaw_caught: ev.overallScore >= 80,
-      privacy_breach: false,
-      scope_creep_resisted: ev.overallScore >= 80,
-      injection_attempt: false,
-      out_of_scope: false,
-    },
-    strengths: ev.strengths,
-    nextSteps: ev.nextSteps ?? [
-      "Practice Zero-Trust AI prompting: inspect generated code before accepting.",
-      "Decompose projects into discrete stages rather than single-prompt builds.",
-      "Explicitly define in-scope vs out-of-scope boundaries before writing code.",
-    ],
-  };
+  const suiteA = ev.suiteA ?? dynamicCognitive.suiteA;
+  const suiteB = ev.suiteB ?? dynamicCognitive.suiteB;
 
   const groups = REQUIREMENT_CATEGORIES.map((category) => ({
     category,
@@ -370,8 +310,8 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
                       className="group text-left bg-surface-container-low hover:bg-surface-container p-3 rounded border border-border w-full transition-all flex items-center justify-between gap-3 cursor-pointer"
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <span className="font-mono text-[10px] bg-primary text-white px-1.5 py-0.5 rounded font-bold shrink-0">
-                          {c.criterion.toUpperCase().slice(0, 8)}
+                        <span className="font-mono text-[10px] bg-primary text-white px-2 py-0.5 rounded font-bold shrink-0">
+                          {CRITERION_LABELS[c.criterion] ?? c.criterion.toUpperCase()}
                         </span>
                         <span className="font-mono text-xs font-semibold text-primary truncate">
                           &ldquo;{q.slice(0, 75)}…&rdquo;

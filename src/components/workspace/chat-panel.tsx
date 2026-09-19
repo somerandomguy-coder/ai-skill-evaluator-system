@@ -236,9 +236,11 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault();
-                  void submit();
+                  if (canSend) {
+                    void submit();
+                  }
                 }
               }}
               placeholder="Message AI assistant... (e.g. Ask for boundary conditions, edge cases, or test suite)"
@@ -248,7 +250,12 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
               rows={3}
             />
             <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5">
-              <span className="font-mono text-[10px] text-muted-foreground">⌘ + Enter</span>
+              <span className="font-mono text-[10px] text-muted-foreground hidden sm:inline">
+                Enter ↵ to send · Shift+Enter newline
+              </span>
+              <span className="font-mono text-[10px] text-muted-foreground sm:hidden">
+                Enter ↵
+              </span>
               <Button
                 type="submit"
                 size="sm"

@@ -10,6 +10,7 @@ import { SEED_JD_SOURCE_URL } from "../fixtures/seed-jd";
 import { parseChallengeMeta, parseEscalationReasons, parseFileList, parseFileMap, parseRequirementResults } from "../json";
 import { effectiveScore } from "../services/effective-score";
 import { reconstructFiles, startSession } from "../services/sessions";
+import { buildCognitiveSuites } from "../services/cognitive-rubric";
 import { mockDataSource } from "./mock";
 import { sortRequirements, toRequirementView, toTurnView } from "./mappers";
 import type {
@@ -93,6 +94,14 @@ function toEvaluationView(e: EvaluationRow): EvaluationView {
     reviewedAt: m.reviewedAt.toISOString(),
   }));
   const end = session.submittedAt ?? e.createdAt;
+  const turns = session.turns.map(toTurnView);
+  const cognitive = buildCognitiveSuites({
+    sessionId: session.id,
+    challengeTitle: challenge.title,
+    overallScore: e.overallScore,
+    turns,
+  });
+
   return {
     id: e.id,
     sessionId: session.id,
@@ -114,9 +123,13 @@ function toEvaluationView(e: EvaluationRow): EvaluationView {
     contestReason: e.contestReason,
     escalation: parseEscalationReasons(e.escalationDetail),
     reviews,
-    turns: session.turns.map(toTurnView),
+    turns,
     files: parseFileList(session.snapshot?.tree),
     durationMinutes: Math.max(0, (end.getTime() - session.startedAt.getTime()) / 60_000),
+    suiteA: cognitive.suiteA,
+    suiteB: cognitive.suiteB,
+    ztAiedAudit: cognitive.ztAiedAudit,
+    verificationReceipt: cognitive.verificationReceipt,
   };
 }
 
