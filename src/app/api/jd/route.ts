@@ -6,9 +6,15 @@ import { runChallengePipeline } from "@/lib/services/challenge-pipeline";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
-const Body = z.object({ rawJd: z.string().max(25_000).optional(), sourceUrl: z.string().max(2_000).optional() }).refine((b) => !!b.rawJd?.trim() || !!b.sourceUrl?.trim(), {
-  message: "needs a job description or a link",
-});
+const Body = z
+  .object({
+    rawJd: z.string().max(25_000).optional(),
+    sourceUrl: z.string().max(2_000).optional(),
+    fast: z.boolean().optional(),
+  })
+  .refine((b) => !!b.rawJd?.trim() || !!b.sourceUrl?.trim(), {
+    message: "needs a job description or a link",
+  });
 
 /**
  * POST { rawJd? , sourceUrl? } -> NDJSON stream of pipeline progress events,

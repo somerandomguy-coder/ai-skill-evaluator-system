@@ -78,6 +78,7 @@ export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolea
   const [text, setText] = useState(PRESETS[0].text);
   const [activePreset, setActivePreset] = useState<string | null>("resume-screener");
   const [run, setRun] = useState<Run>({ status: "idle" });
+  const [fastMode, setFastMode] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const steps = useRef<ProgressStep[]>([]);
 
@@ -118,7 +119,7 @@ export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolea
     setRun({ status: "running", steps: steps.current });
     let done: Extract<PipelineEvent, { type: "done" }> | null = null;
     try {
-      await runPipeline({ rawJd: text }, (ev) => {
+      await runPipeline({ rawJd: text, fast: fastMode }, (ev) => {
         if (ev.type === "step") {
           steps.current = applyEvent(steps.current, ev);
           setRun({ status: "running", steps: steps.current });
@@ -245,9 +246,23 @@ export function JdIntake({ signedIn, isCandidate, demoMode }: { signedIn: boolea
               )}
 
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono order-2 sm:order-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                  <span>{valid ? "Ready to generate customized challenge & rubric" : `Please enter at least ${MIN_CHARS} characters`}</span>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono order-2 sm:order-1">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    <span>{valid ? "Ready to generate customized challenge & rubric" : `Please enter at least ${MIN_CHARS} characters`}</span>
+                  </div>
+                  <label className="flex items-center gap-1.5 cursor-pointer select-none text-xs font-medium text-muted-foreground hover:text-foreground bg-surface-container-low px-2 py-1 rounded border border-border">
+                    <input
+                      type="checkbox"
+                      checked={fastMode}
+                      onChange={(e) => setFastMode(e.target.checked)}
+                      className="size-3.5 rounded border-border accent-primary cursor-pointer"
+                    />
+                    <span className="flex items-center gap-1 font-sans">
+                      <Sparkles className="size-3 text-amber-500" />
+                      <span>Fast Simulation (5s)</span>
+                    </span>
+                  </label>
                 </div>
 
                 <Button

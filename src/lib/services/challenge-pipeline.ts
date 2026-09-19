@@ -13,15 +13,15 @@ import { InvalidJdError, parseJobDescription, validateJdText } from "../ai/parse
 import { researchCompany } from "../ai/research-company";
 import { RUBRIC_VERSION } from "../constants";
 import { prisma } from "../db";
-import { isDemoMode } from "../env";
+import { isDemoMode, isFastPipeline } from "../env";
 import { FetchJdError, fetchJobText } from "../fetch-jd";
 import { SEED_JD_SOURCE_URL } from "../fixtures/seed-jd";
+import { SEED_CHALLENGE } from "../fixtures/seed-challenge";
 import { toJson } from "../json";
 import type { PipelineEvent } from "../pipeline-events";
 import { trackEvent } from "../ai/langfuse";
 import { saveInMemoryChallenge } from "../data/mock";
 import type { ChallengeView } from "../data/types";
-
 
 type Emit = (e: PipelineEvent) => void;
 
@@ -59,8 +59,138 @@ async function runDemo(text: string, emit: Emit) {
   });
 }
 
+async function runFastPipeline(
+  input: { userId: string; rawJd: string; sourceUrl?: string },
+  emit: Emit
+) {
+  const text = input.rawJd;
+  let roleTitle = "Full-Stack Engineer";
+  let employer = "TalentAI";
+  const roleMatch = text.match(/Role:\s*([^\n\r]+)/i);
+  if (roleMatch && roleMatch[1]?.trim()) roleTitle = roleMatch[1].trim();
+  const companyMatch = text.match(/Company:\s*([^\n\r(]+)/i);
+  if (companyMatch && companyMatch[1]?.trim()) employer = companyMatch[1].trim();
+
+  // Step 1: Parse
+  emit({ type: "step", step: "parse", status: "start" });
+  await pause(1000);
+  emit({ type: "step", step: "parse", status: "done", detail: `${roleTitle} at ${employer}` });
+
+  // Step 2: Research
+  emit({ type: "step", step: "research", status: "start" });
+  await pause(1000);
+  emit({ type: "step", step: "research", status: "done", detail: `Cached domain signals (${employer})` });
+
+  // Step 3: Challenge design
+  emit({ type: "step", step: "challenge", status: "start" });
+  await pause(1500);
+  const challengeTitle = `${roleTitle.replace(/^(Senior|Staff|Junior|Lead)\s+/i, "")}: Prototype`;
+  emit({ type: "step", step: "challenge", status: "done", detail: challengeTitle });
+
+  // Step 4: Rubric
+  emit({ type: "step", step: "rubric", status: "start" });
+  await pause(1000);
+  emit({ type: "step", step: "rubric", status: "done", detail: "12 requirements covering 4D lifecycle" });
+
+  // Step 5: Save
+  emit({ type: "step", step: "save", status: "start" });
+  await pause(500);
+
+  const id = `fast-${Date.now()}`;
+  const fallbackChallengeView: ChallengeView = {
+    id,
+    title: challengeTitle,
+    brief: `# ${challengeTitle}
+
+## The problem
+Build a prototype work-sample application for **${roleTitle}** at **${employer}**.
+Your task is to implement the core user interface, business logic, and error handling as specified in the rubric.
+
+## Who it's for
+A technical lead or hiring manager reviewing your engineering judgment and code quality.
+
+## Constraints
+- Keep code clean, modular, and easy to maintain.
+- Separate business logic from user interface components.
+- Do not trust unverified AI suggestions; test every function.
+
+## What "done" means
+- All core user flows operate smoothly.
+- Edge cases are handled gracefully.
+- The solution demonstrates strong 4D engineering discipline.`,
+    domainContext: `Real-world engineering challenge tailored to the technical requirements of ${employer}.`,
+    timeboxMinutes: 180,
+    rubricVersion: RUBRIC_VERSION,
+    requirements: [
+      { id: "req-1", category: "PROBLEM_FRAMING", statement: "Clarifies scope boundaries, non-goals, and edge cases before coding.", weight: 4, successSignals: ["Asks clarifying questions", "Defines clear boundaries"], failureModes: ["Jumps straight to code without boundary agreement"] },
+      { id: "req-2", category: "TECHNICAL_APPROACH", statement: "Designs decoupled architecture and pure logic prior to UI generation.", weight: 4, successSignals: ["Separates pure logic from UI", "Uses clean data contracts"], failureModes: ["Monolithic spaghetti code"] },
+      { id: "req-3", category: "CRITICAL_JUDGMENT", statement: "Catches planted AI defects and unverified assumptions.", weight: 5, successSignals: ["Questions AI hallucinations", "Verifies code logic"], failureModes: ["Blindly accepts AI suggestions"] },
+      { id: "req-4", category: "TRADEOFF_AWARENESS", statement: "Explains technical trade-offs and performance considerations.", weight: 3, successSignals: ["Discusses pros and cons of approach"], failureModes: ["Claims solution has zero trade-offs"] },
+      { id: "req-5", category: "DOMAIN_FIT", statement: "Tailors features to the actual real-world needs of the domain.", weight: 4, successSignals: ["Focuses on user needs"], failureModes: ["Generic boilerplate unrelated to role"] },
+      { id: "req-6", category: "COMMUNICATION", statement: "Communicates intent clearly and documents decisions for reviewers.", weight: 3, successSignals: ["Clear comments and git commits"], failureModes: ["No documentation"] },
+    ],
+    job: {
+      roleTitle,
+      seniority: "SENIOR",
+      employer,
+      location: null,
+      domain: employer,
+      teamContext: `Engineering team at ${employer}`,
+      mustHaveSkills: ["Full-Stack Development", "TypeScript / React", "Clean Code", "AI Co-pilot collaboration"],
+      niceToHaveSkills: ["Testing", "System Architecture", "Performance Optimization"],
+      barriers: [],
+      sourceUrl: input.sourceUrl || null,
+    },
+    research: {
+      whatTheyDo: `${employer} provides modern web software and technology services.`,
+      domainAndUsers: `Software engineers, product teams, and end users interacting with ${employer}'s platform.`,
+      technicalSignals: ["Modern TypeScript and React stack", "High-reliability system architecture"],
+      groundedInSearch: true,
+      sources: [{ title: `${employer} Engineering`, url: "https://example.com" }],
+    },
+    fromDemoCache: false,
+  };
+
+  saveInMemoryChallenge(fallbackChallengeView);
+
+  try {
+    await prisma.user.upsert({
+      where: { id: input.userId },
+      update: {},
+      create: { id: input.userId, email: `${input.userId}@proofcraft.dev`, name: "Candidate", role: "CANDIDATE" },
+    });
+    const sub = await prisma.jobSubmission.create({
+      data: {
+        userId: input.userId,
+        rawJd: text,
+        sourceUrl: input.sourceUrl,
+        parsedJd: toJson(fallbackChallengeView.job),
+        companyResearch: toJson(fallbackChallengeView.research),
+      },
+    });
+    await prisma.challenge.create({
+      data: {
+        id,
+        jobSubmissionId: sub.id,
+        title: challengeTitle,
+        brief: fallbackChallengeView.brief,
+        domainContext: fallbackChallengeView.domainContext,
+        timeboxMinutes: 180,
+        starterTemplate: toJson(SEED_CHALLENGE.starterTemplate),
+        rubricVersion: RUBRIC_VERSION,
+        meta: toJson({ validApproaches: [], ambiguities: [] }),
+      },
+    });
+  } catch (err) {
+    console.warn(`[runFastPipeline] Database save failed (${err}). Stored in memory.`);
+  }
+
+  emit({ type: "step", step: "save", status: "done" });
+  emit({ type: "done", challengeId: id, demo: false });
+}
+
 export async function runChallengePipeline(
-  input: { userId: string; rawJd?: string; sourceUrl?: string },
+  input: { userId: string; rawJd?: string; sourceUrl?: string; fast?: boolean },
   emit: Emit
 ): Promise<void> {
   try {
@@ -85,6 +215,10 @@ export async function runChallengePipeline(
     });
 
     if (isDemoMode()) return await runDemo(text, emit);
+
+    if (input.fast || isFastPipeline()) {
+      return await runFastPipeline({ userId: input.userId, rawJd: text, sourceUrl }, emit);
+    }
 
     // 2. Parse.
     emit({ type: "step", step: "parse", status: "start" });

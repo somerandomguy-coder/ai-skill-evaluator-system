@@ -28,7 +28,10 @@ const post = (url: string, body?: unknown) =>
   fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body ?? {}) });
 
 /** Build a challenge from a job description; streams progress events as NDJSON. */
-export async function runPipeline(input: { rawJd?: string; sourceUrl?: string }, onEvent: (e: PipelineEvent) => void): Promise<void> {
+export async function runPipeline(
+  input: { rawJd?: string; sourceUrl?: string; fast?: boolean },
+  onEvent: (e: PipelineEvent) => void
+): Promise<void> {
   const res = await post("/api/jd", input);
   if (!res.ok || !res.body) await readJson(res); // throws with the server's message
   const reader = res.body!.pipeThrough(new TextDecoderStream()).getReader();

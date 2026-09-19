@@ -8,6 +8,11 @@ export function isDemoMode(): boolean {
   return v === "true" || v === "1" || v === "yes";
 }
 
+export function isFastPipeline(): boolean {
+  const v = process.env.FAST_PIPELINE?.toLowerCase() || process.env.NEXT_PUBLIC_FAST_PIPELINE?.toLowerCase();
+  return v === "true" || v === "1" || v === "yes";
+}
+
 export type AiStage = "parse" | "research" | "challenge" | "assistant" | "evaluator";
 
 const DEFAULT_MODEL = "gpt-5.5";
