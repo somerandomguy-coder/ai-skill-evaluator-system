@@ -48,7 +48,7 @@ describe("shouldEscalate", () => {
     const d = shouldEscalate(i);
     expect(d.escalate).toBe(true);
     expect(d.reasons[0]).toMatchObject({ code: "LOW_CONFIDENCE", requirementIds: ["b"] });
-    expect(d.summary).toContain("CRITICAL_JUDGMENT");
+    expect(d.summary).toContain("Critical judgment");
   });
 
   it("rule 1: confidence exactly at the threshold is not low", () => {
@@ -62,7 +62,16 @@ describe("shouldEscalate", () => {
     i.evaluation.perRequirement[2] = res("c", null, 0);
     const d = shouldEscalate(i);
     expect(d.reasons.find((r) => r.code === "NO_EVIDENCE")).toMatchObject({ requirementIds: ["c"] });
-    expect(d.summary).toContain("TRADEOFF_AWARENESS");
+    expect(d.summary).toContain("Trade-off awareness");
+  });
+
+  it("names categories readably and only once, even when several requirements share one", () => {
+    const i = clean();
+    i.requirements = [...requirements, { id: "d", category: "TRADEOFF_AWARENESS" as const }];
+    i.evaluation.perRequirement = [res("a", 5, 0.9), res("b", 4, 0.9), res("c", null, 0), res("d", null, 0)];
+    const d = shouldEscalate(i);
+    expect(d.summary).toContain("2 requirements could not be scored for lack of evidence: Trade-off awareness.");
+    expect(d.summary).not.toMatch(/[A-Z]+_[A-Z]+/);
   });
 
   it("rule 3: escalates a score within the borderline band of the pass boundary, both sides, inclusive", () => {

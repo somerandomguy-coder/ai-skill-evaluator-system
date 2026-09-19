@@ -18,7 +18,7 @@ import {
   PASS_BOUNDARY,
   SESSION_LENGTH,
 } from "../constants";
-import type { EvaluationResult, RequirementCategory } from "./schemas";
+import { CATEGORY_META, type EvaluationResult, type RequirementCategory } from "./schemas";
 import type { IntegrityFlag } from "./scoring";
 
 export type EscalationCode =
@@ -60,8 +60,10 @@ const pct = (n: number) => `${Math.round(n)}%`;
 
 export function shouldEscalate(input: EscalationInput): EscalationDecision {
   const { evaluation, session } = input;
-  const label = new Map(input.requirements.map((r) => [r.id, r.category]));
-  const named = (ids: string[]) => ids.map((id) => label.get(id) ?? id).join(", ");
+  const category = new Map(input.requirements.map((r) => [r.id, r.category]));
+  // Readable, de-duplicated labels ("Trade-off awareness"), never raw ids or enum codes.
+  const named = (ids: string[]) =>
+    Array.from(new Set(ids.map((id) => { const c = category.get(id); return c ? CATEGORY_META[c].label : id; }))).join(", ");
   const reasons: EscalationReason[] = [];
 
   if (input.noAiEvaluation) {
