@@ -69,8 +69,8 @@ export function JobCard({ challenge }: { challenge: ChallengeView }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <ul className="space-y-1.5 text-sm text-foreground/80">
-          {shown.map((s) => (
-            <li key={s} className="leading-snug">
+          {shown.map((s, idx) => (
+            <li key={`${s}-${idx}`} className="leading-snug">
               {s}
             </li>
           ))}
@@ -109,8 +109,8 @@ export function NotAssessedCard({ challenge }: { challenge: ChallengeView }) {
             </div>
             <p className="text-xs text-muted-foreground">These filter people rather than measure ability, so they are kept out of the rubric.</p>
             <ul className="space-y-2.5">
-              {barriers.map((b) => (
-                <li key={b.text} className="rounded-lg bg-muted/60 p-2.5">
+              {barriers.map((b, idx) => (
+                <li key={`${b.text}-${idx}`} className="rounded-lg bg-muted/60 p-2.5">
                   <p className="text-foreground/80 line-clamp-2">&ldquo;{b.text}&rdquo;</p>
                   <p className="mt-1 text-xs text-muted-foreground">{b.reason}</p>
                 </li>

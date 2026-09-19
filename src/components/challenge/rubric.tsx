@@ -62,8 +62,8 @@ export function SignalLists({ requirement, className }: { requirement: Pick<Requ
       <div>
         <div className="mb-1.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-emerald-800">What we look for (Success Signals)</div>
         <ul className="space-y-1.5">
-          {requirement.successSignals.map((s) => (
-            <li key={s} className="flex gap-2 text-foreground/85">
+          {requirement.successSignals.map((s, idx) => (
+            <li key={`${s}-${idx}`} className="flex gap-2 text-foreground/85">
               <Check className="mt-0.5 size-3.5 shrink-0 text-emerald-600" aria-hidden />
               <span>{s}</span>
             </li>
@@ -73,8 +73,8 @@ export function SignalLists({ requirement, className }: { requirement: Pick<Requ
       <div>
         <div className="mb-1.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-rose-800">What would count against (Failure Modes)</div>
         <ul className="space-y-1.5">
-          {requirement.failureModes.map((s) => (
-            <li key={s} className="flex gap-2 text-foreground/85">
+          {requirement.failureModes.map((s, idx) => (
+            <li key={`${s}-${idx}`} className="flex gap-2 text-foreground/85">
               <X className="mt-0.5 size-3.5 shrink-0 text-rose-600" aria-hidden />
               <span>{s}</span>
             </li>
