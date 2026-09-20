@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { contestScore } from "@/lib/client/api";
 
-export function CopyLinkButton({ url, label = "Copy link" }: { url?: string; label?: string }) {
+export function CopyLinkButton({ url, label = "Copy link", variant = "outline" }: { url?: string; label?: string; variant?: "outline" | "signal" }) {
   const [copied, setCopied] = useState(false);
   async function copy() {
     const target = url ?? window.location.href;
@@ -24,23 +24,23 @@ export function CopyLinkButton({ url, label = "Copy link" }: { url?: string; lab
     }
   }
   return (
-    <Button variant="outline" size="lg" onClick={copy} className="gap-1.5 rounded-full px-3.5 text-[13px]" aria-live="polite">
+    <Button variant={variant} size="lg" onClick={copy} className="gap-1.5 rounded-full px-3.5 text-[13px]" aria-live="polite">
       {copied ? <Check className="pop-in size-3.5 text-ok" aria-hidden /> : <Link2 className="size-3.5" aria-hidden />}
       <span>{copied ? "Copied" : label}</span>
     </Button>
   );
 }
 
-export function PrintExecutivePdfButton() {
+export function PrintExecutivePdfButton({ label = "Print", variant = "outline" }: { label?: string; variant?: "outline" | "signal" } = {}) {
   return (
     <Button
-      variant="outline"
+      variant={variant}
       size="lg"
       onClick={() => window.print()}
       className="no-print gap-1.5 rounded-full px-3.5 text-[13px]"
     >
       <Printer className="size-3.5" aria-hidden />
-      <span>Print</span>
+      <span>{label}</span>
     </Button>
   );
 }

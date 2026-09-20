@@ -16,7 +16,7 @@ export default async function EmployerReportPage({
 
   const isStrong = ev.overallScore >= 80;
   const candidateName =
-    ev.candidateName ?? (isStrong ? "Alex Vance" : "Candidate #" + id.slice(0, 8));
+    ev.candidateName ?? (isStrong ? "Alex Chen" : "Candidate #" + id.slice(0, 8));
 
   return (
     <main className="w-full min-h-screen bg-surface flex flex-col justify-center">

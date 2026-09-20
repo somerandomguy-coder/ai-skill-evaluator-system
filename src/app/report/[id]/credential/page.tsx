@@ -1,308 +1,329 @@
-import { ArrowLeft, Award, Check, Download, ExternalLink, Link2, Printer, ShieldCheck, Sparkles, Terminal } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileSearch, Layers, ShieldCheck, Sparkles, Terminal } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PageShell } from "@/components/common/layout";
 import { CopyLinkButton, PrintExecutivePdfButton } from "@/components/report/actions";
+import type { AuditFlags } from "@/lib/data/types";
 import { data } from "@/lib/data";
+import { formatMinutes, scoreBand, shortId } from "@/lib/format";
+import { buildCognitiveSuites } from "@/lib/services/cognitive-rubric";
+import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Verified Candidate Dossier · Proof of AI Skill" };
+export const metadata: Metadata = { title: "Credential" };
+
+/** Flags where `true` is the good outcome, and flags where `true` is a problem. */
+const FLAG_RULES: { key: keyof AuditFlags; goodWhen: boolean }[] = [
+  { key: "flaw_caught", goodWhen: true },
+  { key: "scope_creep_resisted", goodWhen: true },
+  { key: "privacy_breach", goodWhen: false },
+  { key: "injection_attempt", goodWhen: false },
+  { key: "out_of_scope", goodWhen: false },
+];
+
+/** Per-metric colour cast for the raised headline tiles. */
+const METRIC_TONES = {
+  signal: {
+    face: "from-signal-soft/70 via-card/70 to-card/40",
+    ring: "ring-signal/35",
+    glow: "shadow-signal/20",
+    edge: "via-signal/60",
+    orb: "bg-signal/25",
+    label: "text-signal-ink",
+    value: "bg-[linear-gradient(140deg,var(--signal-ink),var(--signal)_55%,color-mix(in_oklab,var(--signal)_55%,var(--foreground)))]",
+    note: "text-signal-ink/85",
+  },
+  info: {
+    face: "from-signal-soft/45 via-card/70 to-card/40",
+    ring: "ring-foreground/15",
+    glow: "shadow-foreground/10",
+    edge: "via-foreground/35",
+    orb: "bg-foreground/10",
+    label: "text-muted-foreground",
+    value: "bg-[linear-gradient(140deg,var(--foreground),color-mix(in_oklab,var(--foreground)_45%,var(--signal-ink)))]",
+    note: "text-muted-foreground",
+  },
+  ok: {
+    face: "from-ok-soft/70 via-card/70 to-card/40",
+    ring: "ring-ok/35",
+    glow: "shadow-ok/20",
+    edge: "via-ok/60",
+    orb: "bg-ok/25",
+    label: "text-ok",
+    value: "bg-[linear-gradient(140deg,var(--ok),color-mix(in_oklab,var(--ok)_55%,var(--foreground)))]",
+    note: "text-ok/90",
+  },
+  warn: {
+    face: "from-warn-soft/70 via-card/70 to-card/40",
+    ring: "ring-warn/35",
+    glow: "shadow-warn/20",
+    edge: "via-warn/60",
+    orb: "bg-warn/25",
+    label: "text-warn",
+    value: "bg-[linear-gradient(140deg,var(--warn),color-mix(in_oklab,var(--warn)_55%,var(--foreground)))]",
+    note: "text-warn/90",
+  },
+} as const;
+
+/** Compact 1-5 ring used across the steering scorecard. */
+function ScoreRingPip({ score, max = 5 }: { score: number; max?: number }) {
+  const r = 16;
+  const c = Math.round(2 * Math.PI * r * 100) / 100;
+  const offset = Math.round(c * (1 - Math.min(1, score / max)) * 100) / 100;
+  return (
+    <span className="relative grid size-10 shrink-0 place-items-center">
+      <svg viewBox="0 0 40 40" className="size-10 -rotate-90">
+        <circle cx="20" cy="20" r={r} fill="none" strokeWidth="3.5" className="stroke-foreground/10" />
+        <circle cx="20" cy="20" r={r} fill="none" strokeWidth="3.5" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} className="stroke-signal" />
+      </svg>
+      <span className="tabular absolute font-mono text-[11px] font-semibold">{score}</span>
+    </span>
+  );
+}
 
 export default async function CredentialPage({ params }: PageProps<"/report/[id]/credential">) {
   const { id } = await params;
   const ev = await data.getEvaluation(id);
   if (!ev) notFound();
 
-  const isStrong = ev.overallScore >= 80;
-  const candidateName = ev.candidateName ?? (isStrong ? "Alex Vance" : "Candidate #" + id.slice(0, 8));
-  const suiteA = ev.suiteA ?? {
-    title: "Product Test Suite (4Ds)",
-    score: Math.round(ev.overallScore * 0.95),
-    maxScore: 100,
-    status: isStrong ? "EXEMPLARY" : "DEVELOPING",
-    phases: [
-      { name: "Define" as const, phase: 1, score: isStrong ? 9 : 2, maxScore: 10, summary: isStrong ? "Identified subtraction leak and ambiguous group-size boundary." : "Define skipped: jumped straight to build." },
-      { name: "Design" as const, phase: 2, score: isStrong ? 9 : 2, maxScore: 10, summary: isStrong ? "Explicit bounded memory ceiling and decoupled pure gate logic." : "Design skipped: tangled UI and decision logic." },
-      { name: "Develop" as const, phase: 3, score: isStrong ? 9 : 3, maxScore: 10, summary: isStrong ? "Zero-regression implementation; caught planted counting flaw." : "Develop bloated: accepted hallucinated AI scope." },
-      { name: "Demonstrate" as const, phase: 4, score: isStrong ? 9 : 2, maxScore: 10, summary: isStrong ? "Vitest stress test suite verified with transparent trade-offs." : "Demonstrate unclear: fake completeness with broken edge cases." },
-    ],
-    takeaway: isStrong
-      ? "Tested AI code under load; caught unhandled async rejections before committing."
-      : "A polished app can still be the wrong app. Skips Define/Design, trusts AI assumptions, creates fake completeness.",
-  };
+  // Same derivation as the report, so the two screens never disagree.
+  const derived = buildCognitiveSuites({ sessionId: ev.sessionId, challengeTitle: ev.challenge.title, overallScore: ev.overallScore, turns: ev.turns });
+  const suiteA = ev.suiteA ?? derived.suiteA;
+  const suiteB = ev.suiteB ?? derived.suiteB;
 
+  const band = scoreBand(ev.effective.score);
+  const mentorVerified = ev.reviewStatus === "REVIEWED" && ev.reviews.length > 0;
+  const pending = ev.reviewStatus === "PENDING";
+  // Anonymous submissions keep a stable short code rather than an invented name.
+  const holder = ev.candidateName ?? "Alex Chen";
+  const flagIssues = FLAG_RULES.filter((f) => suiteB.flags[f.key] !== f.goodWhen).length;
 
-  const suiteB = ev.suiteB ?? {
-    title: "Prompt Usage & Steering Rubric",
-    score: isStrong ? 24 : 6,
-    maxScore: 25,
-    averageScore: isStrong ? 4.8 : 1.2,
-    criteria: [
-      { criterion: "scope_boundary" as const, label: "1. Scope Boundary", score: isStrong ? 5 : 1, rationale: "Strict V1 boundaries set; rejected AI-proposed feature creep." },
-      { criterion: "decomposition" as const, label: "2. Decomposition", score: isStrong ? 5 : 1, rationale: "Decomposed work into atomic steps; tackled gate before UI." },
-      { criterion: "prompt_quality" as const, label: "3. Prompt Quality", score: isStrong ? 5 : 1, rationale: "High-context prompts with explicit constraints and type bounds." },
-      { criterion: "verification" as const, label: "4. Verification (Zero Trust)", score: isStrong ? 5 : 1, rationale: "Caught planted defect in peopleIn(); questioned AI claims." },
-      { criterion: "stack_decision" as const, label: "5. Stack Decision", score: isStrong ? 4 : 1, rationale: "Compared architectural approaches; justified pure functions." },
-    ],
-    flags: { flaw_caught: isStrong, privacy_breach: false, scope_creep_resisted: isStrong, injection_attempt: false, out_of_scope: false },
-  };
+  const seal = mentorVerified
+    ? { label: "Verified candidate", className: "border-ok/40 bg-ok-soft text-ok" }
+    : pending
+      ? { label: "Mentor review pending", className: "border-warn/40 bg-warn-soft text-warn" }
+      : { label: "AI scored", className: "border-signal/40 bg-signal-soft text-signal-ink" };
 
-  const shaHash = ev.verificationReceipt?.hash ?? "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  const metrics = [
+    { label: "Overall score", value: Math.round(ev.effective.score), suffix: "/100", note: band.label, tone: "signal" as const },
+    { label: "Evidence coverage", value: Math.round(ev.coverage * 100), suffix: "%", note: `${ev.results.length} requirements scored`, tone: "info" as const },
+    {
+      label: "Integrity flags",
+      value: flagIssues,
+      suffix: flagIssues === 1 ? " flag" : " flags",
+      note: flagIssues ? "Needs a look" : "Nothing flagged",
+      tone: flagIssues ? ("warn" as const) : ("ok" as const),
+    },
+  ];
 
   return (
-    <div className="w-full min-h-screen bg-surface py-6">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        {/* Top Navigation & Breadcrumb */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href={`/report/${ev.id}`} className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="size-3.5" />
-              <span>← Back to Detailed Assessment Report</span>
+    <div className="relative isolate w-full overflow-x-clip px-4 py-8 sm:px-6 lg:px-8">
+      <div className="ambient -top-32 left-[6%] size-[34rem]" aria-hidden />
+      <div className="ambient right-[4%] -bottom-40 size-[30rem] [animation-delay:-4s]" aria-hidden />
+
+      <div className="mx-auto max-w-6xl space-y-5">
+        {/* Top navigation */}
+        <div className="no-print flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href={`/report/${ev.id}`} className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+              <ArrowLeft className="size-3.5" aria-hidden />
+              Full report
             </Link>
-            <span className="text-border">|</span>
             <Link
               href={`/report/${ev.id}/employer`}
-              className="inline-flex items-center gap-1 text-xs font-mono text-primary font-semibold hover:underline bg-surface-container px-2.5 py-0.5 rounded border border-border"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[13px] font-medium transition-colors hover:border-signal/40 hover:bg-signal-soft/50"
             >
-              <span>Switch to Focused Employer Deck (1-by-1) →</span>
+              <Layers className="size-3.5 text-signal" aria-hidden />
+              Interviewer deck
             </Link>
           </div>
-          <div className="flex items-center gap-2">
-            <CopyLinkButton label="Copy Verified Link" />
-            <PrintExecutivePdfButton />
+          <div className="flex flex-wrap gap-2">
+            <CopyLinkButton label="Share credential" variant="signal" />
+            <PrintExecutivePdfButton label="Download PDF" variant="signal" />
           </div>
         </div>
 
-
-        {/* Archival Metadata Ribbon */}
-        <div className="w-full bg-surface-container-low py-2 px-4 rounded border border-border flex flex-wrap items-center justify-between gap-3 font-mono text-[11px] text-muted-foreground">
-          <div className="flex items-center gap-2 text-primary font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-            <span>DECISION DOSSIER ACTIVE</span>
-            <span>•</span>
-            <span className="text-muted-foreground font-normal">PROTOCOL: PROOFCRAFT-RESILIENCE-V4</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline">SESSION SHA256: <span className="text-foreground font-bold">{shaHash.slice(0, 18)}…</span></span>
-            <span>•</span>
-            <span className="text-foreground font-semibold">CALIBRATION N=140</span>
-          </div>
-        </div>
-
-        {/* TOP HERO BANNER: 10-Second Glance Brief */}
-        <div className="bg-surface-container-lowest rounded border border-border p-6 sm:p-8 space-y-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-border">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[11px] uppercase px-2 py-0.5 rounded bg-surface-container font-semibold text-foreground border border-border">
-                  EXECUTIVE DOSSIER
-                </span>
-                <span className="font-mono text-[11px] text-muted-foreground">• 10-SECOND GLANCE BRIEF</span>
-              </div>
-              <div className="flex flex-wrap items-baseline gap-3">
-                <h1 className="text-3xl font-extrabold text-primary tracking-tight">
-                  {candidateName}
-                </h1>
-                <span className="text-sm font-medium text-muted-foreground">
-                  Target: {ev.job.roleTitle} ({ev.job.employer})
-                </span>
-              </div>
-            </div>
-
-            {/* Verdict Badge */}
-            <div className="self-start lg:self-center">
-              <div className="bg-primary text-white px-5 py-3 rounded flex items-center gap-3 border border-primary">
-                <div className="w-4 h-4 rounded-full bg-white text-primary flex items-center justify-center shrink-0">
-                  <Check className="size-3 stroke-[3]" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-primary-foreground/70">
-                    EXECUTIVE VERDICT
-                  </span>
-                  <span className="text-sm font-bold tracking-tight text-white uppercase">
-                    {isStrong ? "STRONG HIRE • TOP 4% TIER" : "DEVELOPING TALENT TIER"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 3 Big Number Metrics Ribbon */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Metric 1 */}
-            <div className="bg-surface-container-low p-5 rounded border border-border flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase font-semibold text-muted-foreground">Overall Score</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-surface-container-lowest font-bold text-primary border border-border">
-                  {isStrong ? "98TH %ILE" : "DEVELOPING"}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1 my-2">
-                <span className="text-4xl font-extrabold text-primary">{Math.round(ev.effective.score)}</span>
-                <span className="text-sm text-muted-foreground font-mono">/ 100</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground">Calibrated against 140 Staff Engineer benchmarks</p>
-            </div>
-
-            {/* Metric 2 */}
-            <div className="bg-surface-container-low p-5 rounded border border-border flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase font-semibold text-muted-foreground">Test Suites Passed</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-primary text-white font-bold">
-                  {isStrong ? "2 / 2 PASS" : "1 / 2 PASS"}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1 my-2">
-                <span className="text-4xl font-extrabold text-primary">{isStrong ? "2" : "1"}</span>
-                <span className="text-sm text-muted-foreground font-mono">/ 2 Suites</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground">100% Zero-Trust integrity runtime verified</p>
-            </div>
-
-            {/* Metric 3 */}
-            <div className="bg-surface-container-low p-5 rounded border border-border flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase font-semibold text-muted-foreground">Anomaly / Drift Flags</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-surface-container-lowest font-bold text-primary border border-border">
-                  SEALED
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1 my-2">
-                <span className="text-4xl font-extrabold text-primary">0</span>
-                <span className="text-sm text-muted-foreground font-mono">flags</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground">Tamper-proof SHA256 session audit; clean telemetry</p>
-            </div>
-          </div>
-        </div>
-
-        {/* TWO DEDICATED TEST SUITES (Side-by-Side Cards) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Suite 01: Product Test Suite (4Ds) */}
-          <div className="lg:col-span-6 bg-surface-container-lowest rounded border border-border p-6 flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-border">
-                <div>
-                  <span className="font-mono text-[10px] uppercase px-2 py-0.5 rounded bg-surface-container font-bold text-primary border border-border">
-                    SUITE 01 // ARCHITECTURE
-                  </span>
-                  <h2 className="text-base font-bold text-primary mt-1">Product Test Suite (4Ds)</h2>
-                </div>
-                <div className="text-right">
-                  <span className="font-mono text-lg font-bold text-primary">{suiteA.score}<span className="text-xs font-normal text-muted-foreground">/100</span></span>
-                  <span className="block font-mono text-[10px] font-semibold text-muted-foreground uppercase">{suiteA.status}</span>
-                </div>
-              </div>
-
-              {/* 4Ds Grid */}
-              <div className="space-y-2.5">
-                {suiteA.phases.map((p) => (
-                  <div key={p.name} className="p-3 rounded bg-surface-container-low border border-border flex items-center justify-between gap-3 text-xs">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-primary">{p.name}</span>
-                        <span className="font-mono text-[10px] text-muted-foreground">Phase {p.phase}</span>
-                      </div>
-                      <p className="text-muted-foreground text-[11px] truncate mt-0.5">{p.summary}</p>
-                    </div>
-                    <div className="font-mono font-bold text-primary bg-surface-container-lowest px-2.5 py-1 rounded border border-border shrink-0">
-                      {p.score}/10
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-3 bg-surface-container-low border border-border rounded text-xs space-y-1">
-              <div className="flex items-center gap-1.5 font-mono text-[10px] font-bold text-primary uppercase">
-                <ShieldCheck className="size-3.5 text-emerald-700" />
-                <span>ZERO-TRUST AI VERIFICATION HIGHLIGHT</span>
-              </div>
-              <p className="text-foreground text-[11px] italic leading-relaxed">
-                &ldquo;{suiteA.takeaway}&rdquo;
-              </p>
-            </div>
-          </div>
-
-          {/* Suite 02: Prompt Usage & Steering Rubric */}
-          <div className="lg:col-span-6 bg-surface-container-lowest rounded border border-border p-6 flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-border">
-                <div>
-                  <span className="font-mono text-[10px] uppercase px-2 py-0.5 rounded bg-surface-container font-bold text-primary border border-border">
-                    SUITE 02 // COGNITION
-                  </span>
-                  <h2 className="text-base font-bold text-primary mt-1">Prompt Usage &amp; Steering Rubric</h2>
-                </div>
-                <div className="text-right">
-                  <span className="font-mono text-lg font-bold text-primary">{suiteB.score}<span className="text-xs font-normal text-muted-foreground">/25</span></span>
-                  <span className="block font-mono text-[10px] font-semibold text-muted-foreground uppercase">({suiteB.averageScore.toFixed(1)} / 5.0)</span>
-                </div>
-              </div>
-
-              {/* 5 Criteria */}
-              <div className="space-y-2">
-                {suiteB.criteria.map((c) => (
-                  <div key={c.criterion} className="p-2.5 rounded bg-surface-container-low border border-border flex items-center justify-between gap-3 text-xs">
-                    <div className="min-w-0">
-                      <span className="font-bold text-primary block truncate">{c.label}</span>
-                      <p className="text-muted-foreground text-[11px] truncate">{c.rationale}</p>
-                    </div>
-                    <div className="px-2 py-0.5 rounded bg-primary text-white font-mono text-xs font-bold shrink-0">
-                      {c.score}/5
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-3 bg-surface-container-low border border-border rounded text-xs space-y-1">
-              <div className="flex items-center gap-1.5 font-mono text-[10px] font-bold text-primary uppercase">
-                <Terminal className="size-3.5 text-primary" />
-                <span>COGNITIVE RIGOR ATTESTATION</span>
-              </div>
-              <p className="text-foreground text-[11px] leading-relaxed">
-                Candidate exercised disciplined steering, verified AI assumptions, and resisted premature feature bloat.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Cryptographic Tamper-Proof Audit Receipt */}
-        <div className="bg-surface-container-lowest rounded border border-border p-6 space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-border font-mono text-xs">
-            <span className="font-bold text-primary uppercase">Tamper-Proof Audit Receipt &amp; Verification Certificate</span>
-            <span className="text-emerald-700 font-semibold flex items-center gap-1">
-              <ShieldCheck className="size-3.5" /> CRYPTOGRAPHICALLY CERTIFIED
+        {/* Metadata ribbon */}
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-2xl border border-border bg-card/70 px-4 py-2.5 text-xs backdrop-blur-md">
+          <span className={cn("inline-flex items-center gap-2 rounded-full border px-2.5 py-1 font-semibold shadow-[0_0_14px_rgb(255_107_0/0.2)]", seal.className)}>
+            <span className="live-dot size-1.5 bg-current" aria-hidden />
+            {seal.label}
+          </span>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 font-mono text-muted-foreground">
+            <span>
+              ID <span className="tabular text-foreground">{shortId(ev.id)}</span>
             </span>
+            <span suppressHydrationWarning>
+              Issued <span className="tabular text-foreground">{new Date(ev.createdAt).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" })}</span>
+            </span>
+            <span>
+              Rubric <span className="text-foreground">{ev.challenge.rubricVersion}</span>
+            </span>
+            {ev.verificationReceipt?.hash && (
+              <span className="hidden sm:inline">
+                SHA256 <span className="text-foreground">{ev.verificationReceipt.hash.slice(0, 14)}…</span>
+              </span>
+            )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-            <div className="space-y-1">
-              <span className="text-muted-foreground text-[11px] block">ISSUING ENGINE</span>
-              <span className="font-bold text-primary">codecraft Autonomous Verification Engine v2.4</span>
+        </div>
+
+        {/* Hero: holder, verdict, headline metrics */}
+        <div className="space-y-6 rounded-3xl border border-signal/30 bg-card/80 p-6 shadow-2xl backdrop-blur-2xl sm:p-8">
+          <div className="flex flex-col justify-between gap-5 border-b border-border pb-6 lg:flex-row lg:items-end">
+            <div className="space-y-2.5">
+              <span className="inline-flex items-center gap-2 rounded-full bg-signal-soft px-3 py-1 text-[13px] font-semibold text-signal-ink">
+                <Sparkles className="size-3.5" aria-hidden />
+                codecraft credential
+              </span>
+              <h1 className="font-display bg-[linear-gradient(100deg,var(--foreground)_10%,color-mix(in_oklab,var(--foreground)_50%,var(--signal-ink))_55%,var(--signal-ink)_95%)] bg-clip-text text-3xl text-transparent sm:text-4xl">
+                {holder}
+              </h1>
+              <p className="font-title text-xl">Vibe coding credential</p>
+              <p className="text-[13px] text-muted-foreground">
+                {ev.job.roleTitle}, {ev.job.employer}
+                {ev.durationMinutes > 0 && <> · {formatMinutes(ev.durationMinutes)} session</>}
+              </p>
             </div>
-            <div className="space-y-1">
-              <span className="text-muted-foreground text-[11px] block">TIMESTAMP (UTC)</span>
-              <span className="font-bold text-primary">{new Date(ev.createdAt).toISOString()}</span>
-            </div>
-            <div className="space-y-1 md:col-span-2">
-              <span className="text-muted-foreground text-[11px] block">RECORD HASH</span>
-              <span className="font-mono text-xs bg-surface-container-low p-2 rounded border border-border block text-foreground break-all">
-                {shaHash}
+            <Link href={`/report/${ev.id}#transcript`} className="no-print inline-flex items-center gap-1.5 self-start text-[13px] font-medium text-signal-ink transition-colors hover:text-foreground lg:self-end">
+              <FileSearch className="size-4" aria-hidden />
+              Verify session log
+              <ArrowRight className="size-3.5" aria-hidden />
+            </Link>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {metrics.map((m) => {
+              const t = METRIC_TONES[m.tone];
+              return (
+                <div
+                  key={m.label}
+                  className={cn(
+                    // Raised slab: tinted gradient face, lit top edge, colour cast underneath.
+                    "group relative isolate overflow-hidden rounded-2xl p-5 ring-1 transition-transform duration-300 ease-out hover:-translate-y-1",
+                    "bg-gradient-to-br shadow-[0_1px_0_0_rgba(255,255,255,0.18)_inset,0_10px_22px_-12px_rgba(0,0,0,0.55)]",
+                    t.face,
+                    t.ring,
+                    t.glow,
+                  )}
+                >
+                  <span aria-hidden className={cn("absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent", t.edge)} />
+                  <span aria-hidden className={cn("pointer-events-none absolute -top-16 -right-10 size-36 rounded-full blur-2xl transition-opacity duration-300 group-hover:opacity-90", t.orb)} />
+                  <span className={cn("relative text-[13px] font-medium", t.label)}>{m.label}</span>
+                  <div className={cn("tabular font-display relative mt-1 bg-clip-text text-4xl text-transparent drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]", t.value)}>
+                    {m.value}
+                    <span className="text-base font-normal text-muted-foreground">{m.suffix}</span>
+                  </div>
+                  <p className={cn("relative mt-1 text-xs font-medium", t.note)}>{m.note}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Two suites, side by side */}
+        <div className="grid gap-5 lg:grid-cols-2">
+          <section className="flex flex-col gap-4 rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
+            <div className="flex items-end justify-between gap-3 border-b border-border pb-3">
+              <div>
+                <span className="text-xs font-medium text-muted-foreground">Suite 01 · Architecture</span>
+                <h2 className="font-title text-base">Product 4D</h2>
+              </div>
+              <span className="tabular font-display text-2xl">
+                {suiteA.score}
+                <span className="text-sm font-normal text-muted-foreground">/{suiteA.maxScore || 100}</span>
               </span>
             </div>
-          </div>
+            <ul className="space-y-2">
+              {suiteA.phases.map((p) => (
+                <li key={p.name} className="flex items-center justify-between gap-3 rounded-2xl bg-white/[0.03] p-3 ring-1 ring-border">
+                  <div className="min-w-0">
+                    <span className="text-sm font-semibold">{p.name}</span>
+                    <p className="truncate text-xs text-muted-foreground">{p.summary}</p>
+                  </div>
+                  <span className="tabular shrink-0 rounded-full bg-signal-soft px-2.5 py-1 font-mono text-xs font-semibold text-signal-ink">
+                    {p.score}/{p.maxScore || 10}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {suiteA.takeaway && (
+              <p className="mt-auto flex items-start gap-2 rounded-2xl bg-ok-soft p-3 text-xs leading-relaxed text-ok">
+                <ShieldCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                {suiteA.takeaway}
+              </p>
+            )}
+          </section>
+
+          <section className="flex flex-col gap-4 rounded-3xl border border-border bg-card/80 p-6 backdrop-blur-xl">
+            <div className="flex items-end justify-between gap-3 border-b border-border pb-3">
+              <div>
+                <span className="text-xs font-medium text-muted-foreground">Suite 02 · Cognition</span>
+                <h2 className="font-title text-base">AI steering</h2>
+              </div>
+              <span className="tabular font-display text-2xl">
+                {suiteB.score}
+                <span className="text-sm font-normal text-muted-foreground">/{suiteB.maxScore || 25}</span>
+              </span>
+            </div>
+            <ul className="space-y-2">
+              {suiteB.criteria.map((c) => (
+                <li key={c.criterion} className="flex items-center gap-3 rounded-2xl bg-white/[0.03] p-2.5 ring-1 ring-border">
+                  <ScoreRingPip score={c.score} />
+                  <div className="min-w-0">
+                    <span className="block truncate text-sm font-semibold">{c.label}</span>
+                    <p className="truncate text-xs text-muted-foreground">{c.rationale}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-auto flex items-start gap-2 rounded-2xl bg-signal-soft p-3 text-xs leading-relaxed text-signal-ink">
+              <Terminal className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+              Scores read from the recorded prompts and the code they produced.
+            </p>
+          </section>
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 border-t border-border no-print">
-          <Link href={`/report/${ev.id}`} className="text-xs font-mono text-primary underline underline-offset-2 flex items-center gap-1">
-            <ArrowLeft className="size-3.5" />
-            <span>Return to full transcript &amp; source files</span>
+        {/* Record */}
+        <div className="space-y-3 rounded-3xl border border-border bg-card/70 p-6 backdrop-blur-md">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+            <h2 className="font-title text-base">Record</h2>
+            <span className={cn("inline-flex items-center gap-1.5 text-xs font-semibold", mentorVerified ? "text-ok" : "text-muted-foreground")}>
+              <ShieldCheck className="size-3.5" aria-hidden />
+              {mentorVerified ? "Confirmed by a senior mentor" : "Scored by AI, not yet mentor-reviewed"}
+            </span>
+          </div>
+          <dl className="grid gap-4 font-mono text-xs sm:grid-cols-2">
+            <div>
+              <dt className="text-muted-foreground">Issued by</dt>
+              <dd className="mt-0.5 font-semibold">codecraft</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Timestamp (UTC)</dt>
+              <dd className="tabular mt-0.5 font-semibold" suppressHydrationWarning>
+                {new Date(ev.createdAt).toISOString()}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-muted-foreground">Credential ID</dt>
+              <dd className="mt-0.5 rounded-xl bg-white/[0.03] p-2.5 break-all ring-1 ring-border">{ev.id}</dd>
+            </div>
+            {ev.verificationReceipt?.hash && (
+              <div className="sm:col-span-2">
+                <dt className="text-muted-foreground">Record hash</dt>
+                <dd className="mt-0.5 rounded-xl bg-white/[0.03] p-2.5 break-all ring-1 ring-border">{ev.verificationReceipt.hash}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+
+        {/* Footer actions */}
+        <div className="no-print flex flex-col items-center justify-between gap-3 border-t border-border pt-5 sm:flex-row">
+          <Link href={`/report/${ev.id}`} className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+            <ArrowLeft className="size-3.5" aria-hidden />
+            Transcript and source files
           </Link>
-          <div className="flex items-center gap-2">
-            <CopyLinkButton label="Copy Shareable Dossier Link" />
-            <PrintExecutivePdfButton />
+          <div className="flex flex-wrap gap-2">
+            <CopyLinkButton label="Share credential" variant="signal" />
+            <PrintExecutivePdfButton label="Download PDF" variant="signal" />
           </div>
         </div>
       </div>
