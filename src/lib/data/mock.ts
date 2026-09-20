@@ -336,7 +336,7 @@ function buildEvaluation(s: MockSession): EvaluationView | null {
     id: s.evaluation.id,
     sessionId: s.id,
     ownerId: s.ownerId,
-    candidateName: isStrong ? "Alex Vance" : "Jordan Taylor",
+    candidateName: isStrong ? "Alex Chen" : "Jordan Taylor",
     createdAt: new Date(s.startedAt + (s.seed.durationMinutes + 1) * MIN).toISOString(),
     challenge: { id: challenge.id, title: challenge.title, timeboxMinutes: challenge.timeboxMinutes, rubricVersion: RUBRIC_VERSION },
     job: { roleTitle: challenge.job.roleTitle, employer: challenge.job.employer },
