@@ -137,6 +137,7 @@ function toEvaluationView(e: EvaluationRow): EvaluationView {
     suiteB: cognitive.suiteB,
     ztAiedAudit: cognitive.ztAiedAudit,
     verificationReceipt: cognitive.verificationReceipt,
+    groundedAssessment: cognitive.groundedAssessment,
   };
 }
 

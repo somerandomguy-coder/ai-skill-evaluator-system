@@ -15,6 +15,8 @@ import type {
   VerificationReceipt,
   ZtAiedAudit,
 } from "../data/types";
+import type { GroundedAssessmentReport } from "../types/assessment-academic";
+import { generateDeterministicAcademicReport } from "../engine/evaluator";
 
 export interface BuildCognitiveParams {
   sessionId: string;
@@ -33,7 +35,18 @@ export function buildCognitiveSuites({
   suiteB: SuiteBView;
   ztAiedAudit: ZtAiedAudit;
   verificationReceipt: VerificationReceipt;
+  groundedAssessment: GroundedAssessmentReport;
 } {
+  const groundedAssessment = generateDeterministicAcademicReport(
+    {
+      sessionId,
+      challengeTitle,
+      turns,
+      finalScore: overallScore,
+    },
+    3
+  );
+
   const userTurns = turns.filter((t) => t.role === "USER" || (t as any).role === "user");
   const userMessages = userTurns.map((t) => t.content.trim()).filter(Boolean);
 
@@ -90,60 +103,62 @@ export function buildCognitiveSuites({
   const totalSuiteBScore = scopeScore + decompScore + promptScore + verifyScore + stackScore;
   const avgSuiteBScore = Math.round((totalSuiteBScore / 5) * 10) / 10;
 
+  const dimExploration = groundedAssessment.dimensions.find((d) => d.dimension === "EXPLORATION_VS_ACCELERATION");
+  const dimDecomp = groundedAssessment.dimensions.find((d) => d.dimension === "HIERARCHICAL_DECOMPOSITION");
+  const dimConstraint = groundedAssessment.dimensions.find((d) => d.dimension === "CONSTRAINT_SPECIFICATION");
+  const dimVerify = groundedAssessment.dimensions.find((d) => d.dimension === "COGNITIVE_VERIFICATION");
+  const dimSensemaking = groundedAssessment.dimensions.find((d) => d.dimension === "ARCHITECTURAL_SENSEMAKING");
+
   const criteria: PromptRubricCriterion[] = [
     {
       criterion: "scope_boundary",
-      label: "1. Scope Boundary",
-      score: scopeScore,
-      evidenceQuotes: [scopeQuote],
-      confidence: 0.92,
-      rationale: isStrong
+      label: "1. Exploration vs Acceleration",
+      score: dimExploration?.score ?? scopeScore,
+      evidenceQuotes: [dimExploration?.evidenceTraces[0]?.excerpt ?? scopeQuote],
+      confidence: dimExploration?.confidence ?? 0.92,
+      rationale: dimExploration?.rationale ?? (isStrong
         ? "Established tight boundaries upfront and directed the assistant without accepting scope bloat."
-        : userMessages.length <= 1
-        ? "Single-turn prompt allowed AI assistant to define scope with limited boundary controls."
-        : "Scope boundaries partially defined with some iterative clarification.",
+        : "Scope boundaries partially defined with some iterative clarification."),
     },
     {
       criterion: "decomposition",
-      label: "2. Decomposition",
-      score: decompScore,
-      evidenceQuotes: [decompositionQuote],
-      confidence: 0.9,
-      rationale: isStrong
+      label: "2. Problem Decomposition",
+      score: dimDecomp?.score ?? decompScore,
+      evidenceQuotes: [dimDecomp?.evidenceTraces[0]?.excerpt ?? decompositionQuote],
+      confidence: dimDecomp?.confidence ?? 0.9,
+      rationale: dimDecomp?.rationale ?? (isStrong
         ? "Decomposed work into structured, atomic steps rather than a monolithic generation."
-        : userMessages.length <= 1
-        ? "Asked for entire solution in one or two prompts without staged architectural milestones."
-        : "Staged the implementation across conversational turns.",
+        : "Asked for entire solution in one or two prompts without staged architectural milestones."),
     },
     {
       criterion: "prompt_quality",
-      label: "3. Prompt Quality",
-      score: promptScore,
-      evidenceQuotes: [promptQualityQuote],
-      confidence: 0.94,
-      rationale: isStrong
+      label: "3. Invariant Specification",
+      score: dimConstraint?.score ?? promptScore,
+      evidenceQuotes: [dimConstraint?.evidenceTraces[0]?.excerpt ?? promptQualityQuote],
+      confidence: dimConstraint?.confidence ?? 0.94,
+      rationale: dimConstraint?.rationale ?? (isStrong
         ? "Prompts provided rich domain constraints, explicit invariants, and clear error conditions."
-        : "Prompts provided baseline guidance with opportunity for higher context density.",
+        : "Prompts provided baseline guidance with opportunity for higher context density."),
     },
     {
       criterion: "verification",
-      label: "4. Verification (Zero Trust)",
-      score: verifyScore,
-      evidenceQuotes: [verificationQuote],
-      confidence: 0.95,
-      rationale: isStrong
+      label: "4. Cognitive Verification Rigour",
+      score: dimVerify?.score ?? verifyScore,
+      evidenceQuotes: [dimVerify?.evidenceTraces[0]?.excerpt ?? verificationQuote],
+      confidence: dimVerify?.confidence ?? 0.95,
+      rationale: dimVerify?.rationale ?? (isStrong
         ? "Demonstrated zero-trust posture: independently inspected generated logic and validated assumptions."
-        : "Relied largely on AI assistant assertions without exhaustive boundary scrutiny.",
+        : "Relied largely on AI assistant assertions without exhaustive boundary scrutiny."),
     },
     {
       criterion: "stack_decision",
-      label: "5. Stack Decision",
-      score: stackScore,
-      evidenceQuotes: [stackDecisionQuote],
-      confidence: 0.88,
-      rationale: isStrong
+      label: "5. Architectural Sensemaking",
+      score: dimSensemaking?.score ?? stackScore,
+      evidenceQuotes: [dimSensemaking?.evidenceTraces[0]?.excerpt ?? stackDecisionQuote],
+      confidence: dimSensemaking?.confidence ?? 0.88,
+      rationale: dimSensemaking?.rationale ?? (isStrong
         ? "Architectural trade-offs articulated clearly with decoupled structure and maintainability in mind."
-        : "Architecture was guided by assistant defaults without explicit trade-off justification.",
+        : "Architecture was guided by assistant defaults without explicit trade-off justification."),
     },
   ];
 
@@ -164,18 +179,18 @@ export function buildCognitiveSuites({
     flags,
     strengths: isStrong
       ? [
-          "Active co-pilot steering: guided assistant step-by-step with structured context.",
-          "Zero-trust verification: validated logic and resisted hallucinated claims.",
-          "Clear boundary discipline: prevented unneeded feature bloat.",
+          "Explicit boundary clarification and schema modeling prior to invoking code generation.",
+          "High cognitive verification rigour: proactively validated calculations and caught edge cases.",
+          "Atomic decomposition sequencing from data contracts to core calculation engine.",
         ]
       : [
-          "Engaged with AI assistant to produce functional prototype code.",
-          "Maintained focus on the core objective throughout the session.",
+          "Iterative communication with the assistant across multiple turns.",
+          "Maintained focus on the core user problem.",
         ],
     nextSteps: isStrong
       ? [
-          "Add automated edge-case regression test suites for all critical paths.",
-          "Explore formal invariant fuzzing alongside manual browser checks.",
+          "Maintain strict verification rigour on third-party dependencies.",
+          "Formalize machine-readable contract schemas for statutory reporting.",
         ]
       : [
           "Break down complex requests into atomic sub-tasks before asking for code.",
@@ -215,8 +230,8 @@ export function buildCognitiveSuites({
       score: developScore,
       maxScore: 10,
       summary: isStrong
-        ? "Clean, maintainable build; caught planted defects and kept dependencies minimal."
-        : "Code was generated quickly; some unverified AI additions remained in the tree.",
+        ? "Caught planted flaw and checked code outputs; prevented code bloat."
+        : "Accepted hallucinated code without verifying edge cases or error states.",
     },
     {
       name: "Demonstrate",
@@ -224,19 +239,19 @@ export function buildCognitiveSuites({
       score: demoScore,
       maxScore: 10,
       summary: isStrong
-        ? "Validated functionality under edge cases; authored transparent evidence of deliberate limits."
-        : "Demonstrated core path; edge cases and boundary limits need further verification.",
+        ? "Demonstrated verified behavior with edge-case validation and clean maintainability."
+        : "Unverified edge conditions; relied on happy-path execution without rigorous proof.",
     },
   ];
 
   const suiteA: SuiteAView = {
-    title: "4D Engineering Lifecycle",
-    score: Math.round(((defineScore + designScore + developScore + demoScore) / 40) * 100),
-    maxScore: 100,
-    status: isStrong ? "PRODUCTION_READY" : isModerate ? "COMPETENT" : "DEVELOPING",
+    title: "4D Product Engineering Lifecycle",
+    score: defineScore + designScore + developScore + demoScore,
+    maxScore: 40,
+    status: isStrong ? "EXEMPLARY" : isModerate ? "PROFICIENT" : "DEVELOPING",
     phases,
     takeaway: isStrong
-      ? "Disciplined 4D execution: planned boundaries, verified AI logic, and shipped clean code."
+      ? "Demonstrated disciplined 4D progression: explicit Define and Design before Develop and Demonstrate."
       : "A polished app can still be the wrong app. Ensure Define and Design precede Develop.",
   };
 
@@ -260,5 +275,5 @@ export function buildCognitiveSuites({
     evaluatorVersion: "gpt-5.5 (ZT-AIED v4.2)",
   };
 
-  return { suiteA, suiteB, ztAiedAudit, verificationReceipt };
+  return { suiteA, suiteB, ztAiedAudit, verificationReceipt, groundedAssessment };
 }

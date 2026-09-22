@@ -11,6 +11,7 @@ import {
   CircleX,
   Clock,
   FileCode,
+  GraduationCap,
   Hourglass,
   Layers,
   Lightbulb,
@@ -31,19 +32,22 @@ import { buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CATEGORY_META, REQUIREMENT_CATEGORIES } from "@/lib/ai/schemas";
 import type { AuditFlags, EvaluationView, UserView } from "@/lib/data/types";
+import type { GroundedAssessmentReport } from "@/lib/types/assessment-academic";
 import { formatMinutes, scoreBand } from "@/lib/format";
 import { buildCognitiveSuites } from "@/lib/services/cognitive-rubric";
 import { cn } from "@/lib/utils";
 import { ContestDialog, CopyLinkButton, PrintExecutivePdfButton, ViewCredentialButton } from "./actions";
 import { RequirementResultCard } from "./requirement-result";
 import { ChallengeTierBadge } from "@/components/challenge/tier-badge";
+import { AcademicRubricCard } from "./academic-rubric-card";
+import { AutomationBiasIndicator } from "./automation-bias-indicator";
 
 interface Props {
   evaluation: EvaluationView;
   viewer: UserView | null;
 }
 
-type SectionKey = "summary" | "rubric" | "signals" | "citations" | "transcript";
+type SectionKey = "summary" | "academic" | "rubric" | "signals" | "citations" | "transcript";
 
 const stagger = (i: number) => ({ "--i": i }) as CSSProperties;
 
@@ -138,6 +142,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
 
   const [open, setOpen] = useState<Record<SectionKey, boolean>>({
     summary: true,
+    academic: true,
     rubric: false,
     signals: false,
     citations: false,
@@ -147,7 +152,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
   const toggle = (key: SectionKey) => setOpen((prev) => ({ ...prev, [key]: !prev[key] }));
   const toggleAll = () => {
     const next = !anyOpen;
-    setOpen({ summary: next, rubric: next, signals: next, citations: next, transcript: next });
+    setOpen({ summary: next, academic: next, rubric: next, signals: next, citations: next, transcript: next });
   };
 
   const dynamicCognitive = buildCognitiveSuites({
@@ -158,6 +163,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
   });
   const suiteA = ev.suiteA ?? dynamicCognitive.suiteA;
   const suiteB = ev.suiteB ?? dynamicCognitive.suiteB;
+  const groundedAssessment: GroundedAssessmentReport | undefined = ev.groundedAssessment ?? dynamicCognitive.groundedAssessment;
 
   const groups = REQUIREMENT_CATEGORIES.map((category) => ({
     category,
@@ -255,6 +261,51 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
             ))}
           </div>
         )}
+
+        {/* Foundational Research Citation Banner */}
+        <div className="rise rounded-2xl border border-indigo-500/20 bg-indigo-50/50 p-4 text-xs dark:bg-indigo-950/20 dark:border-indigo-500/30" style={stagger(2)}>
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                <GraduationCap className="size-4" />
+              </span>
+              <div>
+                <p className="font-semibold text-foreground">
+                  Empirically Grounded Assessment Engine
+                </p>
+                <p className="text-muted-foreground text-[11px]">
+                  Evaluated via Barke et al. (OOPSLA &apos;23), Vasconcelos et al. (CHI/CSCW &apos;23), &amp; Mislevy et al. (Evidence-Centered Design)
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+              <a
+                href="https://arxiv.org/abs/2206.15000"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-full border border-indigo-500/20 bg-background/80 px-2.5 py-1 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors"
+              >
+                Barke et al. (OOPSLA)
+              </a>
+              <a
+                href="https://cicl.stanford.edu/papers/vasconcelos2023explanations.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-full border border-indigo-500/20 bg-background/80 px-2.5 py-1 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors"
+              >
+                Vasconcelos et al. (CSCW)
+              </a>
+              <a
+                href="https://cresst.org/wp-content/uploads/TR597.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-full border border-indigo-500/20 bg-background/80 px-2.5 py-1 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors"
+              >
+                Mislevy et al. (ECD)
+              </a>
+            </div>
+          </div>
+        </div>
 
         {/* Scoreboard */}
         <div className="rise grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)]" style={stagger(3)}>
@@ -390,6 +441,36 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
               )}
             </div>
           </Section>
+
+          {groundedAssessment && (
+            <Section
+              id="academic"
+              title="Academic Human-AI Interaction Rubric"
+              icon={<GraduationCap className="size-4" aria-hidden />}
+              meta={<Count>{groundedAssessment.dimensions.length} dimensions</Count>}
+              open={open.academic}
+              onToggle={() => toggle("academic")}
+            >
+              <div className="space-y-6">
+                <AutomationBiasIndicator index={groundedAssessment.automationBiasIndex} />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-[13px] font-semibold tracking-tight">
+                      Peer-Reviewed Competency Dimensions
+                    </h3>
+                    <span className="text-xs text-muted-foreground">
+                      Click verbatim turn excerpts to inspect in explorer
+                    </span>
+                  </div>
+                  <div className="grid gap-4">
+                    {groundedAssessment.dimensions.map((dim) => (
+                      <AcademicRubricCard key={dim.dimension} evaluation={dim} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Section>
+          )}
 
           <Section
             id="rubric"

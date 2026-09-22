@@ -25,6 +25,7 @@ import type {
   VerificationStatus,
   MentorBadge,
 } from "../types/assessment-v2";
+import type { GroundedAssessmentReport } from "../types/assessment-academic";
 
 export interface RequirementView {
   id: string;
@@ -221,6 +222,8 @@ export interface EvaluationView {
   verificationReceipt?: VerificationReceipt;
   reviewSlaMessage?: string;
   ztAiedAudit?: ZtAiedAudit;
+  /** Grounded Academic Assessment (ACM OOPSLA, ACM CHI, ECD) */
+  groundedAssessment?: GroundedAssessmentReport;
 }
 
 
