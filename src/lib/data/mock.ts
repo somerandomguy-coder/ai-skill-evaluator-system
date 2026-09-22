@@ -48,8 +48,66 @@ export function saveInMemoryChallenge(c: ChallengeView) {
   inMemoryChallenges.set(c.id, c);
 }
 
+import type { ChallengeV2 } from "../types/assessment-v2";
+import { VERIFIED_CHALLENGE_BANK } from "../engine/verified-bank";
+import { getChallengeFromRepository } from "../engine/resolver";
+
+export function v2ToChallengeView(v2: ChallengeV2): ChallengeView {
+  return {
+    id: v2.id,
+    title: v2.roleTitle,
+    brief: v2.briefMarkdown,
+    domainContext: `Enterprise Australian assessment grounded in SFIA 8 standards for ${v2.companyName}.`,
+    timeboxMinutes: v2.sfiaProfile?.level === 2 ? 120 : 180,
+    rubricVersion: "SFIA-8-ECD-v2",
+    requirements: (v2.rubric || []).map((r, idx) => ({
+      id: r.id || `req-${idx}`,
+      category: r.category,
+      statement: r.statement,
+      weight: r.weight,
+      successSignals: r.successSignals,
+      failureModes: r.failureModes,
+      sfiaLevel: r.sfiaLevel,
+      injectedTrap: r.injectedTrap,
+    })),
+    job: {
+      roleTitle: v2.roleTitle,
+      seniority: v2.sfiaProfile?.level === 2 ? "JUNIOR" : "MID",
+      employer: v2.companyName,
+      location: "Sydney, NSW (Hybrid)",
+      domain: v2.companyName,
+      teamContext: `Core engineering squad at ${v2.companyName}`,
+      mustHaveSkills: v2.sfiaProfile?.primarySkills || ["Full-Stack"],
+      niceToHaveSkills: ["TypeScript", "Automated Testing", "Evidence-Centered Design"],
+      barriers: [],
+      sourceUrl: null,
+    },
+    research: {
+      whatTheyDo: `${v2.companyName} operates enterprise cloud platforms in Australia.`,
+      domainAndUsers: "Australian enterprise customers and regulatory authorities.",
+      technicalSignals: ["TypeScript", "SFIA 8 Framework", "Statutory Compliance"],
+      groundedInSearch: true,
+      sources: [{ title: `${v2.companyName} Technology`, url: "https://example.com.au" }],
+    },
+    fromDemoCache: false,
+    tier: v2.tier,
+    sfiaProfile: v2.sfiaProfile,
+    technicalInvariants: v2.technicalInvariants,
+    starterSchemas: v2.starterSchemas,
+    verification: v2.verification,
+  };
+}
+
 export function getInMemoryChallenge(id: string): ChallengeView | null {
-  return inMemoryChallenges.get(id) ?? null;
+  const existing = inMemoryChallenges.get(id);
+  if (existing) return existing;
+  const repoItem = getChallengeFromRepository(id) || VERIFIED_CHALLENGE_BANK.find((x) => x.id === id);
+  if (repoItem) {
+    const view = v2ToChallengeView(repoItem);
+    inMemoryChallenges.set(id, view);
+    return view;
+  }
+  return null;
 }
 
 const challenge: ChallengeView = {

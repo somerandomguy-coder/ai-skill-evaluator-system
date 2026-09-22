@@ -51,6 +51,7 @@ function readResearch(json: unknown): ChallengeView["research"] {
 const challengeInclude = { requirements: true, jobSubmission: true } satisfies Prisma.ChallengeInclude;
 
 function toChallengeView(c: Prisma.ChallengeGetPayload<{ include: typeof challengeInclude }>): ChallengeView {
+  const metaObj = (c.meta && typeof c.meta === "object" ? c.meta : {}) as Record<string, unknown>;
   return {
     id: c.id,
     title: c.title,
@@ -62,6 +63,11 @@ function toChallengeView(c: Prisma.ChallengeGetPayload<{ include: typeof challen
     job: readJob(c.jobSubmission.parsedJd, c.jobSubmission.sourceUrl),
     research: readResearch(c.jobSubmission.companyResearch),
     fromDemoCache: c.jobSubmission.fromDemoCache || parseChallengeMeta(c.meta).source === "demo-cache",
+    tier: (metaObj.tier as any) ?? "TIER_2_CACHED",
+    sfiaProfile: metaObj.sfiaProfile as any,
+    technicalInvariants: metaObj.technicalInvariants as any,
+    starterSchemas: metaObj.starterSchemas as any,
+    verification: metaObj.verification as any,
   };
 }
 

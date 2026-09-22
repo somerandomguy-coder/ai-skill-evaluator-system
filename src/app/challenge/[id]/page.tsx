@@ -15,6 +15,9 @@ import { prisma } from "@/lib/db";
 import { formatTimebox } from "@/lib/format";
 import type { CSSProperties } from "react";
 
+import { ChallengeTierBadge } from "@/components/challenge/tier-badge";
+import { Badge } from "@/components/ui/badge";
+
 const stagger = (i: number) => ({ "--i": i }) as CSSProperties;
 
 /** Generated titles run long; show the leading clause and keep the full text in the tooltip. */
@@ -86,14 +89,27 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-12">
         <article className="min-w-0 space-y-12">
           <header className="space-y-5">
-            <p className="rise flex items-center gap-2 text-[13px] font-medium text-muted-foreground" style={stagger(0)}>
+            <div className="rise flex flex-wrap items-center gap-3" style={stagger(0)}>
+              <ChallengeTierBadge
+                tier={challenge.tier}
+                badge={challenge.verification?.badge}
+                size="md"
+              />
+              {challenge.sfiaProfile && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-3 py-1 font-mono text-xs text-foreground/80">
+                  SFIA Level {challenge.sfiaProfile.level} ({challenge.sfiaProfile.level === 2 ? "Assist" : "Apply"})
+                </span>
+              )}
+            </div>
+
+            <p className="rise flex items-center gap-2 text-[13px] font-medium text-muted-foreground" style={stagger(1)}>
               <Briefcase className="size-3.5" aria-hidden />
               {job.roleTitle} at {job.employer}
             </p>
-            <h1 className="rise font-display max-w-3xl text-4xl text-balance sm:text-5xl" style={stagger(1)} title={challenge.title}>
+            <h1 className="rise font-display max-w-3xl text-4xl text-balance sm:text-5xl" style={stagger(2)} title={challenge.title}>
               {shortTitle(challenge.title)}
             </h1>
-            <ul className="rise flex flex-wrap gap-2" style={stagger(2)}>
+            <ul className="rise flex flex-wrap gap-2" style={stagger(3)}>
               {facts.map(({ icon: Icon, label }) => (
                 <li key={label} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[13px] font-medium">
                   <Icon className="size-3.5 text-muted-foreground" aria-hidden />

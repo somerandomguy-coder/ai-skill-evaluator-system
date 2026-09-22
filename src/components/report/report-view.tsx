@@ -36,6 +36,7 @@ import { buildCognitiveSuites } from "@/lib/services/cognitive-rubric";
 import { cn } from "@/lib/utils";
 import { ContestDialog, CopyLinkButton, PrintExecutivePdfButton, ViewCredentialButton } from "./actions";
 import { RequirementResultCard } from "./requirement-result";
+import { ChallengeTierBadge } from "@/components/challenge/tier-badge";
 
 interface Props {
   evaluation: EvaluationView;
@@ -180,6 +181,26 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
         {/* Title block */}
         <header className="space-y-5">
           <div className="rise flex flex-wrap items-center gap-2" style={stagger(0)}>
+            <ChallengeTierBadge
+              tier={
+                isReviewed
+                  ? "TIER_1_VERIFIED"
+                  : isPending
+                    ? "TIER_3_GENERATED"
+                    : "TIER_2_CACHED"
+              }
+              badge={
+                isReviewed && ev.reviews?.[0]
+                  ? {
+                      mentorId: ev.reviews[0].id,
+                      mentorName: "Verified Mentor",
+                      verifiedAt: ev.reviews[0].reviewedAt,
+                      auditScore: ev.reviews[0].adjustedScore ? Math.round(ev.reviews[0].adjustedScore / 5) : 18,
+                    }
+                  : undefined
+              }
+              size="sm"
+            />
             <Pill className={status.className}>
               <status.icon className="size-3.5" aria-hidden />
               {status.label}

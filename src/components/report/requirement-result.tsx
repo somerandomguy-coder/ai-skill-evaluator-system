@@ -1,4 +1,4 @@
-import { Flag } from "lucide-react";
+import { Flag, ShieldAlert, Bug, CheckCircle2 } from "lucide-react";
 import { RubricDetails } from "@/components/challenge/rubric";
 import { CategoryBadge, WeightPips } from "@/components/common/category";
 import { ConfidenceMeter, ScoreBar } from "@/components/common/score";
@@ -22,6 +22,11 @@ export function RequirementResultCard({ result, showCategory = true }: { result:
           <div className="flex flex-wrap items-center gap-2.5">
             {showCategory && <CategoryBadge category={req.category} />}
             <WeightPips weight={req.weight} />
+            {req.sfiaLevel && (
+              <span className="inline-flex items-center rounded-md border border-border bg-muted/50 px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
+                SFIA L{req.sfiaLevel}
+              </span>
+            )}
           </div>
           <div className="flex flex-col items-start gap-1.5 sm:items-end">
             <ScoreBar score={result.score} />
@@ -30,11 +35,24 @@ export function RequirementResultCard({ result, showCategory = true }: { result:
         </div>
 
         <p className="text-[15px] leading-snug font-medium text-pretty">{req.statement}</p>
+
+        {req.injectedTrap && (
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs dark:bg-amber-500/10">
+            <div className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-300">
+              <Bug className="size-3.5" aria-hidden />
+              <span>Deliberate Injected AI Trap</span>
+            </div>
+            <p className="mt-1 text-muted-foreground leading-relaxed">
+              {req.injectedTrap}
+            </p>
+          </div>
+        )}
+
         <p className="text-[13px] leading-relaxed text-muted-foreground">{result.rationale}</p>
 
         {result.evidence.length > 0 && (
           <div className="space-y-2">
-            <div className="text-xs font-semibold text-muted-foreground">Evidence</div>
+            <div className="text-xs font-semibold text-muted-foreground">Observable Transcript &amp; Diff Citations</div>
             <ul className="space-y-2">
               {result.evidence.map((e, i) => (
                 <li key={`${e.type}-${e.ref}-${i}`} className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3">

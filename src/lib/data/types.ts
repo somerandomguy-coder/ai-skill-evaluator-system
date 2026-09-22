@@ -18,6 +18,14 @@ export interface UserView {
   role: Role;
 }
 
+import type {
+  SfiaLevel,
+  SfiaProfile,
+  TierLevel,
+  VerificationStatus,
+  MentorBadge,
+} from "../types/assessment-v2";
+
 export interface RequirementView {
   id: string;
   category: RequirementCategory;
@@ -25,6 +33,8 @@ export interface RequirementView {
   weight: number;
   successSignals: string[];
   failureModes: string[];
+  sfiaLevel?: SfiaLevel;
+  injectedTrap?: string;
 }
 
 export interface JobView {
@@ -60,6 +70,14 @@ export interface ChallengeView {
   research: ResearchView;
   /** True when served from DEMO_MODE fixtures rather than generated live. */
   fromDemoCache: boolean;
+  tier?: TierLevel;
+  sfiaProfile?: SfiaProfile;
+  technicalInvariants?: string[];
+  starterSchemas?: Record<string, string>;
+  verification?: {
+    status: VerificationStatus;
+    badge?: MentorBadge;
+  };
 }
 
 export interface TurnView {

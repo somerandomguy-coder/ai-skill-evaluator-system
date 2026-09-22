@@ -20,7 +20,8 @@ import { SEED_CHALLENGE } from "../fixtures/seed-challenge";
 import { toJson } from "../json";
 import type { PipelineEvent } from "../pipeline-events";
 import { trackEvent } from "../ai/langfuse";
-import { saveInMemoryChallenge } from "../data/mock";
+import { resolveChallenge } from "../engine/resolver";
+import { v2ToChallengeView, saveInMemoryChallenge } from "../data/mock";
 import type { ChallengeView } from "../data/types";
 
 type Emit = (e: PipelineEvent) => void;
@@ -73,80 +74,51 @@ async function runFastPipeline(
 
   // Step 1: Parse
   emit({ type: "step", step: "parse", status: "start" });
-  await pause(250);
+  await pause(200);
   emit({ type: "step", step: "parse", status: "done", detail: `${roleTitle} at ${employer}` });
 
   // Step 2: Research
   emit({ type: "step", step: "research", status: "start" });
-  await pause(250);
-  emit({ type: "step", step: "research", status: "done", detail: `Cached domain signals (${employer})` });
+  await pause(200);
+  emit({ type: "step", step: "research", status: "done", detail: `Domain signals for ${employer}` });
 
-  // Step 3: Challenge design
+  // Step 3: Challenge design (V2 3-Tier Resolution)
   emit({ type: "step", step: "challenge", status: "start" });
-  await pause(350);
-  const challengeTitle = `${roleTitle.replace(/^(Senior|Staff|Junior|Lead)\s+/i, "")}: Prototype`;
-  emit({ type: "step", step: "challenge", status: "done", detail: challengeTitle });
+  const resolution = await resolveChallenge(text, employer);
+  const resolved = resolution.challenge;
+  const challengeTitle = resolved.roleTitle;
+  const tierLabel =
+    resolution.tierResolved === "TIER_1_VERIFIED"
+      ? "MentorME Verified (Tier 1)"
+      : resolution.tierResolved === "TIER_2_CACHED"
+        ? "Cached Assessment (Tier 2)"
+        : "Tailored Track (Tier 3)";
+  await pause(200);
+  emit({ type: "step", step: "challenge", status: "done", detail: `${challengeTitle} · ${tierLabel}` });
 
   // Step 4: Rubric
   emit({ type: "step", step: "rubric", status: "start" });
-  await pause(250);
-  emit({ type: "step", step: "rubric", status: "done", detail: "12 requirements covering 4D lifecycle" });
+  await pause(150);
+  emit({
+    type: "step",
+    step: "rubric",
+    status: "done",
+    detail: `${resolved.rubric.length} requirements (SFIA Level ${resolved.sfiaProfile.level})`,
+  });
 
   // Step 5: Save
   emit({ type: "step", step: "save", status: "start" });
-  await pause(150);
+  await pause(100);
 
-  const id = `fast-${Date.now()}`;
+  const id = `v2-${Date.now()}`;
   const fallbackChallengeView: ChallengeView = {
+    ...v2ToChallengeView(resolved),
     id,
-    title: challengeTitle,
-    brief: `# ${challengeTitle}
-
-## The problem
-Build a prototype work-sample application for **${roleTitle}** at **${employer}**.
-Your task is to implement the core user interface, business logic, and error handling as specified in the rubric.
-
-## Who it's for
-A technical lead or hiring manager reviewing your engineering judgment and code quality.
-
-## Constraints
-- Keep code clean, modular, and easy to maintain.
-- Separate business logic from user interface components.
-- Do not trust unverified AI suggestions; test every function.
-
-## What "done" means
-- All core user flows operate smoothly.
-- Edge cases are handled gracefully.
-- The solution demonstrates strong 4D engineering discipline.`,
-    domainContext: `Real-world engineering challenge tailored to the technical requirements of ${employer}.`,
-    timeboxMinutes: 180,
-    rubricVersion: RUBRIC_VERSION,
-    requirements: [
-      { id: "req-1", category: "PROBLEM_FRAMING", statement: "Clarifies scope boundaries, non-goals, and edge cases before coding.", weight: 4, successSignals: ["Asks clarifying questions", "Defines clear boundaries"], failureModes: ["Jumps straight to code without boundary agreement"] },
-      { id: "req-2", category: "TECHNICAL_APPROACH", statement: "Designs decoupled architecture and pure logic prior to UI generation.", weight: 4, successSignals: ["Separates pure logic from UI", "Uses clean data contracts"], failureModes: ["Monolithic spaghetti code"] },
-      { id: "req-3", category: "CRITICAL_JUDGMENT", statement: "Catches planted AI defects and unverified assumptions.", weight: 5, successSignals: ["Questions AI hallucinations", "Verifies code logic"], failureModes: ["Blindly accepts AI suggestions"] },
-      { id: "req-4", category: "TRADEOFF_AWARENESS", statement: "Explains technical trade-offs and performance considerations.", weight: 3, successSignals: ["Discusses pros and cons of approach"], failureModes: ["Claims solution has zero trade-offs"] },
-      { id: "req-5", category: "DOMAIN_FIT", statement: "Tailors features to the actual real-world needs of the domain.", weight: 4, successSignals: ["Focuses on user needs"], failureModes: ["Generic boilerplate unrelated to role"] },
-      { id: "req-6", category: "COMMUNICATION", statement: "Communicates intent clearly and documents decisions for reviewers.", weight: 3, successSignals: ["Clear comments and git commits"], failureModes: ["No documentation"] },
-    ],
     job: {
+      ...v2ToChallengeView(resolved).job,
       roleTitle,
-      seniority: "SENIOR",
       employer,
-      location: null,
-      domain: employer,
-      teamContext: `Engineering team at ${employer}`,
-      mustHaveSkills: ["Full-Stack Development", "TypeScript / React", "Clean Code", "AI Co-pilot collaboration"],
-      niceToHaveSkills: ["Testing", "System Architecture", "Performance Optimization"],
-      barriers: [],
       sourceUrl: input.sourceUrl || null,
-    },
-    research: {
-      whatTheyDo: `${employer} provides modern web software and technology services.`,
-      domainAndUsers: `Software engineers, product teams, and end users interacting with ${employer}'s platform.`,
-      technicalSignals: ["Modern TypeScript and React stack", "High-reliability system architecture"],
-      groundedInSearch: true,
-      sources: [{ title: `${employer} Engineering`, url: "https://example.com" }],
     },
     fromDemoCache: false,
   };
@@ -175,10 +147,19 @@ A technical lead or hiring manager reviewing your engineering judgment and code 
         title: challengeTitle,
         brief: fallbackChallengeView.brief,
         domainContext: fallbackChallengeView.domainContext,
-        timeboxMinutes: 180,
+        timeboxMinutes: fallbackChallengeView.timeboxMinutes,
         starterTemplate: toJson(SEED_CHALLENGE.starterTemplate),
-        rubricVersion: RUBRIC_VERSION,
-        meta: toJson({ validApproaches: [], ambiguities: [] }),
+        rubricVersion: "SFIA-8-ECD-v2",
+        meta: toJson({
+          validApproaches: [],
+          ambiguities: [],
+          tier: resolution.tierResolved,
+          sfiaProfile: resolved.sfiaProfile,
+          technicalInvariants: resolved.technicalInvariants,
+          starterSchemas: resolved.starterSchemas,
+          verification: resolved.verification,
+          similarityScore: resolution.similarityScore,
+        }),
       },
     });
     await prisma.requirement.createMany({
@@ -247,14 +228,25 @@ export async function runChallengePipeline(
       detail: research.groundedInSearch ? `${research.sources.length} sources` : "no web results — using the job description alone",
     });
 
-    // 4 + 5. Brief and rubric, back to back in this one request, from the same context.
+    // 4 + 5. 3-Tier Resolution Engine: SFIA 8 & Evidence-Centered Design
     emit({ type: "step", step: "challenge", status: "start" });
-    const challenge = await generateChallenge(parsed, research);
-    emit({ type: "step", step: "challenge", status: "done", detail: challenge.title });
+    const resolution = await resolveChallenge(text, parsed.employer);
+    const resolved = resolution.challenge;
+    const tierLabel =
+      resolution.tierResolved === "TIER_1_VERIFIED"
+        ? "MentorME Verified (Tier 1)"
+        : resolution.tierResolved === "TIER_2_CACHED"
+          ? "Cached Assessment (Tier 2)"
+          : "Tailored Track (Tier 3)";
+    emit({ type: "step", step: "challenge", status: "done", detail: `${resolved.roleTitle} · ${tierLabel}` });
 
     emit({ type: "step", step: "rubric", status: "start" });
-    const requirements = await generateRequirementBank(parsed, research, challenge);
-    emit({ type: "step", step: "rubric", status: "done", detail: `${requirements.length} requirements` });
+    emit({
+      type: "step",
+      step: "rubric",
+      status: "done",
+      detail: `${resolved.rubric.length} requirements (SFIA Level ${resolved.sfiaProfile.level})`,
+    });
 
     // 6. Save.
     emit({ type: "step", step: "save", status: "start" });
@@ -279,17 +271,26 @@ export async function runChallengePipeline(
         const row = await tx.challenge.create({
           data: {
             jobSubmissionId: submission.id,
-            title: challenge.title,
-            brief: challenge.brief,
-            domainContext: challenge.domainContext,
-            timeboxMinutes: challenge.timeboxMinutes,
-            starterTemplate: toJson(challenge.starterTemplate),
-            rubricVersion: RUBRIC_VERSION,
-            meta: toJson(challenge.meta),
+            title: resolved.roleTitle,
+            brief: resolved.briefMarkdown,
+            domainContext: `Enterprise Australian assessment grounded in SFIA 8 standards for ${parsed.employer}.`,
+            timeboxMinutes: resolved.sfiaProfile.level === 2 ? 120 : 180,
+            starterTemplate: toJson(SEED_CHALLENGE.starterTemplate),
+            rubricVersion: "SFIA-8-ECD-v2",
+            meta: toJson({
+              validApproaches: [],
+              ambiguities: [],
+              tier: resolution.tierResolved,
+              sfiaProfile: resolved.sfiaProfile,
+              technicalInvariants: resolved.technicalInvariants,
+              starterSchemas: resolved.starterSchemas,
+              verification: resolved.verification,
+              similarityScore: resolution.similarityScore,
+            }),
           },
         });
         await tx.requirement.createMany({
-          data: requirements.map((r) => ({
+          data: resolved.rubric.map((r) => ({
             challengeId: row.id,
             category: r.category,
             statement: r.statement,
@@ -305,13 +306,8 @@ export async function runChallengePipeline(
       console.warn(`[runChallengePipeline] Database save failed (${dbErr?.message ?? dbErr}). Storing in-memory.`);
       const fallbackId = `gen-${Date.now()}`;
       const fallbackChallengeView: ChallengeView = {
+        ...v2ToChallengeView(resolved),
         id: fallbackId,
-        title: challenge.title,
-        brief: challenge.brief,
-        domainContext: challenge.domainContext,
-        timeboxMinutes: challenge.timeboxMinutes,
-        rubricVersion: RUBRIC_VERSION,
-        requirements: requirements.map((r, i) => ({ id: `req-${i}`, ...r })),
         job: { ...parsed, sourceUrl: sourceUrl || null },
         research: {
           whatTheyDo: research.whatTheyDo,
