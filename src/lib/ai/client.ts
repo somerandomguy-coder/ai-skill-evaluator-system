@@ -14,7 +14,7 @@ import OpenAI from "openai";
 import { ContentFilterFinishReasonError, LengthFinishReasonError } from "openai/core/error";
 import { zodResponseFormat } from "openai/helpers/zod";
 import type { z } from "zod";
-import { isDemoMode, modelFor, openaiApiKey, type AiStage } from "../env";
+import { aiApiKey, aiBaseUrl, isDemoMode, modelFor, openaiApiKey, type AiStage } from "../env";
 import { flushLangfuse, observeOpenAiClient } from "./langfuse";
 
 export class AiError extends Error {
@@ -33,7 +33,7 @@ export class DemoModeError extends AiError {
 }
 export class MissingApiKeyError extends AiError {
   constructor() {
-    super("OPENAI_API_KEY is not set. Add it to .env, or set DEMO_MODE=true to use cached responses.", "no_api_key");
+    super("OPENAI_API_KEY (or DEEPSEEK_API_KEY) is not set. Add it to .env, or set DEMO_MODE=true to use cached responses.", "no_api_key");
   }
 }
 export class ModelRefusalError extends AiError {}
@@ -74,6 +74,7 @@ export interface StructuredResult<T> {
 
 /** Reasoning models accept `reasoning_effort`; chat/non-reasoning models reject it. */
 export function supportsReasoningEffort(model: string): boolean {
+  if (/deepseek/i.test(model)) return false;
   return /^(gpt-5|gpt-6|o1|o3|o4)/.test(model) && !/-chat-latest$/.test(model);
 }
 
@@ -87,9 +88,13 @@ let client: OpenAI | null = null;
 
 function getClient(): OpenAI {
   if (client) return client;
-  const apiKey = openaiApiKey();
+  const apiKey = aiApiKey();
   if (!apiKey) throw new MissingApiKeyError();
-  client = new OpenAI({ apiKey });
+  const baseURL = aiBaseUrl();
+  client = new OpenAI({
+    apiKey,
+    ...(baseURL ? { baseURL } : {}),
+  });
   return client;
 }
 

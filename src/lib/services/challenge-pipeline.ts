@@ -149,7 +149,7 @@ async function runFastPipeline(
         domainContext: fallbackChallengeView.domainContext,
         timeboxMinutes: fallbackChallengeView.timeboxMinutes,
         starterTemplate: toJson(SEED_CHALLENGE.starterTemplate),
-        rubricVersion: "SFIA-8-ECD-v2",
+        rubricVersion: "SFIA-9-ECD-v2",
         meta: toJson({
           validApproaches: [],
           ambiguities: [],
@@ -273,10 +273,10 @@ export async function runChallengePipeline(
             jobSubmissionId: submission.id,
             title: resolved.roleTitle,
             brief: resolved.briefMarkdown,
-            domainContext: `Enterprise Australian assessment grounded in SFIA 8 standards for ${parsed.employer}.`,
+            domainContext: `Enterprise Australian assessment grounded in SFIA 9 standards for ${parsed.employer}.`,
             timeboxMinutes: resolved.sfiaProfile.level === 2 ? 120 : 180,
             starterTemplate: toJson(SEED_CHALLENGE.starterTemplate),
-            rubricVersion: "SFIA-8-ECD-v2",
+            rubricVersion: "SFIA-9-ECD-v2",
             meta: toJson({
               validApproaches: [],
               ambiguities: [],

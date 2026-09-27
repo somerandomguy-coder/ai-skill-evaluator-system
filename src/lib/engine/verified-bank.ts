@@ -2,7 +2,7 @@ import type { ChallengeV2 } from "../types/assessment-v2";
 
 /**
  * Pre-seeded bank of certified, mentor-verified Tier 1 challenges.
- * Grounded in Australian statutory context and SFIA 8 standards.
+ * Grounded in Australian statutory context and SFIA 9 standards.
  */
 export const VERIFIED_CHALLENGE_BANK: ChallengeV2[] = [
   {

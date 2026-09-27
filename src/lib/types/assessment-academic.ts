@@ -52,7 +52,7 @@ export const ACADEMIC_FRAMEWORK_SOURCES: Record<AcademicDimension, AcademicPaper
     officialDoiUrl: "https://onlinelibrary.wiley.com/doi/abs/10.1002/j.2333-8504.2003.tb01908.x",
     citationKey: "Mislevy et al. (ETS / ECD)",
     coreFinding:
-      "Eliminates subjective evaluator guesswork through the tripartite chain: Competency Model (SFIA 8 skills), Task Model (authentic context with planted traps), and Evidence Model (verbatim behavioral telemetry).",
+      "Eliminates subjective evaluator guesswork through the tripartite chain: Competency Model (SFIA 9 skills), Task Model (authentic context with planted traps), and Evidence Model (verbatim behavioral telemetry).",
   },
   HIERARCHICAL_DECOMPOSITION: {
     title: "Cognitive Architecture and Instructional Design in Software Engineering",
@@ -67,10 +67,10 @@ export const ACADEMIC_FRAMEWORK_SOURCES: Record<AcademicDimension, AcademicPaper
   ARCHITECTURAL_SENSEMAKING: {
     title: "Skills Framework for the Information Age: Systems Design (DESN) & Business Skills",
     authors: "Australian Computer Society / SFIA Foundation",
-    venue: "SFIA 8 Standard",
-    year: 2022,
-    openAccessUrl: "https://sfia-online.org/en/sfia-8/skills/systems-design",
-    citationKey: "SFIA 8 (ACS / DESN Level 2-3)",
+    venue: "SFIA 9 Standard",
+    year: 2024,
+    openAccessUrl: "https://sfia-online.org/en/sfia-9/skills/systems-design",
+    citationKey: "SFIA 9 (ACS / DESN Level 2-3)",
     coreFinding:
       "Explicit technical reasoning and trade-off justification across latency, maintainability, and statutory compliance, demonstrating autonomy and technical sensemaking.",
   },

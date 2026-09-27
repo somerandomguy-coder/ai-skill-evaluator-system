@@ -24,6 +24,10 @@ describe("Academic Assessment Framework Specifications", () => {
       expect(meta.openAccessUrl).toMatch(/^https?:\/\//);
       expect(meta.coreFinding).toBeTruthy();
     }
+
+    const sfiaMeta = ACADEMIC_FRAMEWORK_SOURCES.ARCHITECTURAL_SENSEMAKING;
+    expect(sfiaMeta.venue).toBe("SFIA 9 Standard");
+    expect(sfiaMeta.citationKey).toContain("SFIA 9");
   });
 });
 

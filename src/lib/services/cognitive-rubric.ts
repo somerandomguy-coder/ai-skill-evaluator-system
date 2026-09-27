@@ -117,8 +117,8 @@ export function buildCognitiveSuites({
       evidenceQuotes: [dimExploration?.evidenceTraces[0]?.excerpt ?? scopeQuote],
       confidence: dimExploration?.confidence ?? 0.92,
       rationale: dimExploration?.rationale ?? (isStrong
-        ? "Established tight boundaries upfront and directed the assistant without accepting scope bloat."
-        : "Scope boundaries partially defined with some iterative clarification."),
+        ? "Set clear project scope upfront and prevented unnecessary bloat."
+        : "Defined basic scope with some room for clearer boundaries."),
     },
     {
       criterion: "decomposition",
@@ -127,8 +127,8 @@ export function buildCognitiveSuites({
       evidenceQuotes: [dimDecomp?.evidenceTraces[0]?.excerpt ?? decompositionQuote],
       confidence: dimDecomp?.confidence ?? 0.9,
       rationale: dimDecomp?.rationale ?? (isStrong
-        ? "Decomposed work into structured, atomic steps rather than a monolithic generation."
-        : "Asked for entire solution in one or two prompts without staged architectural milestones."),
+        ? "Guided the AI step-by-step rather than asking for everything at once."
+        : "Asked for all code at once instead of building step-by-step."),
     },
     {
       criterion: "prompt_quality",
@@ -137,8 +137,8 @@ export function buildCognitiveSuites({
       evidenceQuotes: [dimConstraint?.evidenceTraces[0]?.excerpt ?? promptQualityQuote],
       confidence: dimConstraint?.confidence ?? 0.94,
       rationale: dimConstraint?.rationale ?? (isStrong
-        ? "Prompts provided rich domain constraints, explicit invariants, and clear error conditions."
-        : "Prompts provided baseline guidance with opportunity for higher context density."),
+        ? "Gave clear constraints, data types, and error rules upfront."
+        : "Gave general directions; could provide more specific rules."),
     },
     {
       criterion: "verification",
@@ -147,8 +147,8 @@ export function buildCognitiveSuites({
       evidenceQuotes: [dimVerify?.evidenceTraces[0]?.excerpt ?? verificationQuote],
       confidence: dimVerify?.confidence ?? 0.95,
       rationale: dimVerify?.rationale ?? (isStrong
-        ? "Demonstrated zero-trust posture: independently inspected generated logic and validated assumptions."
-        : "Relied largely on AI assistant assertions without exhaustive boundary scrutiny."),
+        ? "Carefully checked AI-generated code and tested edge cases."
+        : "Accepted AI code without testing for bugs or edge cases."),
     },
     {
       criterion: "stack_decision",
@@ -157,8 +157,8 @@ export function buildCognitiveSuites({
       evidenceQuotes: [dimSensemaking?.evidenceTraces[0]?.excerpt ?? stackDecisionQuote],
       confidence: dimSensemaking?.confidence ?? 0.88,
       rationale: dimSensemaking?.rationale ?? (isStrong
-        ? "Architectural trade-offs articulated clearly with decoupled structure and maintainability in mind."
-        : "Architecture was guided by assistant defaults without explicit trade-off justification."),
+        ? "Clearly explained design choices and evaluated trade-offs."
+        : "Accepted AI design defaults without discussing pros or cons."),
     },
   ];
 
@@ -179,22 +179,22 @@ export function buildCognitiveSuites({
     flags,
     strengths: isStrong
       ? [
-          "Explicit boundary clarification and schema modeling prior to invoking code generation.",
-          "High cognitive verification rigour: proactively validated calculations and caught edge cases.",
-          "Atomic decomposition sequencing from data contracts to core calculation engine.",
+          "Planned schemas and design rules before asking for code.",
+          "Tested calculations carefully and caught hidden edge cases.",
+          "Built step-by-step from data models to business logic.",
         ]
       : [
-          "Iterative communication with the assistant across multiple turns.",
-          "Maintained focus on the core user problem.",
+          "Clear back-and-forth teamwork with the AI.",
+          "Stayed focused on the main user problem.",
         ],
     nextSteps: isStrong
       ? [
-          "Maintain strict verification rigour on third-party dependencies.",
-          "Formalize machine-readable contract schemas for statutory reporting.",
+          "Keep checking third-party libraries for subtle bugs.",
+          "Write explicit data schemas before generating logic.",
         ]
       : [
-          "Break down complex requests into atomic sub-tasks before asking for code.",
-          "Interrogate AI code line-by-line for subtle off-by-one or data-shape defects.",
+          "Break tasks into smaller steps before asking for code.",
+          "Review AI code carefully for bugs and edge cases before saving.",
         ],
   };
 

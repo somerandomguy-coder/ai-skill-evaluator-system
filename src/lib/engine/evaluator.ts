@@ -67,13 +67,14 @@ Evaluate the interaction strictly across the 5 Academic Dimensions:
 2. COGNITIVE_VERIFICATION (Vasconcelos et al., CHI/CSCW): Did candidate inspect code and challenge assumptions, or blindly accept?
 3. CONSTRAINT_SPECIFICATION (Mislevy et al., ECD): Did prompts specify invariants, statutory boundaries, and preconditions?
 4. HIERARCHICAL_DECOMPOSITION (Sweller, Cognitive Load): Did candidate decompose into atomic steps, or issue monolithic generation requests?
-5. ARCHITECTURAL_SENSEMAKING (SFIA 8 DESN): Did candidate justify trade-offs and design rationale?
+5. ARCHITECTURAL_SENSEMAKING (SFIA 9 DESN): Did candidate justify trade-offs and design rationale?
 
 Strict Guardrails:
 1. Do NOT award high scores based on polite conversation or syntactically clean final code.
 2. Every score MUST cite at least one explicit turn ID and quotation showing candidate behavior.
 3. If the candidate never demonstrated verification (e.g., accepted all code blindly without inspection), flag Automation Bias (index >= 0.7), assign the lowest band, and cite the uninspected turns.
 4. If a dimension has zero conversational evidence, emit score: null and flag needsHumanEscalation: true.
+5. Plain Language: Write all rationales in simple, plain English (under 25 words) that non-technical hiring managers and candidates can understand in 5 seconds. Avoid academic jargon.
 
 Output: Valid JSON matching GroundedAssessmentReportSchema.`;
 
@@ -242,18 +243,18 @@ export function generateDeterministicAcademicReport(
       confidence: 0.94,
       qualitativeBand: toBand(scoreExploration),
       rationale: startsWithExploration
-        ? "Candidate initiated session in Exploration Mode: defined schemas and invariant boundaries before requesting code generation."
+        ? "Planned schemas and design rules before asking for code."
         : scoreExploration >= 4
-        ? "Balanced architectural exploration turns with code generation acceleration."
-        : "Remained predominantly in passive acceleration mode, requesting implementation code without prior architectural scoping.",
+        ? "Balanced design planning with AI coding."
+        : "Asked AI to code right away without planning the design first.",
       evidenceTraces: [
         {
           turnId: explorationTurns[0] ? `Turn ${explorationTurns[0].seq}` : defaultTurnId,
           excerpt: explorationTurns[0]?.content || defaultExcerpt,
           observedBehavior: startsWithExploration || explorationTurns.length > 0 ? "SUCCESS_SIGNAL" : "AUTOMATION_BIAS_TRAP",
           interpretation: startsWithExploration
-            ? "Candidate explicitly defined structural boundaries prior to code synthesis."
-            : "Candidate relied on AI default assumptions.",
+            ? "Set design boundaries before coding."
+            : "Jumped straight to coding without boundaries.",
         },
       ],
     },
@@ -266,18 +267,18 @@ export function generateDeterministicAcademicReport(
       confidence: 0.96,
       qualitativeBand: toBand(scoreVerification),
       rationale: verificationTurns.length >= 2
-        ? "Exhibited rigorous cognitive verification: caught hallucinated edge cases and audited logic diffs."
+        ? "Tested calculations carefully and caught hidden edge cases."
         : scoreVerification >= 3
-        ? "Demonstrated moderate verification, probing primary happy-path outcomes."
-        : "Suffered from Automation Bias: accepted generated code blocks without validating boundary conditions.",
+        ? "Checked basic functionality; could test edge cases deeper."
+        : "Accepted AI-written code without testing for edge cases or bugs.",
       evidenceTraces: [
         {
           turnId: verificationTurns[0] ? `Turn ${verificationTurns[0].seq}` : defaultTurnId,
           excerpt: verificationTurns[0]?.content || defaultExcerpt,
           observedBehavior: verificationTurns.length > 0 ? "SUCCESS_SIGNAL" : "AUTOMATION_BIAS_TRAP",
           interpretation: verificationTurns.length > 0
-            ? "Candidate actively probed edge conditions and verified calculations."
-            : "Candidate unreservedly merged AI outputs without inspection turns.",
+            ? "Actively tested and questioned AI code."
+            : "Merged AI code without checking.",
         },
       ],
     },
@@ -290,14 +291,14 @@ export function generateDeterministicAcademicReport(
       confidence: 0.92,
       qualitativeBand: toBand(scoreConstraint),
       rationale: scoreConstraint >= 4
-        ? "Supplied dense domain invariants (statutory constraints, typing preconditions, error scenarios)."
-        : "Prompts contained baseline directions with opportunity for explicit postcondition grounding.",
+        ? "Gave clear constraints, data types, and error rules upfront."
+        : "Gave basic prompts with few rules or constraints.",
       evidenceTraces: [
         {
           turnId: defaultTurnId,
           excerpt: defaultExcerpt,
           observedBehavior: scoreConstraint >= 3 ? "SUCCESS_SIGNAL" : "AUTOMATION_BIAS_TRAP",
-          interpretation: "Evaluation of requirement clarity and invariant density.",
+          interpretation: "Provided explicit input boundaries.",
         },
       ],
     },
@@ -310,14 +311,14 @@ export function generateDeterministicAcademicReport(
       confidence: 0.9,
       qualitativeBand: toBand(scoreDecomposition),
       rationale: userMessages.length >= 3
-        ? "Decomposed complexity into atomic phases: contract definition, engine logic, validation, and test coverage."
-        : "Attempted monolithic one-shot generation with limited sequential scaffolding.",
+        ? "Broke the problem down into clean, step-by-step phases."
+        : "Asked for all code at once instead of building step-by-step.",
       evidenceTraces: [
         {
           turnId: userMessages[1] ? `Turn ${userMessages[1].seq}` : defaultTurnId,
           excerpt: userMessages[1]?.content || defaultExcerpt,
           observedBehavior: userMessages.length >= 2 ? "SUCCESS_SIGNAL" : "AUTOMATION_BIAS_TRAP",
-          interpretation: "Observation of sequencing and cognitive load management.",
+          interpretation: "Guided the AI step-by-step.",
         },
       ],
     },
@@ -330,14 +331,14 @@ export function generateDeterministicAcademicReport(
       confidence: 0.88,
       qualitativeBand: toBand(scoreSensemaking),
       rationale: scoreSensemaking >= 4
-        ? "Defended architectural patterns and articulated trade-offs across maintainability and precision."
-        : "Relied on AI suggestions without documenting explicit trade-off justifications.",
+        ? "Clearly explained design choices and evaluated trade-offs."
+        : "Accepted AI design defaults without discussing pros or cons.",
       evidenceTraces: [
         {
           turnId: defaultTurnId,
           excerpt: defaultExcerpt,
           observedBehavior: scoreSensemaking >= 3 ? "SUCCESS_SIGNAL" : "AUTOMATION_BIAS_TRAP",
-          interpretation: "Evaluation of SFIA Level autonomy and engineering justification.",
+          interpretation: "Justified technical choices.",
         },
       ],
     },
@@ -365,9 +366,9 @@ export function generateDeterministicAcademicReport(
     needsHumanEscalation: automationBiasIndex >= 0.8 || userMessages.length <= 1,
     escalationReason:
       automationBiasIndex >= 0.8
-        ? "Candidate accepted AI suggestions with zero verification turns (High Automation Bias)."
+        ? "Accepted AI code with zero testing (high overreliance risk)."
         : userMessages.length <= 1
-        ? "Insufficient candidate interaction recorded (single-turn session)."
+        ? "Only one prompt recorded; insufficient session data."
         : undefined,
     evaluationTimestamp: new Date().toISOString(),
   };

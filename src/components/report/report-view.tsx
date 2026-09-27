@@ -23,7 +23,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import Link from "next/link";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { TONE } from "@/components/common/score";
 import { ScoreRing } from "@/components/common/score";
 import { EvidenceExplorer } from "@/components/evidence/explorer";
@@ -41,6 +41,7 @@ import { RequirementResultCard } from "./requirement-result";
 import { ChallengeTierBadge } from "@/components/challenge/tier-badge";
 import { AcademicRubricCard } from "./academic-rubric-card";
 import { AutomationBiasIndicator } from "./automation-bias-indicator";
+import { ReportJourneyModal } from "./report-journey-modal";
 
 interface Props {
   evaluation: EvaluationView;
@@ -115,7 +116,7 @@ function Section({
 }
 
 const Count = ({ children }: { children: ReactNode }) => (
-  <span className="tabular rounded-full bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground">{children}</span>
+  <span className="tabular rounded-full bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground">{children}</span>
 );
 
 function BulletList({ items, tone }: { items: string[]; tone: "ok" | "warn" | "signal" }) {
@@ -123,7 +124,7 @@ function BulletList({ items, tone }: { items: string[]; tone: "ok" | "warn" | "s
   return (
     <ul className="grid gap-2 sm:grid-cols-2">
       {items.map((s, i) => (
-        <li key={i} className="flex gap-2.5 rounded-xl bg-surface-container-low p-3 text-[13px] leading-relaxed ring-1 ring-border">
+        <li key={i} className="flex gap-2.5 rounded-xl bg-surface-container-low p-3 text-sm leading-relaxed ring-1 ring-border">
           <span className={cn("mt-[7px] size-1.5 shrink-0 rounded-full", dot)} aria-hidden />
           <span>{s}</span>
         </li>
@@ -139,6 +140,27 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
   const isReviewed = ev.reviewStatus === "REVIEWED" && !!review;
   const isPending = ev.reviewStatus === "PENDING";
   const [selectedCitation, setSelectedCitation] = useState<{ title: string; quote: string; rationale: string; confidence: number } | null>(null);
+  const [showJourney, setShowJourney] = useState(false);
+
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem(`report-journey-seen-${ev.id}`);
+      if (!seen) {
+        setShowJourney(true);
+      }
+    } catch {
+      // Ignore storage access errors
+    }
+  }, [ev.id]);
+
+  const closeJourney = () => {
+    try {
+      localStorage.setItem(`report-journey-seen-${ev.id}`, "true");
+    } catch {
+      // Ignore
+    }
+    setShowJourney(false);
+  };
 
   const [open, setOpen] = useState<Record<SectionKey, boolean>>({
     summary: true,
@@ -240,6 +262,14 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
             )}
           </ul>
           <div className="rise flex flex-wrap items-center gap-2" style={stagger(3)}>
+            <button
+              type="button"
+              onClick={() => setShowJourney(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary shadow-sm transition-all hover:bg-primary/20 hover:scale-[1.02]"
+            >
+              <Sparkles className="size-3.5" />
+              Take Score Tour
+            </button>
             <Link href={`/report/${ev.id}/employer`} className={buttonVariants({ variant: "signal", size: "lg", className: "rounded-full px-4" })}>
               <Layers aria-hidden />
               Interviewer deck
@@ -270,15 +300,15 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
                 <GraduationCap className="size-4" />
               </span>
               <div>
-                <p className="font-semibold text-foreground">
+                <p className="font-semibold text-foreground text-sm">
                   Empirically Grounded Assessment Engine
                 </p>
-                <p className="text-muted-foreground text-[11px]">
-                  Evaluated via Barke et al. (OOPSLA &apos;23), Vasconcelos et al. (CHI/CSCW &apos;23), &amp; Mislevy et al. (Evidence-Centered Design)
+                <p className="text-muted-foreground text-xs">
+                  Evaluated via Barke et al. (OOPSLA &apos;23), Vasconcelos et al. (Stanford / CHI &apos;23), &amp; SFIA 9 / Mislevy et al.
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
               <a
                 href="https://arxiv.org/abs/2206.15000"
                 target="_blank"
@@ -293,7 +323,15 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 rounded-full border border-indigo-500/20 bg-background/80 px-2.5 py-1 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors"
               >
-                Vasconcelos et al. (CSCW)
+                Vasconcelos et al. (Stanford)
+              </a>
+              <a
+                href="https://sfia-online.org/en/sfia-9/skills/systems-design"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-full border border-indigo-500/20 bg-background/80 px-2.5 py-1 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors"
+              >
+                SFIA 9 (ACS)
               </a>
               <a
                 href="https://cresst.org/wp-content/uploads/TR597.pdf"
@@ -445,7 +483,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
           {groundedAssessment && (
             <Section
               id="academic"
-              title="Academic Human-AI Interaction Rubric"
+              title="Research-Backed AI Collaboration Rubric"
               icon={<GraduationCap className="size-4" aria-hidden />}
               meta={<Count>{groundedAssessment.dimensions.length} dimensions</Count>}
               open={open.academic}
@@ -607,6 +645,14 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
             )}
           </DialogContent>
         </Dialog>
+        <ReportJourneyModal
+          isOpen={showJourney}
+          onClose={closeJourney}
+          evaluation={ev}
+          suiteA={suiteA}
+          suiteB={suiteB}
+          groundedAssessment={groundedAssessment}
+        />
       </div>
     </EvidenceProvider>
   );

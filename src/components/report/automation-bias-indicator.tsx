@@ -22,17 +22,17 @@ export function AutomationBiasIndicator({ index, className }: AutomationBiasIndi
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold tracking-tight">Automation Bias Index</h2>
-            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
-              Vasconcelos et al. (CHI/CSCW)
+            <h2 className="text-base font-semibold tracking-tight">Automation Bias Index</h2>
+            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
+              Vasconcelos et al. (Stanford / CHI)
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            Quantifies cognitive verification rigour vs uncritical code rubber-stamping.
+            Measures whether you carefully test AI code or just accept it blindly.
           </p>
         </div>
 
-        <div className="flex items-baseline gap-1 text-right">
+        <div className="flex items-baseline gap-1.5 text-right">
           <span
             className={cn(
               "tabular font-display text-2xl font-bold",
@@ -49,7 +49,7 @@ export function AutomationBiasIndicator({ index, className }: AutomationBiasIndi
 
       {/* Visual meter bar */}
       <div className="space-y-1.5">
-        <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
           <div
             className={cn(
               "h-full rounded-full transition-all duration-500",
@@ -60,16 +60,16 @@ export function AutomationBiasIndicator({ index, className }: AutomationBiasIndi
             style={{ width: `${Math.max(5, Math.min(100, percentage))}%` }}
           />
         </div>
-        <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
-          <span>0% (High Verification Rigour)</span>
-          <span>100% (Blind Acceptance)</span>
+        <div className="flex justify-between text-[11px] font-mono text-muted-foreground">
+          <span>0% (Careful Testing)</span>
+          <span>100% (Blind Trust)</span>
         </div>
       </div>
 
       {/* Status banner */}
       <div
         className={cn(
-          "flex items-start gap-2.5 rounded-2xl p-3 text-xs",
+          "flex items-start gap-3 rounded-2xl p-3.5 text-xs",
           isRigorous && "bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border border-emerald-500/20",
           isModerateBias && "bg-blue-500/10 text-blue-800 dark:text-blue-200 border border-blue-500/20",
           isHighBias && "bg-amber-500/10 text-amber-800 dark:text-amber-200 border border-amber-500/20"
@@ -81,34 +81,34 @@ export function AutomationBiasIndicator({ index, className }: AutomationBiasIndi
           <AlertTriangle className="size-4 shrink-0 text-amber-600 mt-0.5" aria-hidden />
         )}
         <div className="space-y-1 min-w-0 flex-1">
-          <p className="font-semibold">
-            {isRigorous && "Zero-Trust Verification: Active Cognitive Auditing"}
-            {isModerateBias && "Balanced Verification: Verified Primary Pathways"}
-            {isHighBias && "Automation Bias Trap: Passive Code Acceptance Detected"}
+          <p className="font-semibold text-[13px]">
+            {isRigorous && "Active Verifier: Tested & Questioned AI Code"}
+            {isModerateBias && "Moderate Review: Checked Main Paths"}
+            {isHighBias && "Overreliance Detected: Accepted AI Code Without Checking"}
           </p>
-          <p className="text-[11px] leading-relaxed opacity-90">
+          <p className="text-xs leading-relaxed opacity-90">
             {isRigorous &&
-              "Candidate rigorously questioned the AI assistant, isolated calculations into pure functions, and scrutinized boundary assumptions."}
+              "You carefully inspected the AI's suggestions, tested edge cases, and caught potential bugs."}
             {isModerateBias &&
-              "Candidate reviewed generated logic on key turns but occasionally accepted complex outputs without exhaustive boundary checks."}
+              "You reviewed key changes, but could test more edge cases and error states."}
             {isHighBias &&
-              "Candidate accepted multi-line generated files without inspection turns. Per Vasconcelos et al., high-performing engineers treat AI output as unverified drafts."}
+              "You accepted AI code without review. Top engineers test and inspect AI code before trusting it."}
           </p>
         </div>
       </div>
 
       {/* Paper link footer */}
-      <div className="flex items-center justify-between pt-1 border-t border-border/50 text-[11px]">
-        <span className="text-muted-foreground">Theory: Cost of Verification Model</span>
+      <div className="flex items-center justify-between pt-1 border-t border-border/50 text-xs">
+        <span className="text-muted-foreground">Research: Cost of Verification</span>
         <a
           href="https://cicl.stanford.edu/papers/vasconcelos2023explanations.pdf"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
         >
-          <BookOpen className="size-3" />
-          <span>Read Stanford/Microsoft Research Paper</span>
-          <ExternalLink className="size-2.5 opacity-70" />
+          <BookOpen className="size-3.5" />
+          <span>Read Stanford/Microsoft Study</span>
+          <ExternalLink className="size-3 opacity-70" />
         </a>
       </div>
     </div>

@@ -1,4 +1,4 @@
-export type SfiaLevel = 2 | 3; // Level 2: Assist (Junior), Level 3: Apply (Mid-Level)
+export type SfiaLevel = 2 | 3; // SFIA 9 Standard: Level 2: Assist (Junior), Level 3: Apply (Mid-Level)
 
 export type SfiaSkillCode = "PROG" | "DESN" | "TEST" | "DBDS" | "ITOP";
 
