@@ -14,10 +14,9 @@ export interface ProgressStep {
 
 export const PIPELINE_STEPS: Omit<ProgressStep, "state" | "detail">[] = [
   { id: "read", label: "Read the posting", hint: "Fetching the page and pulling out the job text" },
-  { id: "parse", label: "Understand the role", hint: "Skills and seniority, and requirements that filter people rather than measure ability" },
-  { id: "research", label: "Research the company", hint: "Cached web search, falling back to the job description alone" },
-  { id: "challenge", label: "Design your project", hint: "2 to 4 hours, rooted in the company's real domain" },
-  { id: "rubric", label: "Write the rubric", hint: "Generated with the brief so the two stay consistent" },
+  { id: "parse", label: "Understand the role", hint: "Skills and seniority, filtering barriers, and SFIA 9 calibration" },
+  { id: "challenge", label: "Design your project", hint: "3-Tier resolution (Mentor-Verified, Cached, or Tailored)" },
+  { id: "rubric", label: "Write the rubric", hint: "Calibrated to SFIA 9 and Evidence-Centered Design" },
   { id: "save", label: "Save", hint: "Ready for you to read before you start" },
 ];
 

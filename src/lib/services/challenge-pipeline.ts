@@ -10,7 +10,6 @@ import { DemoFixtureMissingError, isSeedJd } from "../ai/demo";
 import { generateChallenge } from "../ai/generate-challenge";
 import { generateRequirementBank } from "../ai/generate-requirements";
 import { InvalidJdError, parseJobDescription, validateJdText } from "../ai/parse-jd";
-import { researchCompany } from "../ai/research-company";
 import { RUBRIC_VERSION } from "../constants";
 import { prisma } from "../db";
 import { isDemoMode, isFastPipeline } from "../env";
@@ -77,12 +76,7 @@ async function runFastPipeline(
   await pause(200);
   emit({ type: "step", step: "parse", status: "done", detail: `${roleTitle} at ${employer}` });
 
-  // Step 2: Research
-  emit({ type: "step", step: "research", status: "start" });
-  await pause(200);
-  emit({ type: "step", step: "research", status: "done", detail: `Domain signals for ${employer}` });
-
-  // Step 3: Challenge design (V2 3-Tier Resolution)
+  // Step 2: Challenge design (V2 3-Tier Resolution)
   emit({ type: "step", step: "challenge", status: "start" });
   const resolution = await resolveChallenge(text, employer);
   const resolved = resolution.challenge;
@@ -218,17 +212,16 @@ export async function runChallengePipeline(
     const parsed = await parseJobDescription(text);
     emit({ type: "step", step: "parse", status: "done", detail: `${parsed.roleTitle} at ${parsed.employer}` });
 
-    // 3. Research (never blocks: degrades to JD-only).
-    emit({ type: "step", step: "research", status: "start" });
-    const research = await researchCompany(parsed.employer, parsed);
-    emit({
-      type: "step",
-      step: "research",
-      status: "done",
-      detail: research.groundedInSearch ? `${research.sources.length} sources` : "no web results — using the job description alone",
-    });
+    // 3. Fast Domain Signals (direct from JD, zero web search latency).
+    const research = {
+      whatTheyDo: `Engineering organisation specialising in ${parsed.roleTitle} solutions.`,
+      domainAndUsers: `Internal and external users of ${parsed.employer}'s systems.`,
+      technicalSignals: parsed.mustHaveSkills.slice(0, 5),
+      groundedInSearch: false,
+      sources: [] as Array<{ title: string; url: string }>,
+    };
 
-    // 4 + 5. 3-Tier Resolution Engine: SFIA 8 & Evidence-Centered Design
+    // 4. 3-Tier Resolution Engine: SFIA 9 & Evidence-Centered Design
     emit({ type: "step", step: "challenge", status: "start" });
     const resolution = await resolveChallenge(text, parsed.employer);
     const resolved = resolution.challenge;

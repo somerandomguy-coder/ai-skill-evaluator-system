@@ -1,0 +1,102 @@
+[
+  {
+    "roleTitle": "Staff Frontend Engineer — Core Canvas",
+    "employer": "Canva",
+    "domain": "Visual Design & Interactive Canvas",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/canva-staff-frontend-canvas",
+    "rawJd": "Role: Staff Frontend Engineer\nCompany: Canva\nLocation: Sydney, NSW (Hybrid)\n\nAbout Canva:\nCanva's Core Canvas team builds the high-performance rendering and interactive editing engine used by 180M+ monthly active users worldwide.\n\nKey Responsibilities:\n- Architect high-performance, 60fps canvas rendering pipelines using WebGL, WebAssembly, and modern TypeScript.\n- Design modular UI components and collaborate with UX teams on precision interactions (snapping, multi-selection, alignment).\n- Drive frontend performance profiling, memory leak prevention, and state synchronization across distributed clients.\n- Mentor engineers and establish zero-trust architectural standards for AI-assisted code generation.\n\nQualifications & Requirements:\n- 6+ years of production experience with TypeScript, React, and Canvas/WebGL APIs.\n- Deep understanding of browser event loops, DOM performance bottlenecks, and state management.\n- Proven track record decoupling core algorithmic business logic from rendering components.\n- Experience profiling frame rates, memory footprints, and asset caching strategies.\n- Strong communication skills and cross-functional technical leadership.",
+    "mustHaveSkills": ["TypeScript", "React", "Canvas / WebGL", "State Architecture", "Performance Profiling"],
+    "niceToHaveSkills": ["WebAssembly", "CRDTs", "Design Systems"],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Backend Payments Engineer",
+    "employer": "Stripe",
+    "domain": "Fintech & Distributed Transactions",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/stripe-backend-payments-au",
+    "rawJd": "Role: Senior Backend Payments Engineer\nCompany: Stripe\nLocation: Remote / Sydney, Australia\n\nAbout Stripe:\nStripe is building the economic infrastructure for the internet. The Payments Ingestion team processes billions of dollars in transaction volume daily with strict five-nines availability.\n\nKey Responsibilities:\n- Design and implement idempotent webhook processing pipelines with distributed deduplication and exponential backoff retries.\n- Model secure transaction state machines preventing double-spending and race conditions under high concurrency.\n- Implement strict signature verification (HMAC-SHA256) and zero-trust payload sanitization before persisting events.\n- Establish automated stress-testing suites verifying graceful degradation during upstream provider outages.\n\nQualifications & Requirements:\n- 5+ years building distributed backend systems in TypeScript, Go, or Python.\n- Deep understanding of ACID guarantees, idempotency keys, and asynchronous message broker patterns.\n- Experience designing resilient APIs with rate limiting, circuit breaking, and structured telemetry.\n- Uncompromising commitment to transactional correctness and zero-loss financial accounting.",
+    "mustHaveSkills": ["TypeScript / Node.js", "Distributed Systems", "Idempotency", "HMAC Security", "PostgreSQL"],
+    "niceToHaveSkills": ["Redis", "Kafka", "Observability (Prometheus/OpenTelemetry)"],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Full-Stack Engineer — Payroll Engine",
+    "employer": "Employment Hero",
+    "domain": "Regulated HR & Single Touch Payroll",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/employment-hero-senior-payroll-engineer",
+    "rawJd": "Role: Senior Full-Stack Engineer\nCompany: Employment Hero\nLocation: Sydney, Australia (Hybrid / Remote)\n\nAbout Employment Hero:\nEmployment Hero powers HR and payroll for over 300,000 Australian businesses. Our Payroll Engine disaggregates gross earnings under ATO Single Touch Payroll (STP) Phase 2 specifications.\n\nKey Responsibilities:\n- Architect high-throughput wage disaggregation engine conforming to ATO STP Phase 2 statutory rules.\n- Implement strict decimal rounding algorithms avoiding IEEE-754 floating point precision loss across financial ledgers.\n- Design automated PII and TFN data-masking layers protecting employee statutory records in compliance with Privacy Act 1988.\n- Maintain 100% test coverage for complex modern award rate rule calculations.\n\nRequirements:\n- 4+ years software engineering experience with TypeScript/Node.js or Python.\n- Experience with financial accounting, payroll legislation, or statutory reporting systems.\n- High attention to edge-case validation, schema invariants, and automated regression testing.",
+    "mustHaveSkills": ["TypeScript", "Decimal Arithmetic", "Statutory Compliance", "PostgreSQL", "Data Masking"],
+    "niceToHaveSkills": ["ATO STP Phase 2", "Microservices", "Event-Driven Architecture"],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Cloud Infrastructure Engineer",
+    "employer": "Datadog",
+    "domain": "Observability & Distributed Telemetry",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/datadog-senior-cloud-telemetry",
+    "rawJd": "Role: Senior Cloud Infrastructure Engineer\nCompany: Datadog\nLocation: Sydney, Australia\n\nAbout Datadog:\nDatadog is the monitoring and security platform for cloud applications. We process trillions of data points daily to give engineers real-time visibility into their systems.\n\nKey Responsibilities:\n- Design scalable telemetry ingestion pipelines capable of buffering high-frequency metric spikes.\n- Build distributed rate limiting and token-bucket traffic shaping to guarantee upstream ingestion stability.\n- Implement automated synthetic health-probes and circuit-breakers preventing cascading failure.\n- Collaborate on OpenTelemetry tracing and Prometheus exporter architectures.\n\nRequirements:\n- Strong systems engineering in Go or TypeScript.\n- Deep familiarity with Linux internals, networking protocols (TCP/UDP, gRPC, HTTP/2).\n- Experience with container orchestration (Kubernetes) and cloud infrastructure (AWS/GCP).",
+    "mustHaveSkills": ["Go / TypeScript", "Distributed Systems", "Telemetry & Metrics", "Traffic Shaping", "Kubernetes"],
+    "niceToHaveSkills": ["OpenTelemetry", "Prometheus", "eBPF"],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Real-Time Collaborative Engineer",
+    "employer": "Atlassian",
+    "domain": "Real-time Collaboration & Concurrency",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/atlassian-senior-realtime-engineer",
+    "rawJd": "Role: Senior Real-Time Collaborative Engineer\nCompany: Atlassian\nLocation: Sydney, Australia\n\nAbout Atlassian:\nAtlassian powers team collaboration worldwide through Jira, Confluence, and Loom. The Confluence Document Platform team builds real-time collaborative editing experiences.\n\nKey Responsibilities:\n- Implement conflict-free collaborative editing protocols using CRDTs (Conflict-free Replicated Data Types) or Operational Transformation (OT).\n- Architect resilient WebSocket connection management with automatic session recovery and state reconciliation.\n- Ensure sub-50ms keystroke synchronization latency across multi-region distributed nodes.\n- Design automated fuzzing suites verifying convergence under out-of-order network packet delivery.\n\nRequirements:\n- 5+ years experience building complex client-server web architectures in TypeScript.\n- Proven mastery of asynchronous state machines, concurrent data structures, and WebSockets.\n- Strong focus on engineering rigor, invariant verification, and performance optimization.",
+    "mustHaveSkills": ["TypeScript", "CRDTs / OT", "WebSockets", "Distributed State", "Unit & Fuzz Testing"],
+    "niceToHaveSkills": ["Rust / WebAssembly", "Redis Pub/Sub", "State Machines"],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Applied AI & Privacy Engineer",
+    "employer": "Culture Amp",
+    "domain": "People Analytics & Differential Privacy",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/culture-amp-ai-privacy-engineer",
+    "rawJd": "Role: Senior Applied AI & Privacy Engineer\nCompany: Culture Amp\nLocation: Melbourne / Sydney, Australia\n\nAbout Culture Amp:\nCulture Amp is the world's leading employee experience platform. Our AI team builds sentiment and topic-modeling engines with strict zero-knowledge privacy guarantees.\n\nKey Responsibilities:\n- Build semantic text summarization pipelines using modern LLMs with strict PII anonymization gates.\n- Implement k-anonymity and differential privacy filters preventing employee de-anonymization in low-headcount cohorts.\n- Design guardrail evaluation frameworks auditing model hallucination rates and prompt injection vulnerabilities.\n- Partner with product managers to deliver human-centered, explainable AI analytics dashboards.\n\nRequirements:\n- 4+ years software engineering experience in Python or TypeScript.\n- Experience deploying NLP/LLM pipelines in production.\n- Rigorous understanding of privacy frameworks, data sanitization, and security testing.",
+    "mustHaveSkills": ["TypeScript / Python", "LLM Orchestration", "PII Redaction", "Differential Privacy", "Evaluation Frameworks"],
+    "niceToHaveSkills": ["Vector Databases", "LangChain/LlamaIndex", "AppSec"],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Mobile Sync & Offline Systems Architect",
+    "employer": "SafetyCulture",
+    "domain": "Mobile Workplace Safety & Offline Sync",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/safetyculture-mobile-sync-architect",
+    "rawJd": "Role: Senior Mobile Sync & Offline Systems Architect\nCompany: SafetyCulture\nLocation: Sydney, Australia\n\nAbout SafetyCulture:\nSafetyCulture powers over 70,000 operational teams worldwide conducting inspections in remote mines, construction sites, and flight lines with intermittent network connectivity.\n\nKey Responsibilities:\n- Architect local-first data persistence and offline mutation queues using SQLite and TypeScript.\n- Design bidirectional delta-sync protocols resolving concurrent conflicting updates with zero data loss.\n- Implement binary media caching and resumable multipart uploads for high-resolution inspection photos.\n- Verify sync reliability across flaky 3G networks and sudden device airplane-mode toggles.\n\nRequirements:\n- 5+ years experience building offline-first mobile or web applications.\n- Strong expertise in relational database schema design (SQLite/PostgreSQL) and transaction isolation.\n- Excellent understanding of distributed synchronization and idempotent replay patterns.",
+    "mustHaveSkills": ["TypeScript", "Local-First / SQLite", "Offline Sync", "Conflict Resolution", "Resilient Networking"],
+    "niceToHaveSkills": ["React Native", "CRDTs", "Protocol Buffers"],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Edge Runtime & Serverless Architect",
+    "employer": "Vercel",
+    "domain": "Global Edge Computing & Distributed Cache",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/vercel-senior-edge-runtime",
+    "rawJd": "Role: Senior Edge Runtime Architect\nCompany: Vercel\nLocation: Remote / Australia\n\nAbout Vercel:\nVercel builds the Frontend Cloud, enabling millions of developers to deploy web applications instantly with global edge routing and sub-millisecond cold starts.\n\nKey Responsibilities:\n- Design lightweight runtime middlewares executing under strict V8 isolate memory and CPU constraints.\n- Implement stale-while-revalidate distributed cache invalidation across 300+ global edge locations.\n- Build zero-dependency streaming SSR response pipelines with early-hints header flushing.\n- Enforce strict runtime sandbox security preventing prototype pollution and environment variable leakage.\n\nRequirements:\n- Deep expertise in JavaScript/TypeScript runtime internals and web standard APIs (Fetch, Streams, Web Crypto).\n- Experience with edge computing platforms (Cloudflare Workers, Deno, Node.js isolates).\n- Strong track record designing high-scale, low-latency distributed systems.",
+    "mustHaveSkills": ["TypeScript", "Edge Runtime / V8 Isolates", "HTTP/2 & HTTP/3 Streams", "Cache Architecture", "Security Sandboxing"],
+    "niceToHaveSkills": ["Rust", "Wasm", "OpenTelemetry"],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Open Banking & CDR Gateway Engineer",
+    "employer": "Finder",
+    "domain": "Consumer Data Right & Open Banking",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/finder-cdr-gateway-engineer",
+    "rawJd": "Role: Senior Open Banking & CDR Gateway Engineer\nCompany: Finder\nLocation: Sydney, Australia\n\nAbout Finder:\nFinder is Australia's largest comparison site, helping over 2 million Australians every month compare loans, insurance, and banking products through accredited Consumer Data Right (CDR) integrations.\n\nKey Responsibilities:\n- Build accredited CDR data receipt pipelines conforming strictly to ACCC Consumer Data Standards.\n- Implement FAPI (Financial-grade API) compliant OAuth2/OIDC mutual TLS authentication flows.\n- Enforce automated user consent lifecycle management and cryptographic audit logging.\n- Ensure customer account numbers and BSB data are tokenized and encrypted at rest and in transit.\n\nRequirements:\n- 4+ years backend engineering in TypeScript or Java.\n- Deep experience with OAuth2, OpenID Connect, and public key cryptography.\n- Understanding of Australian banking regulations, CDR standards, and secure API gateways.",
+    "mustHaveSkills": ["TypeScript", "OAuth2 / FAPI", "Cryptographic Signing", "CDR Standards", "API Security"],
+    "niceToHaveSkills": ["mTLS", "PostgreSQL", "Banking API Integrations"],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior FX Liquidity & Cross-Border Ledger Engineer",
+    "employer": "Wise",
+    "domain": "Cross-Border Payments & FX Matching",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/wise-senior-fx-ledger",
+    "rawJd": "Role: Senior FX Liquidity & Cross-Border Ledger Engineer\nCompany: Wise\nLocation: Remote / Sydney, Australia\n\nAbout Wise:\nWise is the international money transfer service moving over £25 billion every quarter across 50+ currencies with instantaneous conversion and zero hidden fees.\n\nKey Responsibilities:\n- Architect double-entry financial ledger accounting engines guaranteeing zero discrepancy across currency pairs.\n- Design real-time FX rate matching algorithms with lock-in expiration timestamps and slippage limits.\n- Implement atomic multi-party database transaction guarantees with deterministic lock ordering.\n- Audit and eliminate race conditions in high-concurrency payment routing workers.\n\nRequirements:\n- 5+ years building transactional ledger engines in TypeScript, Java, or Go.\n- Deep mastery of ACID isolation levels, deadlocks, and distributed consensus.\n- Rigorous mindset toward numeric precision, mathematical correctness, and automated invariant testing.",
+    "mustHaveSkills": ["TypeScript / Java", "Double-Entry Ledger", "FX Algorithms", "ACID Transactions", "High-Concurrency"],
+    "niceToHaveSkills": ["Kafka", "PostgreSQL Advisory Locks", "Financial Auditing"],
+    "timeboxMinutes": 180
+  }
+]
