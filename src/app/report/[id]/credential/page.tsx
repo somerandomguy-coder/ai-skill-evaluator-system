@@ -229,7 +229,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
               </div>
               <span className="tabular font-display text-2xl">
                 {suiteA.score}
-                <span className="text-sm font-normal text-muted-foreground">/{suiteA.maxScore || 100}</span>
+                <span className="text-sm font-normal text-muted-foreground">/{suiteA.maxScore || 40}</span>
               </span>
             </div>
             <ul className="space-y-2">

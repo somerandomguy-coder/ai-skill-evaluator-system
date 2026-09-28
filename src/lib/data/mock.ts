@@ -204,8 +204,8 @@ function buildEvaluation(s: MockSession): EvaluationView | null {
   const suiteA: SuiteAView = isStrong
     ? {
         title: "Product 4D Engineering Lifecycle",
-        score: 90,
-        maxScore: 100,
+        score: 36,
+        maxScore: 40,
         status: "EXEMPLARY",
         phases: [
           { name: "Define", phase: 1, score: 9, maxScore: 10, summary: "Clarified ambiguous group-size boundary and confidentiality thresholds prior to prompting." },
@@ -217,8 +217,8 @@ function buildEvaluation(s: MockSession): EvaluationView | null {
       }
     : {
         title: "Product 4D Engineering Lifecycle",
-        score: 28,
-        maxScore: 100,
+        score: 9,
+        maxScore: 40,
         status: "DEVELOPING",
         phases: [
           { name: "Define", phase: 1, score: 2, maxScore: 10, summary: "Skipped: Jumped straight to build with zero boundary clarification." },

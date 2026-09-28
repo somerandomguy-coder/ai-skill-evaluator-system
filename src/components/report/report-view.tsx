@@ -10,6 +10,7 @@ import {
   CircleCheck,
   CircleX,
   Clock,
+  Download,
   FileCode,
   GraduationCap,
   Hourglass,
@@ -32,6 +33,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CATEGORY_META, REQUIREMENT_CATEGORIES } from "@/lib/ai/schemas";
 import type { AuditFlags, EvaluationView, UserView } from "@/lib/data/types";
+import { downloadProjectZip } from "@/lib/export/zip";
 import type { GroundedAssessmentReport } from "@/lib/types/assessment-academic";
 import { formatMinutes, scoreBand } from "@/lib/format";
 import { buildCognitiveSuites } from "@/lib/services/cognitive-rubric";
@@ -275,6 +277,15 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
               Interviewer deck
             </Link>
             <ViewCredentialButton evaluationId={ev.id} />
+            <button
+              type="button"
+              onClick={() => void downloadProjectZip(ev.files, `${ev.challenge.title}-project`)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground shadow-sm transition-all hover:bg-muted hover:scale-[1.02]"
+              title="Download candidate project codebase as ZIP"
+            >
+              <Download className="size-3.5 text-muted-foreground" />
+              Download ZIP
+            </button>
             <CopyLinkButton />
             <PrintExecutivePdfButton />
           </div>
@@ -360,7 +371,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
                 <h2 className="text-sm font-semibold">Product 4D</h2>
                 <span className="tabular font-display text-2xl">
                   {suiteA.score}
-                  <span className="text-sm font-normal text-muted-foreground">/{suiteA.maxScore || 100}</span>
+                  <span className="text-sm font-normal text-muted-foreground">/{suiteA.maxScore || 40}</span>
                 </span>
               </div>
               <ul className="space-y-2.5">

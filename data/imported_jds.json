@@ -5,8 +5,18 @@
     "domain": "Visual Design & Interactive Canvas",
     "sourceUrl": "https://www.linkedin.com/jobs/view/canva-staff-frontend-canvas",
     "rawJd": "Role: Staff Frontend Engineer\nCompany: Canva\nLocation: Sydney, NSW (Hybrid)\n\nAbout Canva:\nCanva's Core Canvas team builds the high-performance rendering and interactive editing engine used by 180M+ monthly active users worldwide.\n\nKey Responsibilities:\n- Architect high-performance, 60fps canvas rendering pipelines using WebGL, WebAssembly, and modern TypeScript.\n- Design modular UI components and collaborate with UX teams on precision interactions (snapping, multi-selection, alignment).\n- Drive frontend performance profiling, memory leak prevention, and state synchronization across distributed clients.\n- Mentor engineers and establish zero-trust architectural standards for AI-assisted code generation.\n\nQualifications & Requirements:\n- 6+ years of production experience with TypeScript, React, and Canvas/WebGL APIs.\n- Deep understanding of browser event loops, DOM performance bottlenecks, and state management.\n- Proven track record decoupling core algorithmic business logic from rendering components.\n- Experience profiling frame rates, memory footprints, and asset caching strategies.\n- Strong communication skills and cross-functional technical leadership.",
-    "mustHaveSkills": ["TypeScript", "React", "Canvas / WebGL", "State Architecture", "Performance Profiling"],
-    "niceToHaveSkills": ["WebAssembly", "CRDTs", "Design Systems"],
+    "mustHaveSkills": [
+      "TypeScript",
+      "React",
+      "Canvas / WebGL",
+      "State Architecture",
+      "Performance Profiling"
+    ],
+    "niceToHaveSkills": [
+      "WebAssembly",
+      "CRDTs",
+      "Design Systems"
+    ],
     "timeboxMinutes": 180
   },
   {
@@ -15,8 +25,18 @@
     "domain": "Fintech & Distributed Transactions",
     "sourceUrl": "https://www.linkedin.com/jobs/view/stripe-backend-payments-au",
     "rawJd": "Role: Senior Backend Payments Engineer\nCompany: Stripe\nLocation: Remote / Sydney, Australia\n\nAbout Stripe:\nStripe is building the economic infrastructure for the internet. The Payments Ingestion team processes billions of dollars in transaction volume daily with strict five-nines availability.\n\nKey Responsibilities:\n- Design and implement idempotent webhook processing pipelines with distributed deduplication and exponential backoff retries.\n- Model secure transaction state machines preventing double-spending and race conditions under high concurrency.\n- Implement strict signature verification (HMAC-SHA256) and zero-trust payload sanitization before persisting events.\n- Establish automated stress-testing suites verifying graceful degradation during upstream provider outages.\n\nQualifications & Requirements:\n- 5+ years building distributed backend systems in TypeScript, Go, or Python.\n- Deep understanding of ACID guarantees, idempotency keys, and asynchronous message broker patterns.\n- Experience designing resilient APIs with rate limiting, circuit breaking, and structured telemetry.\n- Uncompromising commitment to transactional correctness and zero-loss financial accounting.",
-    "mustHaveSkills": ["TypeScript / Node.js", "Distributed Systems", "Idempotency", "HMAC Security", "PostgreSQL"],
-    "niceToHaveSkills": ["Redis", "Kafka", "Observability (Prometheus/OpenTelemetry)"],
+    "mustHaveSkills": [
+      "TypeScript / Node.js",
+      "Distributed Systems",
+      "Idempotency",
+      "HMAC Security",
+      "PostgreSQL"
+    ],
+    "niceToHaveSkills": [
+      "Redis",
+      "Kafka",
+      "Observability (Prometheus/OpenTelemetry)"
+    ],
     "timeboxMinutes": 180
   },
   {
@@ -25,8 +45,18 @@
     "domain": "Regulated HR & Single Touch Payroll",
     "sourceUrl": "https://www.linkedin.com/jobs/view/employment-hero-senior-payroll-engineer",
     "rawJd": "Role: Senior Full-Stack Engineer\nCompany: Employment Hero\nLocation: Sydney, Australia (Hybrid / Remote)\n\nAbout Employment Hero:\nEmployment Hero powers HR and payroll for over 300,000 Australian businesses. Our Payroll Engine disaggregates gross earnings under ATO Single Touch Payroll (STP) Phase 2 specifications.\n\nKey Responsibilities:\n- Architect high-throughput wage disaggregation engine conforming to ATO STP Phase 2 statutory rules.\n- Implement strict decimal rounding algorithms avoiding IEEE-754 floating point precision loss across financial ledgers.\n- Design automated PII and TFN data-masking layers protecting employee statutory records in compliance with Privacy Act 1988.\n- Maintain 100% test coverage for complex modern award rate rule calculations.\n\nRequirements:\n- 4+ years software engineering experience with TypeScript/Node.js or Python.\n- Experience with financial accounting, payroll legislation, or statutory reporting systems.\n- High attention to edge-case validation, schema invariants, and automated regression testing.",
-    "mustHaveSkills": ["TypeScript", "Decimal Arithmetic", "Statutory Compliance", "PostgreSQL", "Data Masking"],
-    "niceToHaveSkills": ["ATO STP Phase 2", "Microservices", "Event-Driven Architecture"],
+    "mustHaveSkills": [
+      "TypeScript",
+      "Decimal Arithmetic",
+      "Statutory Compliance",
+      "PostgreSQL",
+      "Data Masking"
+    ],
+    "niceToHaveSkills": [
+      "ATO STP Phase 2",
+      "Microservices",
+      "Event-Driven Architecture"
+    ],
     "timeboxMinutes": 180
   },
   {
@@ -35,8 +65,18 @@
     "domain": "Observability & Distributed Telemetry",
     "sourceUrl": "https://www.linkedin.com/jobs/view/datadog-senior-cloud-telemetry",
     "rawJd": "Role: Senior Cloud Infrastructure Engineer\nCompany: Datadog\nLocation: Sydney, Australia\n\nAbout Datadog:\nDatadog is the monitoring and security platform for cloud applications. We process trillions of data points daily to give engineers real-time visibility into their systems.\n\nKey Responsibilities:\n- Design scalable telemetry ingestion pipelines capable of buffering high-frequency metric spikes.\n- Build distributed rate limiting and token-bucket traffic shaping to guarantee upstream ingestion stability.\n- Implement automated synthetic health-probes and circuit-breakers preventing cascading failure.\n- Collaborate on OpenTelemetry tracing and Prometheus exporter architectures.\n\nRequirements:\n- Strong systems engineering in Go or TypeScript.\n- Deep familiarity with Linux internals, networking protocols (TCP/UDP, gRPC, HTTP/2).\n- Experience with container orchestration (Kubernetes) and cloud infrastructure (AWS/GCP).",
-    "mustHaveSkills": ["Go / TypeScript", "Distributed Systems", "Telemetry & Metrics", "Traffic Shaping", "Kubernetes"],
-    "niceToHaveSkills": ["OpenTelemetry", "Prometheus", "eBPF"],
+    "mustHaveSkills": [
+      "Go / TypeScript",
+      "Distributed Systems",
+      "Telemetry & Metrics",
+      "Traffic Shaping",
+      "Kubernetes"
+    ],
+    "niceToHaveSkills": [
+      "OpenTelemetry",
+      "Prometheus",
+      "eBPF"
+    ],
     "timeboxMinutes": 180
   },
   {
@@ -45,8 +85,18 @@
     "domain": "Real-time Collaboration & Concurrency",
     "sourceUrl": "https://www.linkedin.com/jobs/view/atlassian-senior-realtime-engineer",
     "rawJd": "Role: Senior Real-Time Collaborative Engineer\nCompany: Atlassian\nLocation: Sydney, Australia\n\nAbout Atlassian:\nAtlassian powers team collaboration worldwide through Jira, Confluence, and Loom. The Confluence Document Platform team builds real-time collaborative editing experiences.\n\nKey Responsibilities:\n- Implement conflict-free collaborative editing protocols using CRDTs (Conflict-free Replicated Data Types) or Operational Transformation (OT).\n- Architect resilient WebSocket connection management with automatic session recovery and state reconciliation.\n- Ensure sub-50ms keystroke synchronization latency across multi-region distributed nodes.\n- Design automated fuzzing suites verifying convergence under out-of-order network packet delivery.\n\nRequirements:\n- 5+ years experience building complex client-server web architectures in TypeScript.\n- Proven mastery of asynchronous state machines, concurrent data structures, and WebSockets.\n- Strong focus on engineering rigor, invariant verification, and performance optimization.",
-    "mustHaveSkills": ["TypeScript", "CRDTs / OT", "WebSockets", "Distributed State", "Unit & Fuzz Testing"],
-    "niceToHaveSkills": ["Rust / WebAssembly", "Redis Pub/Sub", "State Machines"],
+    "mustHaveSkills": [
+      "TypeScript",
+      "CRDTs / OT",
+      "WebSockets",
+      "Distributed State",
+      "Unit & Fuzz Testing"
+    ],
+    "niceToHaveSkills": [
+      "Rust / WebAssembly",
+      "Redis Pub/Sub",
+      "State Machines"
+    ],
     "timeboxMinutes": 180
   },
   {
@@ -55,8 +105,18 @@
     "domain": "People Analytics & Differential Privacy",
     "sourceUrl": "https://www.linkedin.com/jobs/view/culture-amp-ai-privacy-engineer",
     "rawJd": "Role: Senior Applied AI & Privacy Engineer\nCompany: Culture Amp\nLocation: Melbourne / Sydney, Australia\n\nAbout Culture Amp:\nCulture Amp is the world's leading employee experience platform. Our AI team builds sentiment and topic-modeling engines with strict zero-knowledge privacy guarantees.\n\nKey Responsibilities:\n- Build semantic text summarization pipelines using modern LLMs with strict PII anonymization gates.\n- Implement k-anonymity and differential privacy filters preventing employee de-anonymization in low-headcount cohorts.\n- Design guardrail evaluation frameworks auditing model hallucination rates and prompt injection vulnerabilities.\n- Partner with product managers to deliver human-centered, explainable AI analytics dashboards.\n\nRequirements:\n- 4+ years software engineering experience in Python or TypeScript.\n- Experience deploying NLP/LLM pipelines in production.\n- Rigorous understanding of privacy frameworks, data sanitization, and security testing.",
-    "mustHaveSkills": ["TypeScript / Python", "LLM Orchestration", "PII Redaction", "Differential Privacy", "Evaluation Frameworks"],
-    "niceToHaveSkills": ["Vector Databases", "LangChain/LlamaIndex", "AppSec"],
+    "mustHaveSkills": [
+      "TypeScript / Python",
+      "LLM Orchestration",
+      "PII Redaction",
+      "Differential Privacy",
+      "Evaluation Frameworks"
+    ],
+    "niceToHaveSkills": [
+      "Vector Databases",
+      "LangChain/LlamaIndex",
+      "AppSec"
+    ],
     "timeboxMinutes": 180
   },
   {
@@ -65,8 +125,18 @@
     "domain": "Mobile Workplace Safety & Offline Sync",
     "sourceUrl": "https://www.linkedin.com/jobs/view/safetyculture-mobile-sync-architect",
     "rawJd": "Role: Senior Mobile Sync & Offline Systems Architect\nCompany: SafetyCulture\nLocation: Sydney, Australia\n\nAbout SafetyCulture:\nSafetyCulture powers over 70,000 operational teams worldwide conducting inspections in remote mines, construction sites, and flight lines with intermittent network connectivity.\n\nKey Responsibilities:\n- Architect local-first data persistence and offline mutation queues using SQLite and TypeScript.\n- Design bidirectional delta-sync protocols resolving concurrent conflicting updates with zero data loss.\n- Implement binary media caching and resumable multipart uploads for high-resolution inspection photos.\n- Verify sync reliability across flaky 3G networks and sudden device airplane-mode toggles.\n\nRequirements:\n- 5+ years experience building offline-first mobile or web applications.\n- Strong expertise in relational database schema design (SQLite/PostgreSQL) and transaction isolation.\n- Excellent understanding of distributed synchronization and idempotent replay patterns.",
-    "mustHaveSkills": ["TypeScript", "Local-First / SQLite", "Offline Sync", "Conflict Resolution", "Resilient Networking"],
-    "niceToHaveSkills": ["React Native", "CRDTs", "Protocol Buffers"],
+    "mustHaveSkills": [
+      "TypeScript",
+      "Local-First / SQLite",
+      "Offline Sync",
+      "Conflict Resolution",
+      "Resilient Networking"
+    ],
+    "niceToHaveSkills": [
+      "React Native",
+      "CRDTs",
+      "Protocol Buffers"
+    ],
     "timeboxMinutes": 180
   },
   {
@@ -75,8 +145,18 @@
     "domain": "Global Edge Computing & Distributed Cache",
     "sourceUrl": "https://www.linkedin.com/jobs/view/vercel-senior-edge-runtime",
     "rawJd": "Role: Senior Edge Runtime Architect\nCompany: Vercel\nLocation: Remote / Australia\n\nAbout Vercel:\nVercel builds the Frontend Cloud, enabling millions of developers to deploy web applications instantly with global edge routing and sub-millisecond cold starts.\n\nKey Responsibilities:\n- Design lightweight runtime middlewares executing under strict V8 isolate memory and CPU constraints.\n- Implement stale-while-revalidate distributed cache invalidation across 300+ global edge locations.\n- Build zero-dependency streaming SSR response pipelines with early-hints header flushing.\n- Enforce strict runtime sandbox security preventing prototype pollution and environment variable leakage.\n\nRequirements:\n- Deep expertise in JavaScript/TypeScript runtime internals and web standard APIs (Fetch, Streams, Web Crypto).\n- Experience with edge computing platforms (Cloudflare Workers, Deno, Node.js isolates).\n- Strong track record designing high-scale, low-latency distributed systems.",
-    "mustHaveSkills": ["TypeScript", "Edge Runtime / V8 Isolates", "HTTP/2 & HTTP/3 Streams", "Cache Architecture", "Security Sandboxing"],
-    "niceToHaveSkills": ["Rust", "Wasm", "OpenTelemetry"],
+    "mustHaveSkills": [
+      "TypeScript",
+      "Edge Runtime / V8 Isolates",
+      "HTTP/2 & HTTP/3 Streams",
+      "Cache Architecture",
+      "Security Sandboxing"
+    ],
+    "niceToHaveSkills": [
+      "Rust",
+      "Wasm",
+      "OpenTelemetry"
+    ],
     "timeboxMinutes": 180
   },
   {
@@ -85,8 +165,18 @@
     "domain": "Consumer Data Right & Open Banking",
     "sourceUrl": "https://www.linkedin.com/jobs/view/finder-cdr-gateway-engineer",
     "rawJd": "Role: Senior Open Banking & CDR Gateway Engineer\nCompany: Finder\nLocation: Sydney, Australia\n\nAbout Finder:\nFinder is Australia's largest comparison site, helping over 2 million Australians every month compare loans, insurance, and banking products through accredited Consumer Data Right (CDR) integrations.\n\nKey Responsibilities:\n- Build accredited CDR data receipt pipelines conforming strictly to ACCC Consumer Data Standards.\n- Implement FAPI (Financial-grade API) compliant OAuth2/OIDC mutual TLS authentication flows.\n- Enforce automated user consent lifecycle management and cryptographic audit logging.\n- Ensure customer account numbers and BSB data are tokenized and encrypted at rest and in transit.\n\nRequirements:\n- 4+ years backend engineering in TypeScript or Java.\n- Deep experience with OAuth2, OpenID Connect, and public key cryptography.\n- Understanding of Australian banking regulations, CDR standards, and secure API gateways.",
-    "mustHaveSkills": ["TypeScript", "OAuth2 / FAPI", "Cryptographic Signing", "CDR Standards", "API Security"],
-    "niceToHaveSkills": ["mTLS", "PostgreSQL", "Banking API Integrations"],
+    "mustHaveSkills": [
+      "TypeScript",
+      "OAuth2 / FAPI",
+      "Cryptographic Signing",
+      "CDR Standards",
+      "API Security"
+    ],
+    "niceToHaveSkills": [
+      "mTLS",
+      "PostgreSQL",
+      "Banking API Integrations"
+    ],
     "timeboxMinutes": 180
   },
   {
@@ -95,8 +185,231 @@
     "domain": "Cross-Border Payments & FX Matching",
     "sourceUrl": "https://www.linkedin.com/jobs/view/wise-senior-fx-ledger",
     "rawJd": "Role: Senior FX Liquidity & Cross-Border Ledger Engineer\nCompany: Wise\nLocation: Remote / Sydney, Australia\n\nAbout Wise:\nWise is the international money transfer service moving over £25 billion every quarter across 50+ currencies with instantaneous conversion and zero hidden fees.\n\nKey Responsibilities:\n- Architect double-entry financial ledger accounting engines guaranteeing zero discrepancy across currency pairs.\n- Design real-time FX rate matching algorithms with lock-in expiration timestamps and slippage limits.\n- Implement atomic multi-party database transaction guarantees with deterministic lock ordering.\n- Audit and eliminate race conditions in high-concurrency payment routing workers.\n\nRequirements:\n- 5+ years building transactional ledger engines in TypeScript, Java, or Go.\n- Deep mastery of ACID isolation levels, deadlocks, and distributed consensus.\n- Rigorous mindset toward numeric precision, mathematical correctness, and automated invariant testing.",
-    "mustHaveSkills": ["TypeScript / Java", "Double-Entry Ledger", "FX Algorithms", "ACID Transactions", "High-Concurrency"],
-    "niceToHaveSkills": ["Kafka", "PostgreSQL Advisory Locks", "Financial Auditing"],
+    "mustHaveSkills": [
+      "TypeScript / Java",
+      "Double-Entry Ledger",
+      "FX Algorithms",
+      "ACID Transactions",
+      "High-Concurrency"
+    ],
+    "niceToHaveSkills": [
+      "Kafka",
+      "PostgreSQL Advisory Locks",
+      "Financial Auditing"
+    ],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Front End Engineer",
+    "employer": "Stake",
+    "domain": "Fintech & Stock Trading Platform",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/4468897912/",
+    "rawJd": "About StakeWe’re an Australian investing platform that helps ambitious people confidently grow their wealth. By offering seamless, immersive access to ASX and Wall St, we’ve empowered a new wave of investors. Today, we have 750,000+ customers and more than A$8B under administration. Join us as we continue to reshape the financial industry, inspire investor confidence and unleash the investor in everyone.\nAbout the roleWe are looking for a Front End Engineer to join our Technology team in Sydney.\nTechnology sits at the heart of everything we build at Stake. Our engineers are responsible for creating the products, services and infrastructure that power the investing experience for hundreds of thousands of customers. From trading and portfolio management to account operations and new product launches, engineering plays a critical role in shaping how customers interact with Stake every day.\nAs a Front End Engineer, you’ll contribute to the design, development and operation of systems that are reliable, scalable and built for long-term growth. You'll work closely with Product, Design and Engineering teammates to solve meaningful customer problems, deliver high-quality software and continuously improve the systems that underpin our platform.\nThis is a role with significant ownership and opportunity for growth. You'll help shape technical decisions, contribute to architectural discussions and take responsibility for the systems you build from development through to production. We work hybrid spending 3 days in our beautiful, dog-friendly Sydney office.\nWhat success looks like\nDelivered high-quality, performant front-end features that materially improve the experience of customers and contribute to key business outcomes\nBuilt and maintained accessible, responsive UIs and front-end services that support Stake’s continued growth and evolving product offering\nBecome a trusted owner of key front-end systems and design system components, confidently supporting them in production\nContributed to front-end architectural decisions that improve performance, maintainability and developer experience across the platform\nConsistently delivered high-quality, well-tested, maintainable code while balancing UX polish with technical excellence\nHelped improve engineering standards through thoughtful code reviews, knowledge sharing and collaboration\nBuilt strong partnerships across Product, Design and Engineering to craft intuitive, polished customer experiences\nContributed to a culture of continuous improvement, helping make Stake a stronger engineering organisation over time\n\nYou’ll thrive here if…\nYou have experience building and operating customer-facing front-end applications in modern engineering environments, such as Typescript, Ionic and Angular\nYou care deeply about crafting intuitive, polished user experiences and understand that the best solutions are the ones that are easiest to operate, maintain and evolve\nYou’re pragmatic and can make thoughtful trade-offs between speed, quality and long-term sustainability\nYou take ownership of outcomes and enjoy getting into the details of performance, accessibility and maintainability\nYou enjoy collaborating with cross-functional teams, sharing knowledge and helping raise the standard of the team around you\nYou’re curious, adaptable and excited to learn new technologies and approaches when they create better outcomes\n\nBonus if you’ve ever\nWorked with Angular, RxJS or modern component and design system tooling, such as Storybook or Figma\nBuilt or contributed to mobile apps using Ionic or similar cross-platform frameworks\nApplied accessibility standards (e.g. WCAG 2.0) and tools like Lighthouse to ship inclusive, high-performing UIs\nContributed to backend services (e.g. Go) to help unblock end-to-end delivery\nWorked in fintech, investing, financial services or another highly regulated environment\n\nBenefits of working at StakeYou’ll have the opportunity to work with autonomy while learning from some of the best talent in the industry, playing a meaningful role in building a company that has loads of positive momentum and excitement around it. Having said that, we also have perks. Please see on our Careers website the list of benefits under our Grow with Stake program.\nProfessional development allowance\nUp to 16 weeks of paid parental leave\nChildcare allowance\nWellbeing support\nAnnual leave swap days\nDiscretionary performance bonus\nStake products: SMSF 30% discount on yearly membership fee, $295 AUD annual trading credit and Stake Black account\n\nSo what happens next?Once we've received your application, we'll give it the attention it deserves and if we think you’d be a good addition to our team, we’ll give you a call and from there, you'll cruise through our recruitment process.\nTo all recruitment agencies: Stake does not accept agency resumes. Please do not forward resumes to our jobs alias or directly to Stake employees. Stake is not responsible for any fees related to unsolicited resumes.",
+    "mustHaveSkills": [
+      "TypeScript",
+      "Angular",
+      "Ionic",
+      "Responsive UI",
+      "WCAG 2.0 Accessibility"
+    ],
+    "niceToHaveSkills": [
+      "RxJS",
+      "Storybook",
+      "Figma",
+      "Go (Backend)",
+      "Financial Services"
+    ],
+    "timeboxMinutes": 120
+  },
+  {
+    "roleTitle": "Front-End Developer — Product Innovation Centre",
+    "employer": "Qantas",
+    "domain": "Aviation & Digital Travel Platform",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/4467950694/",
+    "rawJd": "About the job\nFounded in the Queensland outback in 1920, Qantas has grown to be Australia’s largest regional, domestic, and international airline. Qantas has a range of subsidiary businesses that support the overall operations of the Group. The Qantas Group’s main business is the transportation of customers and freight using two complementary airline brands — Qantas and Jetstar — operating regional, domestic, and international services.\nJob Description\nAt Qantas, our teams come together to create new and unique experiences for our customers.\nA fantastic opportunity to be part of a team that focuses on cutting-edge technology and engineering principles.\nFull-time and permanent position based at our new Product Innovation Centre in Adelaide. \n\nJoin Qantas in our brand-new Product Innovation Centre located in Adelaide will contribute to consumer needs by architecting and delivering robust, scalable systems that power seamless digital experiences, ensuring fast, secure, and reliable services that support evolving customer expectations.\nAs a Front-End Developer you will be a hands-on, mid-level skilled software developer with the experience to dive into code to deliver high quality, well-designed software. You will share responsibility for the quality of the software being built, including but not limited to; achieving desired business outcomes, meeting reliability and performance expectations and safely managing security and data privacy concerns.\nYou’ll Have\n3+ years in a hands-on Software Engineering role\nExperience building high‑traffic customer facing web applications\nWorking experience with front end technologies (i.e JavaScript, React JS, SSR, Micro Front Ends, HTML, CSS, CSS Modules, etc)\nExperience with leveraging design systems and sharing reusable components across repositories\nKnowledge and experience of cloud platforms such as AWS - EC2, S3, Lambda, etc preferred\nA real passion for UX, browser performance and accessibility\nContainerisation technology concepts, such as Docker and Kubernetes\nExperience with CI/CD pipelines (preferably GitHub Actions), version control (Git), and automated testing practices\nExperience using observability and monitoring tools (e.g. Splunk, Datadog, or similar) to support production systems\nA real passion for quality, clean code and continuous improvement\nAn understanding of architectural concepts and cloud-based solution design\nHighly dedicated ethos - expected to take very real accountability for the work you're doing\nA test and learn mindset with curiosity, collaboration and care\nExperience writing multi-threaded, asynchronous code\nExperience with Adobe Experience Manager and Adobe Edge Delivery Services desirable\nExperience with consuming GraphQL data desirable\n\nWhy Qantas? At Qantas, your career can take you further than you imagined. You’ll join a team where creativity and passion drives success. Together we dream big and deliver even bigger. You’ll find diverse opportunities to grow, personally and professionally. From day one, you’ll be supported with hands-on training, coaching, and formal learning programs designed to help you excel. Your development is our priority because we know that when you thrive, so do our customers.And while this role is your starting point at Qantas, it’s just the beginning. We have a proud history of helping our people explore new paths and reach new heights - the destinations are endless.\nThe Qantas employee benefits program offers amazing benefits that extend well beyond travel.  \nWe love to travel: Enjoy heavily discounted air travel within Australia and across the globe, both for you and your family and friends, as well as exclusive deals on accommodation and holidays.\nWe have flexible leave options: Make use of leave and flexible working opportunities including 18 weeks paid parental leave and the option to purchase additional paid leave for eligible employees.\nWe’ll give you access to thousands of rewards: Through our partnerships we can offer you discounts across shopping, food and wine, insurance, health and wellbeing, leisure and entertainment. You can also take advantage of our salary packaging program including motor vehicles, eligible portable electronic devices and professional memberships.\nWe’ll support your wellbeing: Whether it’s learning to better support your own and others’ mental health, our interactive wellbeing app or your very own tailored nutrition plan. \n\nApplications will close on the 5th of October \nQantas is an equal opportunity employer committed to providing a working environment that embraces and values diversity and inclusion. By coming to work for us, you’ll be part of an organisation that encourages diversity, supports charities and environmental initiatives. We encourage Aboriginal and Torres Strait Islander, and people of all backgrounds to apply. If you have any support or access requirements, we encourage you to advise us at time of application. Your personal information will be kept confidential in compliance with relevant privacy legislation.",
+    "mustHaveSkills": [
+      "JavaScript / TypeScript",
+      "React JS",
+      "SSR / Micro Front Ends",
+      "Design Systems",
+      "Automated Testing"
+    ],
+    "niceToHaveSkills": [
+      "AWS (EC2, S3, Lambda)",
+      "Docker & Kubernetes",
+      "GraphQL",
+      "Adobe Edge Delivery",
+      "Observability (Datadog/Splunk)"
+    ],
+    "timeboxMinutes": 120
+  },
+  {
+    "roleTitle": "Front-end Engineer (Craft & UI)",
+    "employer": "Fetch",
+    "domain": "Pet Insurance & HealthTech",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/4460443341/",
+    "rawJd": "About the job\nFetch is how modern pet parents give their pets the best care 🐶🐱. One pink app 🩷 for insurance, health, and care – easy, fair, and kinda fun. We've raised our Series A from Lightspeed and Airtree, customers love us (rated #1 by Choice Magazine!), and we're growing fast.\nWe're looking for a Front-end Engineer who's obsessed with craft – someone who cares about how things look, feel, and behave, and wants to build beautiful product experiences that pet parents (and vets) love.\nLocation: Sydney (Hybrid – Tue/Wed/Thu in-office)\nCompensation: Series A salary + meaningful equity upside\nStack: TypeScript, React, React Native, Next.js, GCP\nFrontend: React, modern component patterns, design systems, performance\nTooling: Figma + Cursor + Claude, and unlimited AI tools – no token limits\n\nYour role\nYou'll set (and raise) the quality bar for the UI. You'll work closely with design and product to ship experiences that feel polished, fast, and intuitive.\nBuild delightful UI in React with strong interaction design and visual polish\nHelp evolve our design system (components, tokens, accessibility patterns)\nMake the app feel fast: performance, rendering, loading states, perceived speed\nUse AI tools daily to move faster without compromising quality\nCollaborate tightly with product, design, ops, and vets to ship outcomes, not tickets\nWrite reliable, maintainable code: testing, review, and thoughtful architecture\n\nWhat you'll build\nHigh-craft product surfaces in the customer app and internal tools (workflows, claims, vet comms)\nA consistent component library and design system that scales\nFrontend foundations: routing patterns, state management, observability, feature flags\nUX improvements that reduce confusion and increase trust (copy, empty states, progress states)\nUI for AI-powered features (structured outputs, explainability, clear \"what happened\" states)\n\nAbout You\nYou're early-to-mid career, but you punch above your weight. You care about quality, you ship, and you notice the little things.\n3–5 years building and shipping frontend product (or equivalent through projects)\nStrong React + TypeScript fundamentals\nGreat taste: layout, spacing, motion, and the details that make UI feel \"done\", uncompromising on exceptional design\nProduct thinking: you care about the user goal, not just the implementation\nComfortable working with designers in Figma and giving constructive feedback\nYou care about accessibility, responsiveness, and cross-browser behaviour\nYou enjoy iterating in small steps and polishing the last 10%\nBonus: experience with design systems, mobile, or performance tuning\n\nWhat it's like here\nWe're ambitious, collaborative, and genuinely enjoy building together. The Fetch team is smart, thoughtful, and kind – low ego, open, caring, and always supportive.\nYou'll be involved early in strategy. You're encouraged to give your opinion and debate with founders and the rest of the team\nWeird is welcome. We value unexpected perspectives and people who think differently, so just be you\nUnlimited AI tooling - no token limits or approvals needed. Just try things\nWork on a product genuinely loved by tens and tens of thousands of pets, pet parents and vets\nWe're growing FAST. It's an exciting time to join and you'll directly impact the future of our products\nWe say \"steward\" not \"owner\" – the accountability is real, the language signals how we hold it\n\nAnd The Perks\nCompetitive Series A salary + meaningful equity\nHybrid working (3 days Sydney office, flexible WFH)\nLatest MacBook Pro and a top setup\nTwo team retreats each year\nOffice dogs for cuddles and interruptions\nBean to cup coffee machine, unlimited fruit and snacks. Toblerone on-tap\n\nHow To Apply\nApply via the link, along with a quick note highlighting (bonus points if you include a photo of your pet 🐾):\nWork you shipped that you’re proud of (link/screenshots welcome)\nLink to portfolio/ github\n\n🟢 Please consider applying even if you don't meet 100% of what’s outlined 🟢\nKey Responsibilities\n🖌️ Building UI\n📐 Evolving design system\n🚀 Optimizing performance\n\nKey Strengths\n⚛️ React\n🔤 TypeScript\n🎨 Design systems\n⚡ Performance tuning\n📱 Mobile development\n🤖 AI tools\n\nWhy Fetch is partnering with Hatch on this role. Hatch exists to level the playing field for people as they discover a career that’s right for them. So when you apply you have the chance to show more than just your resume.\nA Final Note: This is a role with Fetch not with Hatch.",
+    "mustHaveSkills": [
+      "React",
+      "TypeScript",
+      "Design Systems",
+      "Web Performance & Perceived Speed",
+      "AI Coding Tools"
+    ],
+    "niceToHaveSkills": [
+      "React Native",
+      "Next.js",
+      "GCP",
+      "Figma",
+      "Interaction Design"
+    ],
+    "timeboxMinutes": 120
+  },
+  {
+    "roleTitle": "Frontend Engineer — Booking Platform",
+    "employer": "Luxury Escapes",
+    "domain": "Global Travel Marketplace & High-Conversion Booking",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/4452229371/",
+    "rawJd": "About the job\nBe part of the team transforming global travel experiences!\nLuxury Escapes is one of the world’s fastest-growing travel platforms, with more than 8 million members worldwide. Our technology powers a global travel marketplace where millions of travellers discover and book incredible holidays every year.\nOur core web platform serves millions of monthly users and processes millions of dollars in bookings every day, making engineering a central part of how we deliver exceptional travel experiences.\nWe’re growing rapidly and are looking for a Frontend Engineer to join our Engineering team, helping us continuously improve the customer journey and booking experience across the Luxury Escapes platform.\nOur CompanyAt Luxury Escapes, our mission is to delight our customers with incredible deals on the world’s best holidays. We’re a technology-driven company where engineers, product managers, and designers work closely together to build high-impact customer experiences.\nOur engineering culture is fast-moving, low-bureaucracy, and very AI-forward. Our whole team is using AI-augmented development tools and workflows to improve productivity, code quality, and product velocity.\nEngineers here enjoy solving meaningful problems at scale alongside smart, ambitious teammates.Luxury Escapes Is An In-person Company.\nOur team collaborates face-to-face from our Barangaroo office in Sydney, working closely together to build and ship great products.\nAbout The TeamOur cross-functional teams bring together Engineers, Product Managers, and Designers to solve real customer problems rather than simply deliver tickets. We work in a lean, iterative way with a strong focus on MVP, experimentation, and “build, measure, learn.”\nUsed by millions of travellers each month. Our Frontend Engineers are responsible for improving key parts of the booking journey through product improvements, experimentation, and performance optimisation.\nSmall improvements to the customer experience can have a meaningful impact on how travellers discover and book incredible holidays.\nOur engineers work primarily with React and Typescript, building and evolving a modern frontend platform integrated with a microservices backend running on Node.js and AWS.\nWhat You'll Do\nBuild and ship high-quality frontend features in our React application that improve the customer journey and increase conversion across the Luxury Escapes platform.\nWork closely with Product Managers and Designers to rapidly iterate on customer-facing features, experiments, and improvements to key parts of the booking experience.\nDesign and implement A/B tests and product experiments that help us learn faster and improve how travellers discover and book incredible holidays.\nUse AI-augmented development tools and workflows to accelerate development, improve code quality, and help the team ship high-impact features faster.\nContinuously improve frontend performance, reliability, accessibility, and user experience across our web platform serving millions of sessions each month.\nCollaborate with backend teams to integrate frontend features with our microservice architecture and third-party travel systems.\nContribute to engineering best practices across the team, including automated testing, code quality, and continuous delivery.\nSupport and mentor other engineers through code reviews, pairing, and collaborative problem solving.\n\nQualifications\nStrong experience building and maintaining large-scale React applications in production environments.\nProficiency in JavaScript and Typescript, with a deep understanding of modern frontend development practices.\nExperience designing high-performance, responsive user interfaces and improving frontend performance, accessibility, and reliability.\nStrong understanding of frontend architecture, including state management, component design, and scalable application structure.\nExperience writing automated tests for frontend applications and contributing to CI/CD workflows that support rapid, reliable releases.\nExperience working closely with product managers and designers to ship high-impact customer-facing features.\nFamiliarity integrating frontend applications with microservice-based backends and REST APIs.\nComfort using AI-augmented development tools and workflows to accelerate development and improve code quality.\n\nOur Perks & Benefits\nCompetitive remuneration package\nUp to 20% discount on Luxury Escapes holidays and experiences\nBreakfast and lunch provided five days a week\nHealth and wellbeing programs\nA bonus half-day of birthday leave\nA collaborative, high-performing team that enjoys building great products together\n\nIf you’re interested in the role but don't check every box, apply anyway, we’d love to hear from you!We embrace diversity in our people and make hiring decisions based on your experiences and skills. We do not discriminate based on gender identity, religion, race, national origin, sexual orientation, age, marital status, or disability status. You'll find a collaborative, inclusive, and respectful workplace here at Luxury Escapes, and we are proud to celebrate who you are. Please let us know if you require any reasonable adjustments during the interview.\nAs a 2026 Circle Back Initiative employer, we're committed to responding to every applicant.",
+    "mustHaveSkills": [
+      "React",
+      "TypeScript",
+      "State Architecture",
+      "A/B Testing & Experimentation",
+      "Frontend Performance"
+    ],
+    "niceToHaveSkills": [
+      "Node.js Microservices",
+      "AWS",
+      "CI/CD",
+      "Accessibility"
+    ],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Front-end Engineer (React)",
+    "employer": "Fetch",
+    "domain": "Pet Insurance & HealthTech",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/4460286292/",
+    "rawJd": "About the job\nThis is a Front-end Engineer (React) role with Fetch based in Sydney, NSW, AU\n\n == Fetch ==\n\nRole Seniority - mid level, senior, director\n\nAbout Fetch\n\nMore about the Front-end Engineer (React) role at Fetch\n\nFetch is how modern pet parents give their pets the best care 🐶🐱. One pink app 🩷 for insurance, health, and care – easy, fair, and kinda fun. We've raised our Series A from Lightspeed and Airtree, customers love us (rated #1 by Choice Magazine!), and we're growing fast.\n\nWe're looking for a Front-end Engineer who's obsessed with craft – someone who cares about how things look, feel, and behave, and wants to build beautiful product experiences that pet parents (and vets) love.\n\nLocation: Sydney (Hybrid – Tue/Wed/Thu in-office)\nCompensation: Series A salary + meaningful equity upside\nStack: TypeScript, React, React Native, Next.js, GCP\nFrontend: React, modern component patterns, design systems, performance\nTooling: Figma + Cursor + Claude, and unlimited AI tools – no token limits\n\nYour role\n\nYou'll set (and raise) the quality bar for the UI. You'll work closely with design and product to ship experiences that feel polished, fast, and intuitive.\n\nBuild delightful UI in React with strong interaction design and visual polish\nHelp evolve our design system (components, tokens, accessibility patterns)\nMake the app feel fast: performance, rendering, loading states, perceived speed\nUse AI tools daily to move faster without compromising quality\nCollaborate tightly with product, design, ops, and vets to ship outcomes, not tickets\nWrite reliable, maintainable code: testing, review, and thoughtful architecture\n\nWhat you'll build\n\nHigh-craft product surfaces in the customer app and internal tools (workflows, claims, vet comms)\nA consistent component library and design system that scales\nFrontend foundations: routing patterns, state management, observability, feature flags\nUX improvements that reduce confusion and increase trust (copy, empty states, progress states)\nUI for AI-powered features (structured outputs, explainability, clear \"what happened\" states)\n\nAbout You\n\nYou're early-to-mid career, but you punch above your weight. You care about quality, you ship, and you notice the little things.\n\n3–5 years building and shipping frontend product (or equivalent through projects)\nStrong React + TypeScript fundamentals\nGreat taste: layout, spacing, motion, and the details that make UI feel \"done\", uncompromising on exceptional design\nProduct thinking: you care about the user goal, not just the implementation\nComfortable working with designers in Figma and giving constructive feedback\nYou care about accessibility, responsiveness, and cross-browser behaviour\nYou enjoy iterating in small steps and polishing the last 10%\nBonus: experience with design systems, mobile, or performance tuning\n\nWhat it's like here\n\nWe're ambitious, collaborative, and genuinely enjoy building together. The Fetch team is smart, thoughtful, and kind – low ego, open, caring, and always supportive.\n\nYou'll be involved early in strategy. You're encouraged to give your opinion and debate with founders and the rest of the team\nWeird is welcome. We value unexpected perspectives and people who think differently, so just be you\nUnlimited AI tooling - no token limits or approvals needed. Just try things\nWork on a product genuinely loved by tens and tens of thousands of pets, pet parents and vets\nWe're growing FAST. It's an exciting time to join and you'll directly impact the future of our products\nWe say \"steward\" not \"owner\" – the accountability is real, the language signals how we hold it\n\nAnd The Perks\n\nCompetitive Series A salary + meaningful equity\nHybrid working (3 days Sydney office, flexible WFH)\nLatest MacBook Pro and a top setup\nTwo team retreats each year\nOffice dogs for cuddles and interruptions\nBean to cup coffee machine, unlimited fruit and snacks. Toblerone on-tap\n\nHow To Apply\n\nApply via the link, along with a quick note highlighting (bonus points if you include a photo of your pet 🐾):\n\nWork you shipped that you’re proud of (link/screenshots welcome)\nLink to portfolio/ github\n\nBefore we jump into the responsibilities of the role. No matter what you come in knowing, you’ll be learning new things all the time and the Fetch team will be there to support your growth.\n\n🟢 Please consider applying even if you don't meet 100% of what’s outlined 🟢\n\nKey Responsibilities\n\n🖌️ Building UI\n📐 Evolving design system\n🚀 Optimizing performance\n\nKey Strengths\n\n⚛️ React\n🔤 TypeScript\n🎨 Design systems\n⚡ Performance tuning\n📱 Mobile development\n🤖 AI tools\n\nWhy Fetch is partnering with Hatch on this role. Hatch exists to level the playing field for people as they discover a career that’s right for them. So when you apply you have the chance to show more than just your resume.\n\nA Final Note: This is a role with Fetch not with Hatch.",
+    "mustHaveSkills": [
+      "TypeScript",
+      "React",
+      "Design Systems Architecture",
+      "Performance Tuning",
+      "AI-Augmented Workflows"
+    ],
+    "niceToHaveSkills": [
+      "React Native",
+      "Next.js",
+      "Micro-interactions",
+      "Observability"
+    ],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Frontend Software Engineer — CMS Team",
+    "employer": "Canva",
+    "domain": "Visual Design & Collaborative Content Management",
+    "sourceUrl": "https://www.lifeatcanva.com/en/jobs/6000000001419287/senior-frontend-software-engineer-cms-team/",
+    "rawJd": "Team\n\nEngineering\nCountry\n\nSydney / Australia\nSchedule\n\nFull-time\nLocation Type\n\nOnsite\nDescription\nJoin the team redefining how the world experiences design.\n\nHey, g'day, mabuhay, kia ora, 你好, hallo, vítejte!\n\nThanks for stopping by. We know job hunting can be a little time consuming and you're probably keen to find out what's on offer, so we'll get straight to the point.\n\nWhere and how you can work\n\nOur flagship campus is in Sydney. We also have a campus in Melbourne and co-working spaces in Brisbane, Perth and Adelaide. But you have choice in where and how you work, we trust our Canvanauts to choose the balance that empowers them and their team to achieve their goals.\n\nWhat you’d be doing in this role\n\nAs Canva scales change continues to be part of our DNA. But we like to think that's all part of the fun. So this will give you the flavour of the type of things you'll be working on when you start, but this will likely evolve.\n\nAt the moment, this role is focused on:\n\nBuilding platforms and tooling that help us improve efficiency in the process of creating and managing content\nDesign, develop and deploy solutions and hands-on software development – working closely with leads, designers, and product managers to deliver features and capabilities for our users\nCommunicate effectively with Product Managers and Engineers across Canva when developing a solution; seeks and incorporates diverse perspectives to address complex issues\nFacilitate knowledge sharing and effectively advocate for engineering needs to non-technical stakeholders within the group\nModels initiative and ownership in achieving goals, improving processes and solutions\nIdentifies opportunities for cross-team collaboration to work on new ideas and improvements that help achieving our goals\nYou're probably a match if you have\n\nComputer Science Fundamentals - Solid understanding of concurrency, multithreading, data structures, architecture, and design patterns.\nFrontend Engineering - Proficiency in JavaScript, HTML, CSS, and frameworks like React and TypeScript, with consideration for cross-browser compatibility and performance optimization\nPassion for UX and Collaboration - Enthusiasm for crafting exceptional user experiences, storytelling, and working closely with designers and engineers.\nCollaborative mindset - Thrive in a cross-functional environment, working closely with designers, engineers, and product teams to drive impactful solutions.\nStrong strategic skills - Ability to break down complex projects into manageable tasks, prioritize effectively, and deliver high-quality work efficiently.\nEffective written and verbal communication - Confidently articulate ideas through well-structured design documents and provide thoughtful, constructive feedback on pull requests.\nMentorship and Knowledge Sharing - Contribute to a culture of continuous growth by guiding and supporting teammates through feedback, code reviews, and shared learning.\nAbout the team\n\nThe Pages Platform group is responsible for developing and maintaining the platforms that empower Canva’s teams to build engaging and high-performance pages. The group owns platforms that help with many disciplines involved in developing great pages, such as content management, experimentation, localisation, accessibility, performance and more.\n\nThe CMS team works magic behind the scenes, creating a content management solution tailored to Canva's unique needs. The platform is a breeze to use, giving users the power to manage and arrange their content without a hitch. Plus, it comes with nifty features for running experiments, localising content, and hosting assets. Cool, right?\n\nAbout the role\n\nAs a member of the CMS team, you will work on capabilities designed to support Canva’s unique content management needs. You will be working very closely with our team’s product manager, product designer, engineers and users to design solutions across several problem spaces such as localisation, experimentation, UX and more. You will also work heavily with stakeholders from different teams and engineer solutions that provide a cohesive and intuitive experience for our platform’s users.\n\nWhat's in it for you?\n\nAchieving our crazy big goals motivates us to work hard - and we do - but you'll experience lots of moments of magic, connectivity and fun woven throughout life at Canva, too. We also offer a range of benefits to set you up for every success in and outside of work.\n\nHere's a taste of what's on offer:\n\nEquity packages - we want our success to be yours too\nInclusive parental leave policy that supports all parents & carers\nAn annual Vibe & Thrive allowance to support your wellbeing, social connection, office setup & more\nFlexible leave options that empower you to be a force for good, take time to recharge and supports you personally\nCheck out lifeatcanva.com for more info.\n\nOther stuff to know\n\nWe make hiring decisions based on your experience, skills and passion, as well as how you can enhance Canva and our culture. When you apply, please tell us the pronouns you use and any reasonable adjustments you may need during the interview process.\n\nWe celebrate all types of skills and backgrounds at Canva so even if you don’t feel like your skills quite match what’s listed above - we still want to hear from you!\n\nPlease note that interviews are conducted virtually.",
+    "mustHaveSkills": [
+      "TypeScript",
+      "React",
+      "CS Fundamentals (Concurrency, Data Structures)",
+      "Performance Optimization",
+      "Content Architecture"
+    ],
+    "niceToHaveSkills": [
+      "Localisation",
+      "Experimentation Platforms",
+      "Design Systems",
+      "Cross-browser Compatibility"
+    ],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Senior Frontend Software Engineer — Cloud R&D",
+    "employer": "Atlassian",
+    "domain": "Team Collaboration Cloud (Jira, Confluence, Trello)",
+    "sourceUrl": "https://www.atlassian.com/company/careers/details/25698",
+    "rawJd": "Working at Atlassian\n\nAtlassians can choose where they work – whether in an office, from home, or a combination of the two. That way, Atlassians have more control over supporting their family, personal goals, and other priorities. We can hire people in any country where we have a legal entity.\n\nAtlassian is looking for a Senior Frontend Software Engineer to maintain our web frontend systems and tools in order to deliver great experiences to our users.\n\nYour future team\n\nTo become a 100-year company, we need a world-class engineering organisation made up of empowered teams who have the tools and infrastructure to do the best work of their careers.\n\nAs part of a unified R&D team, Engineering is prioritising key initiatives which support our customers in moving to cloud while simultaneously continuing to bring the most value to our customers through investments across our core product suite – including Jira, Confluence, Trello, and Bitbucket.\n\nWe're looking for people who want to write the future and who believe that we can accomplish so much more together.\n\n\nIn this role, you will:\n\nBuild high-performing client code that is fast, testable, scalable, and high quality\n\nDrive strong collaboration with other engineers, designers and managers to understand user pain points and iterate on great solutions\n\nContribute to code reviews and documentation, and take on complex bug fixes\n\nLead projects, from the technical design, implementation, and launch to operation\n\nOnboard and mentor junior engineers\n\n\nAt Atlassian, we strive to design equitable, explainable, and competitive compensation programs. We follow consistent hiring practices and account for each candidate's skills, knowledge, and experience when setting base pay within the range.\n\nThis role may also be eligible for benefits, bonuses, commissions, and equity.\n\n\nYour background:\n\n5+ years experience with Javascript (ES6), HTML5, CSS and experience with modern Javascript frameworks (e.g., React, AngularJS, Vue)\n\nBachelor's or Master's degree (preferably a Computer Science degree or equivalent experience)\n\nUnderstanding of modern frontend ecosystem, including but not limited to bundling, linting, testing and releasing\n\nExperience with modern testing frameworks (e.g., Jest, Cypress, Mocha, Chai)\n\nFamiliarity of the JavaScript language and ecosystem\n\nExperience building frontend applications at scale\n\nExperience in Agile software development methodologies\n\nYou strive to write code that lasts for years, not months\n\nExperience engineering software systems of medium-to-large scope and complexity\n\nExperience mentoring more junior engineers\n\nBenefits & Perks\n\nAtlassian offers a wide range of perks and benefits designed to support you, your family and to help you engage with your local community. Our offerings include health and wellbeing resources, paid volunteer days, and so much more. To learn more, visit go.atlassian.com/perksandbenefits.\n\nAbout Atlassian\n\nAt Atlassian, we're motivated by a common goal: to unleash the potential of every team. Our software products help teams all over the planet and our solutions are designed for all types of work. Team collaboration through our tools makes what may be impossible alone, possible together.\n\nWe believe that the unique contributions of all Atlassians create our success. To ensure that our products and culture continue to incorporate everyone's perspectives and experience, we never discriminate based on race, religion, national origin, gender identity or expression, sexual orientation, age, or marital, veteran, or disability status. All your information will be kept confidential according to EEO guidelines.\n\nTo provide you the best experience, we can support with accommodations or adjustments at any stage of the recruitment process. Simply inform our Recruitment team during your conversation with them.\n\nTo learn more about our culture and hiring process, visit go.atlassian.com/crh.\n\nIn line with local law, identity verification (which may include use of biometric data) is a condition of employment with Atlassian for employment fraud purposes.",
+    "mustHaveSkills": [
+      "JavaScript (ES6+)",
+      "TypeScript",
+      "React",
+      "Frontend Ecosystem & Bundling",
+      "Automated Testing (Jest, Cypress)"
+    ],
+    "niceToHaveSkills": [
+      "Large-Scale Systems",
+      "Mentorship",
+      "Agile Methodologies",
+      "Cloud Migration"
+    ],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Design Engineer — Magic Team (Web & Brand)",
+    "employer": "Linear",
+    "domain": "Product Development Systems & Developer Tooling",
+    "sourceUrl": "https://linear.app/careers/ea0b5868-6d7a-46fa-99d8-207cd19357a6?ashby_jid=f04f398b-6320-499d-8a60-290239d62da8",
+    "rawJd": "At Linear, we're building the product development system for teams and agents. AI is fundamentally changing how software gets built, and we’re shaping the tools this new era requires.\n\nFounded in 2019, Linear has become the platform of choice for more than 40,000 companies (including OpenAI, Coinbase, and Ramp) to plan, build, and ship their products. Today, our team is distributed across North America, Europe, and Australia, and we’re continuing to grow internationally. What unites us is relentless focus, fast execution, and a deep care for software craftsmanship.\n\nWe're looking for a Design Engineer with strong visual taste to help drive our creative initiatives across web and brand. When it comes to design and code, we’re looking to work with experienced people who can pick up any problem and solve it. For us, it’s both how it works and how it looks. At its core, Linear is a developer tool where speed, interactions, and small details matter. We expect a broad set of design skills and the ability to create high-quality designs, interactions, and prototypes.\n\nIn this role, you will help communicate Linear's story—what we're building and why it matters—as part of our internal creative agency: the Magic Team.\n\nWhat you'll do\n\nYou will be responsible for building complex and interactive UI web/app experiences\n\nBuild beautiful, responsive websites, landing pages, and internal tools\n\nImplement creative animations and interactions in code\n\nExplore visual design in Figma and translate it to web-native experiences\n\nWhat we're looking for\n\nEye for good design\n\nStrong frontend engineering skills\n\nExperience building end-to-end websites and landing pages\n\nExperience with React and TypeScript\n\nExperience using agentic coding tools as part of the design process (from exploring ideas to building production-quality interactions)\n\nA portfolio or Twitter profile showcasing a range of technical skills, a creative use of code, and prototyping skills\n\nWhat we offer\n\nInteresting and challenging work\n\nWork life balance\n\nCompetitive salary and equity\n\nEmployee-friendly equity terms (extended exercise)\n\nPaid lunch and coffee during work days\n\nWork remotely, no commuting to the office\n\nPaid co-working space/desk at an office\n\nRegular team events and offsites\n\n5 weeks paid vacation\n\n4 months paid parental leave\n\nLearn how we think and work\n\nPart I and Part II of how we redesigned the Linear UI\n\nRead me a story about our mission\n\nWhy and how we do work trials Linear blog post\n\nHow we use AI in design feature of Linear's design team\n\nCrafting quality that endures Config keynote by our Co-founder & CEO, Karri Saarinen\n\nBuilding for quality: Our Investment in Linear Accel Series B blog post",
+    "mustHaveSkills": [
+      "React",
+      "TypeScript",
+      "Creative Animations & Micro-interactions",
+      "Figma-to-Code Prototyping",
+      "Agentic Coding Tools"
+    ],
+    "niceToHaveSkills": [
+      "Motion Design",
+      "Design Systems",
+      "Web Performance",
+      "Craftsmanship"
+    ],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Frontend Platform Engineer / Architect",
+    "employer": "Mitti by SafetyCulture",
+    "domain": "Frontline Workplace Operations & Modern Architecture",
+    "sourceUrl": "https://jobs.ashbyhq.com/mitti/4dd0ebe0-b04b-4b83-9952-9d4251a7a58e",
+    "rawJd": "Why join us?\n\nMitti by SafetyCulture is a global tech company, just not the kind you're picturing. Our almost 1,000-person team builds tools that make work better for the three billion frontline workers who keep the world moving. We've got big tech scale, without the sign-off layers or corporate theatre. Every permanent team member gets equity, so when we grow, you do too. This next chapter is about scaling smart, powered by AI, a clear vision and real ownership.\n\nBig tech impact, without the big tech ick.\n\nThe role\nWe're several phases into a multi-year initiative to modernize our frontend — new tooling, a new web repo, and an architecture designed to be dramatically faster to build and iterate on than what came before. The strategy is set and the roadmap exists, with early wins already proving out the approach.\n\nAlongside the technical work, this role has a real human element: helping other product teams across the engineering org actually adopt the new stack. You'll work with engineers on other teams to understand what's blocking their migration and help make the case — practically, not just technically — for why it's worth the move.\n\nWhat you'll be doing\n\nContribute to and help execute our frontend architecture strategy, working within an established roadmap that continues to evolve as tooling and industry practice shifts\n\nSupport migration efforts across the wider engineering org — partnering with engineers on other teams to spot blockers and help them move onto the new stack\n\nParticipate in RFCs and design reviews as a contributor, helping shape and communicate architectural decisions\n\nMentor engineers at the mid-level and below, sharing context on the new architecture and helping others build confidence in it\n\nBring a practical point of view on where AI tooling helps frontend development day-to-day\n\nTake on increasing ownership over specific areas of the platform as you build context and trust with the team\n\nAbout you\n\nStrong, current experience with React, with well-formed opinions on performance and code quality\n\nA generalist frontend background — comfortable across the stack rather than narrowly specialized in one area\n\nClear, confident communication — you'll be contributing to design reviews and explaining technical decisions to engineers outside your immediate team\n\nComfort working within an evolving roadmap, where the plan will keep shifting as the broader ecosystem does\n\nSolid exposure to platform, tooling, or shared-infrastructure work — this isn't a pure feature-delivery role, so experience in this space is required, alongside strong frontend fundamentals\n\nMore than a job\nEquity with high growth potential, and a competitive salary\n\nFlexible working arrangements\n\nAccess to professional and personal training and development opportunities\n\nHackathons, Workshops, Lunch & Learns\n\nIn-house Culinary Crew serving up daily breakfast, lunch and snacks\n\nBarista coffee machine, craft beer on tap, boutique wines and a range of non-alcoholic beverages\n\nWellbeing initiatives such as EAP services and generous parental leave policy\n\nQuarterly celebrations and team events\n\nOn-site gym, table tennis, board games, books library, and pet-friendly offices\n\nWe’re committed to building inclusive teams and cultivating a sense of belonging so our people can bring their whole authentic selves to work each day. We seek to make reasonable adjustments throughout our recruitment process to create an even playing field for all candidates. Thanks to the tireless efforts of the entire Mitti team we’ve built an incredible culture which has seen us recognised as a Best Place to Work in Australia , the US and the UK .\n\nEven if you don't meet every requirement listed in the ad, please consider applying for this role. We prioritise inclusion and value individuals with potential over a checklist of qualifications. Don't rule yourself out, hit that apply button if this job resonates with you\n\nYou can find out more about life at Mitti via Youtube , Twitter , Instagram and LinkedIn.\n\nTo all recruitment agencies, we do not accept resumes or partnership opportunities. Please do not forward resumes to Mitti or any of our employees. We are not responsible for any fees associated with unsolicited resumes.",
+    "mustHaveSkills": [
+      "React",
+      "Frontend Architecture",
+      "Shared Infrastructure & Tooling",
+      "RFCs & Design Reviews",
+      "Code Quality & Performance"
+    ],
+    "niceToHaveSkills": [
+      "AI Tooling Integration",
+      "Multi-team Migration",
+      "Monorepos",
+      "Cross-platform"
+    ],
+    "timeboxMinutes": 180
+  },
+  {
+    "roleTitle": "Frontend Engineer — TikTok LIVE Ecosystem",
+    "employer": "TikTok",
+    "domain": "Real-Time Distributed Live Streaming & Interactive Media",
+    "sourceUrl": "https://www.linkedin.com/jobs/view/4462300629/",
+    "rawJd": "About the job\nResponsibilities\nWe are looking for passionate and talented engineers to join us to build up and optimize a real-time, high-performance, large-scale distributed infrastructure for live streaming at TikTok. We will be deeply involved in the developmental lifecycle of critical product features, and collaborate closely with product managers to deliver the best live streaming experience for live streamers and viewers.\n\nResponsibilities:\n- Responsible for the construction of TikTok LIVE ecosystem, with a primary focus on supporting user-side products across diverse web/mobile/desktop platforms, and coordinating full-stack systems.\n- Collaborate with cross-functional teams, including client and back-end developers, as well as UX/UI designers, to translate design wireframes and concepts into responsive, visually engaging user interfaces.\n- Stay at the forefront of industry trends in front-end technologies, proposing and implementing innovative solutions to enhance our products, optimizing applications for ultimate user experience\n- Conduct thorough troubleshooting and debugging of issues, collaborating with the QA team to ensure the highest quality and robustness of code.\n- Contribute to decision-making processes and development of engineering infra tools or platforms aimed at improving overall efficiency.\n\nQualifications\nMinimum Qualifications:\n- Bachelor's or higher degree in Computer Science or related technical fields\n- Solid computer foundation and high proficiency in front-end technology, with understanding of at least one framework (React, Angular or Vue.js)\n- Proven experience contributing to large-scale projects\n- Familiarity with responsive design principles, cross-browser compatibility, perf optimization, frontend engineering tool-chain and industry best practices\n- Strong collaboration and problem-solving skills, attention to detail, and a proactive 'can do' mindset\n- Experience developing with or using AI coding tools such as Claude Code, Codex, or AI-powered IDE plugins, with practical experience applying AI coding capabilities in real-world software development workflows.\n    \nPreferred Qualification(s):\n- Experience preferably in cross-platform (React Native, Flutter, PC), full-stack (Node.js based), interactive rendering (Three.js, WebGL) or Low-code/No-code system development\n\nAbout TikTok\nTikTok is the leading destination for short-form mobile video. At TikTok, our mission is to inspire creativity and bring joy. TikTok's global headquarters are in Los Angeles and Singapore, and we also have offices in New York City, London, Dublin, Paris, Berlin, Dubai, Jakarta, Seoul, and Tokyo.​\n\n\nWhy Join Us\nInspiring creativity is at the core of TikTok's mission. Our innovative product is built to help people authentically express themselves, discover and connect – and our global, diverse teams make that possible. Together, we create value for our communities, inspire creativity and bring joy - a mission we work towards every day.​\nWe strive to do great things with great people. We lead with curiosity, humility, and a desire to make impact in a rapidly growing tech company. Every challenge is an opportunity to learn and innovate as one team. We're resilient and embrace challenges as they come. By constantly iterating and fostering an \"Always Day 1\" mindset, we achieve meaningful breakthroughs for ourselves, our company, and our users. When we create and grow together, the possibilities are limitless. Join us.​\n​\nDiversity & Inclusion​\nTikTok is committed to creating an inclusive space where employees are valued for their skills, experiences, and unique perspectives. Our platform connects people from across the globe and so does our workplace. At TikTok, our mission is to inspire creativity and bring joy. To achieve that goal, we are committed to celebrating our diverse voices and to creating an environment that reflects the many communities we reach. We are passionate about this and hope you are too.​\n\n\nAcknowledgment of Country\nIn the spirit of reconciliation, TikTok acknowledges the Traditional Custodians of country throughout Australia and their connections to land, sea and community. We pay our respect to elders past and present and extend that respect to all Aboriginal and Torres Strait Islander peoples today.​",
+    "mustHaveSkills": [
+      "React / Vue",
+      "JavaScript / TypeScript",
+      "Performance Optimization",
+      "Cross-Browser Compatibility",
+      "AI Coding Tools"
+    ],
+    "niceToHaveSkills": [
+      "Three.js / WebGL",
+      "Interactive Rendering",
+      "React Native / PC",
+      "Low-code Systems"
+    ],
     "timeboxMinutes": 180
   }
 ]

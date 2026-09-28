@@ -223,7 +223,7 @@ export function ReportJourneyModal({
                   <span className="font-display text-2xl font-bold text-blue-600 dark:text-blue-400">
                     {animSuiteA}
                   </span>
-                  <span className="text-xs text-muted-foreground">/100</span>
+                  <span className="text-xs text-muted-foreground">/{suiteA.maxScore || 40}</span>
                 </div>
               </div>
 

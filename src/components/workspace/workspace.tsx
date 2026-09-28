@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpenText, FolderTree, MessageSquare, MonitorPlay, SquareTerminal } from "lucide-react";
+import { BookOpenText, Download, FolderTree, MessageSquare, MonitorPlay, SquareTerminal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FileBrowser } from "@/components/evidence/file-browser";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiError, sendChat, submitBuild } from "@/lib/client/api";
 import type { TurnView, WorkspaceView } from "@/lib/data/types";
+import { downloadProjectZip } from "@/lib/export/zip";
 import { applyWrites, toFileList, type FileMap } from "@/lib/files";
 import { applyRuntimeWrites, startRuntime, stopRuntime } from "@/lib/runtime/webcontainer";
 import { cn } from "@/lib/utils";
@@ -159,6 +160,16 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
         <Button variant="ghost" size="sm" className="gap-1.5 text-[13px]" onClick={() => setBriefOpen(true)}>
           <BookOpenText className="size-3.5" aria-hidden />
           <span className="hidden sm:inline">Brief & rubric</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5 text-[13px]"
+          onClick={() => void downloadProjectZip(files, `${workspace.challenge.title}-codebase`)}
+          title="Download full project codebase as ZIP"
+        >
+          <Download className="size-3.5" aria-hidden />
+          <span className="hidden sm:inline">Download ZIP</span>
         </Button>
         <SessionTimer startedAt={workspace.startedAt} timeboxMinutes={workspace.challenge.timeboxMinutes} />
         <RuntimePill />

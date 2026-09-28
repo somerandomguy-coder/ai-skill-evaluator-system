@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, BookOpenText, ChevronRight, FileCode, RotateCcw, Sparkles, TriangleAlert, X } from "lucide-react";
+import { ArrowUp, BookOpenText, ChevronRight, FileCode, ImageIcon, RotateCcw, Sparkles, TriangleAlert, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -135,25 +135,44 @@ function UserMessage({ turn }: { turn: TurnView }) {
 
 export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, onRetry, onDismissError, onOpenFile, onOpenBrief, className }: Props) {
   const [draft, setDraft] = useState("");
+  const [attachedImage, setAttachedImage] = useState<{ name: string; url: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
   }, [turns.length, pending, error]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (typeof event.target?.result === "string") {
+        setAttachedImage({ name: file.name, url: event.target.result });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const blocked = pending || (error?.retryable ?? false);
-  const canSend = draft.trim().length > 0 && draft.length <= MAX_CHARS && !blocked;
+  const canSend = (draft.trim().length > 0 || attachedImage !== null) && draft.length <= MAX_CHARS && !blocked;
 
   const isSendingRef = useRef(false);
 
   async function submit() {
     if (!canSend || isSendingRef.current) return;
     isSendingRef.current = true;
-    const text = draft;
+    const text = attachedImage
+      ? `${draft.trim()}\n\n[Attached Design Reference: ${attachedImage.name}]`
+      : draft.trim();
     setDraft("");
+    setAttachedImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
     try {
       const accepted = await onSend(text);
-      if (!accepted) setDraft(text);
+      if (!accepted) setDraft(draft);
     } finally {
       setTimeout(() => {
         isSendingRef.current = false;
@@ -239,6 +258,40 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
             void submit();
           }}
         >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageChange}
+            aria-label="Upload design reference image"
+          />
+
+          {attachedImage && (
+            <div className="flex items-center gap-2 px-3 pt-2.5">
+              <div className="relative flex items-center gap-2 rounded-xl border border-border bg-muted/50 p-1.5 pr-2.5 text-xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={attachedImage.url}
+                  alt="Design reference"
+                  className="size-8 rounded-lg object-cover border border-border/70"
+                />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] font-semibold uppercase text-signal">Design Mock</span>
+                  <span className="max-w-[12rem] truncate font-medium text-foreground">{attachedImage.name}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAttachedImage(null)}
+                  className="ml-1 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  title="Remove design reference"
+                >
+                  <X className="size-3" />
+                </button>
+              </div>
+            </div>
+          )}
+
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -257,16 +310,30 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
             className="block max-h-48 min-h-14 w-full resize-none bg-transparent px-3.5 pt-3 text-[13.5px] leading-relaxed outline-none [field-sizing:content] placeholder:text-muted-foreground disabled:opacity-60"
           />
           <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-            <span className="hidden items-center gap-1 pl-1 text-[11px] text-muted-foreground sm:inline-flex">
-              <kbd className="rounded border border-border px-1 font-mono">↵</kbd> send
-              <kbd className="ml-1.5 rounded border border-border px-1 font-mono">⇧↵</kbd> new line
-            </span>
-            <span className={cn("tabular ml-auto font-mono text-[11px]", draft.length > MAX_CHARS ? "text-bad" : "text-muted-foreground", draft.length < MAX_CHARS * 0.8 && "invisible")}>
-              {draft.length}/{MAX_CHARS}
-            </span>
-            <Button type="submit" variant="signal" size="icon-sm" disabled={!canSend} className="rounded-lg" aria-label="Send message">
-              <ArrowUp className="size-4" aria-hidden />
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={blocked}
+                className="inline-flex items-center gap-1 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                title="Attach design screenshot / UI mockup"
+                aria-label="Attach design mockup"
+              >
+                <ImageIcon className="size-4" />
+              </button>
+              <span className="hidden items-center gap-1 pl-1 text-[11px] text-muted-foreground sm:inline-flex">
+                <kbd className="rounded border border-border px-1 font-mono">↵</kbd> send
+                <kbd className="ml-1.5 rounded border border-border px-1 font-mono">⇧↵</kbd> new line
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={cn("tabular font-mono text-[11px]", draft.length > MAX_CHARS ? "text-bad" : "text-muted-foreground", draft.length < MAX_CHARS * 0.8 && "invisible")}>
+                {draft.length}/{MAX_CHARS}
+              </span>
+              <Button type="submit" variant="signal" size="icon-sm" disabled={!canSend} className="rounded-lg" aria-label="Send message">
+                <ArrowUp className="size-4" aria-hidden />
+              </Button>
+            </div>
           </div>
         </form>
       </div>
