@@ -1,0 +1,640 @@
+### Cluster 2: Distributed Backend Systems & Payments Infrastructure
+
+https://www.linkedin.com/jobs/view/4467957805/
+About the job
+Staff / Principal Backend Engineer – Payments Infrastructure
+
+Sydney | Early-stage | Greenfield | Java / JVM | Payments & Billing
+
+This is an opportunity to join a well-backed software company at the point where the core engineering foundations are still being built.
+
+The business is building payments and billing infrastructure for software companies. The problem goes well beyond processing a payment. It covers how SaaS businesses price products, manage billing, process transactions, expose APIs and eventually automate much of the operational work that currently sits around revenue.
+
+Very little has been decided for you.
+
+You’ll join a small founding engineering team and have a major say in how the platform is designed, how the systems fit together and what the engineering standards look like as the company grows.
+
+What you’ll be building The backend will sit at the centre of a complex payments and billing platform.
+
+You Could Be Working Across Areas Such As
+
+payment and billing infrastructure
+pricing and subscription logic
+APIs and integrations
+transaction and event processing
+distributed systems and service architecture
+reliability, performance and observability
+data flows across payments, customers and products
+systems that can support increasingly automated billing and pricing decisions
+
+This is genuine greenfield engineering. You won’t be inheriting years of legacy architecture or joining to maintain somebody else’s decisions.
+
+You’ll help make those decisions.
+
+The role This is a senior individual contributor position for someone comfortable operating with a high degree of autonomy.
+
+There won’t be a detailed technical roadmap handed to you with every decision already made. You’ll work closely with the founders and other senior engineers to understand the problem, work through the trade-offs and decide how things should be built.
+
+That Means Getting Involved In Questions Such As
+
+Where should service boundaries sit?
+What belongs in the core domain model?
+How should APIs be designed for customers building on top of the platform?
+What needs to be synchronous versus event-driven?
+How do we design for correctness when money is involved?
+Where do we need strong consistency and where can we accept eventual consistency?
+How do we build something simple today without creating problems at scale later?
+
+You’ll still write plenty of code, but the value of this role is not measured by ticket throughput.
+
+The expectation is that you can take an unclear engineering problem, work out what matters, make sound technical decisions and get it into production without needing somebody to constantly point you in the right direction.
+
+What we're looking for You’re likely already operating at Staff, Principal, Lead or senior Founding Engineer level, even if your current title says something different.
+
+We’re Particularly Interested In Engineers Who Have
+
+designed and built complex backend systems
+made architecture decisions that affected more than one service or team
+strong Java and JVM experience
+worked with distributed systems, APIs and modern cloud infrastructure
+built systems where reliability and correctness genuinely mattered
+operated well when requirements were incomplete or changing
+taken ownership from problem definition through to production
+influenced technical direction without needing formal management authority
+
+Experience building payments, billing, financial infrastructure, ledgers, transaction systems or similarly complex platforms would be particularly relevant.
+
+People from strong SaaS, fintech, infrastructure or platform engineering backgrounds could also fit well if they have dealt with comparable systems problems.
+
+Why consider it? The main reason is the stage of the company.
+
+You’re early enough that your decisions will genuinely shape what gets built.
+
+The architecture isn’t settled. The engineering culture isn’t inherited. There isn’t a large organisation between you and the problem.
+
+You’ll be working directly with experienced founders and a small group of senior engineers on a product where the backend is the product.
+
+For someone who has spent the last few years operating inside established systems and wants to build something from the foundations again, this is a rare opportunity to do it with real scope and responsibility.
+
+It will suit someone who wants ownership rather than oversight, and who is comfortable making decisions when there isn’t an existing playbook to follow.
+
+If you’ve built important backend systems before and want your next role to put you much closer to the architecture, product and company decisions, I’d be interested in speaking.
+
+https://www.linkedin.com/jobs/view/4472703106/
+About the job
+Why join us?
+
+Mitti by SafetyCulture is a global tech company, just not the kind you're picturing. Our almost 1,000-person team builds tools that make work better for the three billion frontline workers who keep the world moving. We've got big tech scale, without the sign-off layers or corporate theatre. Every permanent team member gets equity, so when we grow, you do too. This next chapter is about scaling smart, powered by AI, a clear vision and real ownership.
+
+Big tech impact, without the big tech ick.
+
+About The Role
+
+As a Software Engineer II, you'll be empowered to develop reliable, scalable solutions that solve real-world problems for customers, with the knowledge that your work has a direct positive impact. You'll face engaging technical challenges as we continue to scale, and be part of a team that owns its services end-to-end - collaborating closely with product, design, and other engineers as you build depth in your domain.
+
+This role is part of our Best Fit job match program: we have a variety of Software Engineering roles, and by applying to this role you'll be considered for multiple roles across our engineering teams. We want to set you up for success, so we assess your capabilities and then match you to the best team.
+
+In this role you can expect to
+
+Design, build, and maintain backend services in a large-scale SaaS platform, including distributed systems and data stores.
+Take ownership of features from inception to delivery, working directly with stakeholders, product, and design.
+Use a tech stack that includes Golang, AWS, PostgreSQL, and Kafka, alongside datastore design, data warehousing, and distributed systems.
+Participate actively in code review, testing, and the continuous improvement of how the team works.
+Apply a practical understanding of AI technologies, identifying opportunities to bring automation or intelligence into feature development.
+Bring a user-centric mindset, ensuring engineering decisions support better user experiences — even in platform-facing work.
+Work in a hybrid environment, including time at our HQ in Surry Hills, Sydney.
+Demonstrate Mitti's values: Think Customer, Open Honest Always, Better as a Team, Be Bold Bring Action.
+
+You may be a great fit for this role if you have some of the following
+
+Solid experience in a back-end programming language and framework, with growing expertise in building scalable systems; prior experience with Golang is highly desirable.
+Practical experience owning and delivering software features end-to-end in a collaborative environment.
+Familiarity with cloud platforms such as AWS and common data stores like PostgreSQL.
+An understanding of distributed systems concepts and datastore design principles.
+A user-centric approach and a commitment to writing clean, maintainable code.
+Experience working in fast-paced, SaaS-oriented teams and environments.
+Comfort working with ambiguity, and a willingness to take on problems outside your immediate ticket.
+Use of AI coding assistants as a normal part of your workflow, with the judgement to critically evaluate what they produce.
+
+What You Get Access To At Mitti
+
+Equity with high growth potential, and a competitive salary.
+Flexible working arrangements - you create the best work blend between home and your local office.
+Access to professional and personal training and development opportunities; hackathons, workshops, lunch & learns.
+In-house Culinary Crew serving daily breakfast, lunch and snacks.
+Wellbeing initiatives such as subsidised fitness programs, EAP services, and generous parental leave.
+Quarterly celebrations and team events.
+Table tennis, board games, gym sessions, book club, and pet-friendly offices.
+
+We’re committed to building inclusive teams and cultivating a sense of belonging so our people can bring their whole authentic selves to work each day. We seek to make reasonable adjustments throughout our recruitment process to create an even playing field for all candidates. Thanks to the tireless efforts of the entire Mitti team we’ve built an incredible culture which has seen us recognised as a Best Place to Work in Australia , the US and the UK .
+
+Even if you don't meet every requirement listed in the ad, please consider applying for this role. We prioritise inclusion and value individuals with potential over a checklist of qualifications. Don't rule yourself out, hit that apply button if this job resonates with you
+
+You can find out more about life at Mitti via Youtube , Twitter , Instagram and LinkedIn.
+
+To all recruitment agencies, we do not accept resumes or partnership opportunities. Please do not forward resumes to Mitti or any of our employees. We are not responsible for any fees associated with unsolicited resumes.
+
+
+https://www.linkedin.com/jobs/view/4458161044/
+About the job
+Why join us?
+
+Mitti by SafetyCulture is a global tech company, just not the kind you're picturing. Our almost 1,000-person team builds tools that make work better for the three billion frontline workers who keep the world moving. We've got big tech scale, without the sign-off layers or corporate theatre. Every permanent team member gets equity, so when we grow, you do too. This next chapter is about scaling smart, powered by AI, a clear vision and real ownership.
+
+Big tech impact, without the big tech ick.
+
+As a Software Engineer II in the Customer Identity and Access Management (CIAM) team, you deliver well-scoped services and features inside an architecture our Senior and Staff engineers set, and grow real depth in the identity domain as we modernise the platform.
+
+You will work with a modern tech stack including Golang on the backend, identity and access technologies such as OpenID Connect and Security Assertion Markup Language (SAML), Amazon Web Services (AWS) , Auth0 and Kafka for infrastructure, and datastores such as PostgreSQL.
+
+Key Responsibilities:
+
+Design, build and maintain backend services in a large-scale software-as-a-service platform, including distributed systems and data stores.
+Take ownership of features from inception to delivery, collaborating with product, design and other engineers.
+Build and maintain authentication and user lifecycle flows — signup, login, multi-factor authentication and single sign-on and user orchestration — and grow real depth in the identity domain.
+Contribute to safe, incremental migration off legacy identity services using feature flags, backwards compatibility and staged rollout.
+Treat security as part of the craft: handle credentials and tokens carefully, and raise concerns early rather than working around them.
+Participate actively in code review, testing and the continuous improvement of our engineering practices.
+Make foundational capability easy for other engineering teams to consume, treating them as the customer of platform work.
+Demonstrate SafetyCulture's values — Think Customer, Open Honest Always, Better as a Team, Be Bold Bring Action.
+
+Required Skills and Experience:
+
+Technical skills:
+
+Solid capability in back-end programming languages and frameworks, with growing expertise in building scalable systems; prior experience with Golang is highly desirable.
+Practical experience owning and delivering software features end to end in a collaborative environment.
+Relational data modelling and PostgreSQL — sound schema design, safe migrations, and the ability to reason about indexing and query cost.
+Familiarity with cloud platforms such as AWS, including deploying, operating and debugging your own services in production.
+An understanding of distributed systems concepts — application programming interface design, retries, idempotency, timeouts and eventual consistency.
+Exposure to authentication, sessions or identity — login and signup flows, token handling, or standards such as single sign-on, OpenID Connect, OAuth 2.0 or SAML. Depth here is welcome but not required; appetite to go deep is.
+Experience in multi-tenant systems where organisation and membership boundaries have to hold under scale and change.
+A commitment to writing clean, maintainable, well-tested code, and to giving and receiving code review well.
+
+Behavioural skills:
+
+Self-direction on well-scoped problems — takes a defined problem and drives it to done without daily direction.
+Good judgement about when to push on and when to ask; raises risks and blockers early rather than burning a week.
+Works effectively with product, design and engineers on other teams, and can explain a technical constraint to someone non-technical.
+Builds for others, not just for self — cares whether what they ship is easy for the next team to consume.
+Comfort working in a domain that is being actively re-architected around them, and with priorities that shift.
+
+Artificial intelligence skills:
+
+Uses artificial intelligence coding assistants as a normal part of the working day, and can critically evaluate what they generate for correctness, quality and security.
+Identifies practical opportunities to apply automation or intelligence within feature development.
+Minimum expected: hands-on daily use with informed scepticism. Not expected at this level: defining tooling, guardrails or adoption patterns for other teams.
+
+We’re committed to building inclusive teams and cultivating a sense of belonging so our people can bring their whole authentic selves to work each day. We seek to make reasonable adjustments throughout our recruitment process to create an even playing field for all candidates. Thanks to the tireless efforts of the entire Mitti team we’ve built an incredible culture which has seen us recognised as a Best Place to Work in Australia , the US and the UK .
+
+Even if you don't meet every requirement listed in the ad, please consider applying for this role. We prioritise inclusion and value individuals with potential over a checklist of qualifications. Don't rule yourself out, hit that apply button if this job resonates with you
+
+You can find out more about life at Mitti via Youtube , Twitter , Instagram and LinkedIn.
+
+To all recruitment agencies, we do not accept resumes or partnership opportunities. Please do not forward resumes to Mitti or any of our employees. We are not responsible for any fees associated with unsolicited resumes.
+
+https://www.linkedin.com/jobs/view/4454233912/
+About the job
+Propeller is on a mission to take the guesswork out of moving dirt - reducing wasted fuel, time, and money. We do this through the power of maps.
+
+Our customers use Propeller's integrated hardware and software products to capture accurate 3D versions of their worksites. With over 50,000 worksites worldwide using Propeller's smart survey technology, we empower project teams to map, measure, and manage site activity.
+
+Propeller empowers everyone to approach, own, and solve problems creatively. We're data nerds who care about impact, honesty, and each other. We take pride in being a great place to work and are proud to be recognised as a Fast Company and BuiltIn Best Place to Work. You can learn more about us on Glassdoor.
+
+Requirements
+
+Your Mission:
+
+You'll join our backend processing team, responsible for the core processing pipeline that transforms thousands of survey datasets captured by drones and other scanning devices into finished 3D site outputs. As part of this role, you'll own the design, development, and maintenance of our Temporal-based 3D processing pipelines, ensuring they're reliable at scale, easy to operate, and flexible enough to support new workflows as our platform evolves.
+
+This role offers the opportunity to work on high-impact projects spanning multiple teams, gain exposure to core parts of our system, and build a broad range of skills across infrastructure, backend engineering, and some frontend development.
+
+You'll bring strong backend engineering expertise, a big-picture mindset, and a collaborative approach. You'll contribute not only through code, but also by helping the squad navigate change and continuously improve how we build, operate, and evolve our systems.
+
+Your Responsibilities:
+
+Architect, implement, and optimise processing pipeline components that run hundreds of thousands of compute-heavy survey jobs each year
+Write high-quality code and review changes from within the squad and across other teams
+Support integration of new scanning devices and drones as they hit the market, bringing data from new sensors into the pipeline
+Collaborate closely with other internal teams
+Maintain internal software products for diagnostics and human-in-the-loop interventions on the processing platform
+Mentor and guide mid-level engineers within the squad 
+
+Your Skills:
+
+You are excited by complex problems and motivated to learn an unfamiliar domain (this is the key filter)
+You have strong backend engineering skills (ideally Node.js and/or Python); comfortable picking up new stacks where needed
+You have a big-picture mindset - you understand the underlying problems and make pragmatic architectural decisions that balance immediate needs with the long-term vision
+You are a strong collaborator with great communication skills
+You enjoy mentoring, giving guidance, and bringing your teammates along on the journey with you
+
+Bonus points for:
+
+Temporal (workflow orchestration) experience
+GIS/geospatial awareness or interest (even as a map enthusiast)
+Comfortable with AI-assisted ways of working
+Photogrammetry, 3D modelling, or GPS/ground control data exposure
+
+Benefits
+
+Employee share options
+Professional development budget and leave
+The opportunity to take part in our mentorship program
+Mental health resources
+Monthly telephone and/or internet allowance
+Paid primary & secondary parental leave policies
+Hybrid work arrangements and WFH equipment provided
+
+About Propeller
+
+Propeller is for everyone, so come as you are. We value all types of experience, skill, and ability. If you don't think you meet all the requirements, but still think this role would be a good fit, we'd love to hear from you.
+
+Diversity makes our team more creative, fun, and effective, so bring your whole self to the application process, and we will too!
+
+If you're interested in what life at Propeller is like, check out our employee-owned Medium blog page!
+
+https://www.linkedin.com/jobs/view/4466590565/
+About the job
+Senior Software Engineer – Sydney Based
+A global financial technology business is building a new engineering team in Sydney.We’re looking for experienced Backend / Senior Software Engineers to join a high-performing engineering environment working on complex, high-scale financial technology.
+The roleYou will:
+Design and develop highly available, scalable backend systems.
+Own services from system design through to deployment and production.
+Work across complex, distributed systems and business-critical workflows.
+Design resilient architectures and asynchronous services.
+Build APIs and integrate with internal and external systems.
+Work closely with Product, Operations and international engineering teams.
+
+The business is technology agnostic, so strong backend engineers from a range of technology environments will be considered.
+What we're looking for
+Strong commercial backend software engineering experience.
+Experience designing and maintaining complex systems at scale.
+Strong understanding of distributed systems and service-oriented architecture.
+Experience working with cloud infrastructure and modern engineering practices.
+Experience with APIs, asynchronous processing and event-driven systems.
+Strong engineering fundamentals and a focus on reliability, scalability and maintainability.
+Experience working in a collaborative product/engineering environment.
+
+Relevant technologies may includePython | Django | FastAPI | PostgreSQL | AWS
+
+https://stripe.com/careers/listing/senior-software-engineer-backend/8230952
+Who we are
+About Stripe
+Stripe, LLC. is a financial infrastructure platform for businesses. Millions of companies - from the world’s largest enterprises to the most ambitious startups - use Stripe to accept payments, grow their revenue, and accelerate new business opportunities. Our mission is to increase the GDP of the internet, and we have a staggering amount of work ahead. That means you have an unprecedented opportunity to put the global economy within everyone's reach while doing the most important work of your career.
+
+What you’ll do
+Responsibilities
+Building and operating critical, large-scale systems that manage massive volumes of financial information, to fulfill business goals for Stripe and its partners;
+Navigate a complex fintech environment with numerous compliance regulations, translating internal and external business needs into robust software requirements and scalable distributed systems;
+Lead cross- functional alignment and provide technical direction for multi-team projects;
+Build large-scale (petabyte-size) financial data platforms, solutions, and pipelines using Big Data technologies and distributed systems;
+Debugging production issues across the stack, analyzing complex datasets and designing large-scale data pipelines using modern Big Data technologies to ensure reliable, high-performance solutions;
+Executing projects related to insights into Stripe’s financial performance across multiple Stripe products;
+Work on systems critical to Stripe's future financial operations, with impact over billions of dollars of payment volume;
+Deeply understand the design and architecture of modern payments and financial technology across countries; and
+Leverage experience with monitoring, incident handling, debugging in production environments to ensure data pipeline health and SLOs, while reducing operational toil via automation.
+Who you are
+Minimum requirements
+Must have a Bachelor's Degree or foreign equivalent degree in Computer Science, Information Systems Security, or a related field, plus five (5) years of related work experience in Software Engineering.
+
+Must also have experience in each of the following:
+
+5 years of experience programming in Java, Scala, or Python;
+5 years of experience designing, building, and maintaining scalable distributed systems;
+5 years of experience debugging production issues across services and multiple levels of the stack;
+5 years of experience with different testing tools and frameworks including JUnit, Mockito, and TestNG;
+4 years of experience developing complex SQL queries, analyzing datasets and designing large-scale data pipelines;
+4 years of experience working in fintech domain;
+4 years of experience leading cross-team projects and building alignment on multi-team technical direction; and
+1 year experience working with Apache Spark or similar modern Big Data technologies.
+Salary: $206,086.00 - $285,600.00/yr.
+
+This salary range represents the base salary range for the role and any sales commissions / sales bonuses targets, if applicable, would be in addition to the base salary.
+
+40 hrs/week
+
+50% Telecommuting permitted.
+
+Multiple Positions Available.
+
+Additional benefits for this role may include: equity, company bonus or sales commissions/bonuses; 401(k) plan; medical, dental, and vision benefits; and wellness stipends. WA80
+
+#LI-DNI
+In-office expectations
+Office-assigned Stripes in most of our locations are currently expected to spend at least 50% of the time in a given month in their local office or with users. This expectation may vary depending on role, team and location. For example, Stripes in Stripe Delivery Center roles in Mexico City, Mexico, Bengaluru, India, and Dublin, Ireland work 100% from the office. Also, some teams have greater in-office attendance requirements, to appropriately support our users and workflows, which the hiring manager will discuss. This approach helps strike a balance between bringing people together for in-person collaboration and learning from each other, while supporting flexibility when possible.
+
+We look forward to hearing from you.
+At Stripe, we're looking for people with passion, grit, and integrity. You're encouraged to apply even if your experience doesn't precisely match the job description. Your skills and passion will stand out—and set you apart—especially if your career has taken some extraordinary twists and turns. At Stripe, we welcome diverse perspectives and people who think rigorously and aren't afraid to challenge assumptions. Join us.
+
+https://wise.jobs/job/senior-software-engineer-i-business-onboarding-and-verification-in-london-jid-3627
+Company Description
+
+Wise is a global technology company, building the best way to move and manage the world’s money.
+Min fees. Max ease. Full speed.
+
+Whether people and businesses are sending money to another country, spending abroad, or making and receiving international payments, Wise is on a mission to make their lives easier and save them money.
+
+As part of our team, you will be helping us create an entirely new network for the world's money.
+For everyone, everywhere.
+
+More about our mission and what we offer.
+
+
+Job Description
+
+Please note we do not offer relocation support or VISA sponsorship for this role.
+
+The Europe and UK Business Onboarding and Verification team is looking for a Senior Software Engineer to build seamless, scalable and compliant onboarding for businesses across the region.
+
+Our focus is business onboarding and verification: creating systems that understand and verify businesses, helping legitimate customers access Wise quickly and safely.
+
+Requirements vary across markets, business types and ownership structures. We manage this complexity through automated verification, flexible information-collection flows and robust controls that reduce financial crime risk without adding unnecessary friction.
+
+By increasing automation and improving the wider onboarding experience, we help Wise onboard more businesses, enter new markets and scale efficiently.
+
+Join us to shape how businesses across Europe and the UK access Wise.
+
+How we work
+
+We keep our customers’ needs at the centre of every decision while building effective controls that help Wise onboard businesses safely and compliantly. We use data, research, customer feedback and operational insights to identify the most important problems, reduce unnecessary friction and strengthen our verification processes.
+
+At Wise, teams have the autonomy to define their priorities and own outcomes. Everyone is encouraged to contribute ideas, challenge assumptions and help shape solutions that balance customer experience, risk management and scalable growth.
+
+What will you be doing
+
+You will design and build reliable, scalable systems supporting business onboarding and verification across Europe and the UK.
+
+Build and improve systems for verifying businesses, owners, directors and other associated parties.
+
+Automate information collection, verification and decision-making to reduce onboarding time and manual work.
+
+Create flexible onboarding journeys that adapt to different markets, business types and regulatory requirements.
+
+Develop effective controls and monitoring to manage financial-crime and compliance risks with minimal customer friction.
+
+Own projects end to end, from problem discovery and technical design through to delivery and measuring impact.
+
+Collaborate with Product, Compliance, Operations and other engineering teams while maintaining high standards for reliability, testing and code quality.
+
+
+Qualifications
+
+We are fully aware that it is uncommon for a candidate to have all skills required and we fully support everyone in learning new skills with us. So if you have some of those listed below and are eager to learn more we do want to hear from you!
+
+What do you need?
+
+A strong product mindset and passion for user experience, you prioritise work with the customers in mind and make data-driven decisions to fix customer pain-points
+
+Experience of Java or other JVM based language, experience with Spring framework and deep understanding of JDBC and database internals.
+
+Experience with CI/CD pipelines and Distributed and Concurrent Systems
+
+Experience with machine learning basics (data pipelines, feature engineering, recall/precision, familiarity with machine learning systems in production) is a huge plus
+
+Experience working with relational and non-relational databases, query optimisation and designing schemas
+
+You enjoy writing testable code and believe in Test Driven Development
+
+
+Additional Information
+
+Interested? Find out more:
+
+How we work – a practical guide
+DEI @ Wise
+Wise Tech Stack (2025 update)
+See what it's like to work at Wise London!
+Our Engineering career map
+Wise Engineering – https://medium.com/wise-engineering
+
+What do we offer: 
+
+Starting salary: £87,500 - £111,000 + RSUs
+Wise Benefits
+For everyone, everywhere. We're people building money without borders  — without judgement or prejudice, too. We believe teams are strongest when they are diverse, equitable and inclusive.
+
+We're proud to have a truly international team, and we celebrate our differences.
+Inclusive teams help us live our values and make sure every Wiser feels respected, empowered to contribute towards our mission and able to progress in their careers.
+
+If you want to find out more about what it's like to work at Wise visit Wise.Jobs.
+
+Keep up to date with life at Wise by following us on LinkedIn and Instagram.
+
+https://careers.airwallex.com/job/62989730-2731-4af4-9ff1-97c016207758/senior-backend-engineer-liquidity-platform/
+About Airwallex
+Airwallex is the only unified payments and financial platform for global businesses. Powered by our unique combination of proprietary infrastructure and software, we empower over 250,000 businesses worldwide – including Brex, Navan, Qantas, SHEIN and many more – with fully integrated solutions to manage everything from business accounts, payments, spend management and treasury, to embedded finance at a global scale.
+
+Proudly founded in Melbourne, we have a team of over 2,300 of the brightest and most innovative people in tech across 27 offices around the globe. Valued at US$11 billion and backed by world-leading investors including T. Rowe Price, Visa, Mastercard, Robinhood Ventures, Sequoia, Salesforce Ventures, DST Global, and Lone Pine Capital, Airwallex is leading the charge in building the global payments and financial platform of the future. If you’re ready to do the most ambitious work of your career, join us.
+
+ 
+Attributes We Value
+We hire successful builders with founder-like energy who want real impact, accelerated learning, and true ownership. You bring strong role-related expertise and sharp thinking, and you’re motivated by our mission and operating principles. You move fast with good judgment, dig deep with curiosity, and make decisions from first principles, balancing speed and rigor.
+
+You’re humble and collaborative; turn zero‑to‑one ideas into real products, and you “get stuff done” end-to-end. You use AI to work smarter and solve problems faster. Here, you’ll tackle complex, high‑visibility problems with exceptional teammates and grow your career as we build the future of global banking. If that sounds like you, let’s build what’s next.
+
+ 
+About the team
+The Liquidity Platform team powers the core infrastructure that enables Airwallex to manage funds efficiently, securely and intelligently across the globe.
+
+Our platform ensures that money is always in the right place, at the right time, and used in the most effective way. We build systems for liquidity management, safeguarding, investment, and cash data management and analysis. These capabilities are critical to supporting Airwallex’s global operations, regulatory obligations and capital efficiency.
+
+As Airwallex continues to scale globally, liquidity becomes one of the most important and complex infrastructure challenges. We need to forecast funding needs, optimize cash movements, support safeguarding compliance across jurisdictions, improve investment capabilities, and uncover new opportunities for capital optimization through high-quality data and analytics.
+
+We are looking for talented and driven backend engineers to join the Liquidity Platform team and help us build one of the world’s most advanced and efficient liquidity management systems.
+
+ 
+What you’ll do
+You are an experienced backend engineer who is comfortable working in complex domains like financial markets, payments or other high-integrity distributed systems. You care deeply about correctness, simplicity and operability, and you’re happy to engage with product and non-technical stakeholders on trade-offs.
+
+You’re pragmatic: you can balance ideal architectures with the realities of delivery, and you’re comfortable iterating on systems that are already in production.
+
+This role is based in Singapore.
+
+ 
+Responsibilities
+Design, build and own backend services for global liquidity management, safeguarding, investment workflows, and cash data management.
+
+Develop systems that ensure funds are available in the right entities, accounts and currencies to support global business operations efficiently and reliably.
+
+Build scalable platforms for liquidity forecasting, cash positioning, internal fund movement, funding optimisation, and operational decision-making.
+
+Contribute to Airwallex’s global safeguarding compliance infrastructure by building reliable systems that support regulatory reporting, segregation of funds, reconciliation and control processes.
+
+Design and enhance investment platform capabilities that help Airwallex manage surplus funds safely, efficiently and in line with internal policies and regulatory requirements.
+
+Build data pipelines, models and analytical capabilities to improve visibility into cash positions, liquidity usage, fund flows and optimisation opportunities.
+
+Work on complex distributed systems using modern backend architecture, including microservices, event-driven workflows, Kafka, gRPC, REST APIs, and SQL/NoSQL datastores.
+
+Implement robust controls for limits, approvals, reconciliation, data quality, monitoring and auditability to ensure our platform behaves predictably under stress and failure scenarios.
+
+Work end-to-end on features: from requirements clarification and solution design, to implementation, automated testing, deployment, observability and operational runbooks.
+
+Collaborate closely with Product, Treasury, Finance, Legal, Compliance, Risk, Data and other engineering teams to design APIs, data contracts and workflows that are reliable, observable and easy to operate.
+
+Instrument services with metrics, logs and tracing, and use these tools to support capacity planning, performance optimisation, incident response and continuous improvement.
+
+Participate in code reviews, technical design discussions and knowledge-sharing sessions; mentor less-experienced engineers where appropriate.
+
+Take part in our on-call rotation, supported by strong observability, runbooks and team processes, to ensure the Liquidity Platform remains reliable and highly available.
+
+
+Who you are
+We’re looking for people who meet the minimum qualifications for this role. The preferred qualifications are great to have, but are not mandatory.
+
+ 
+Minimum qualifications:
+5+ years of experience building and operating backend systems in production.
+
+Strong programming experience in one or more JVM languages (e.g. Kotlin, Java) or a comparable backend stack, and a willingness to work primarily in the JVM ecosystem.
+
+Solid understanding of distributed systems fundamentals: concurrency, data consistency, idempotency, retries, backoff, and failure modes in networked services.
+
+Experience designing and working with REST and or gRPC APIs, and persistence layers using relational databases (e.g. PostgreSQL) and/or key-value stores.
+
+Proficiency with event-driven architectures and message brokers/streams (e.g. Kafka or similar).
+
+Strong focus on testing and quality: unit, integration and contract tests; familiarity with CI/CD pipelines.
+
+Good grasp of observability: metrics, logging, tracing and alerting, and how to use them to debug production issues.
+
+Clear written and verbal communication skills; comfortable working with cross functional partners in a fast-paced environment.
+
+ 
+Preferred qualifications:
+Experience in fintech, payments, treasury, banking, liquidity management, safeguarding, investment platforms, regulatory reporting or financial data systems.
+
+Experience building systems that require strong auditability, reconciliation, controls, approval workflows or financial correctness.
+
+Experience working with data-intensive systems, cash flow analytics, forecasting, reporting or operational dashboards.
+
+Familiarity with financial operations concepts such as cash positioning, fund movement, bank account structures, entity-level liquidity, safeguarding, investment limits or cash optimisation.
+
+Experience designing platforms that support global operations across multiple markets, currencies, entities or regulatory environments.
+
+ 
+#Singapore
+
+Applicant Safety Policy: Fraud and Third-Party Recruiters
+To protect you from recruitment scams, please be aware that Airwallex will not ask for bank details, sensitive ID numbers (i.e. passport), or any form of payment during the application or interview process. All official communication will come from an @airwallex.com email address. Please apply only through careers.airwallex.com or our official LinkedIn page.
+
+Airwallex does not accept unsolicited resumes from search firms/recruiters. Airwallex will not pay any fees to search firms/recruiters if a candidate is submitted by a search firm/recruiter unless an agreement has been entered into with respect to specific open position(s). Search firms/recruiters submitting resumes to Airwallex on an unsolicited basis shall be deemed to accept this condition, regardless of any other provision to the contrary.
+
+
+Equal opportunity
+Airwallex is proud to be an equal opportunity employer. We value diversity and anyone seeking employment at Airwallex is considered based on merit, qualifications, competence and talent. We don’t regard color, religion, race, national origin, sexual orientation, ancestry, citizenship, sex, marital or family status, disability, gender, or any other legally protected status when making our hiring decisions. If you have a disability or special need that requires accommodation, please let us know.
+
+https://block.xyz/careers/jobs/5207134008
+It all started with an idea at Block in 2013. Initially built to take the pain out of peer-to-peer payments, Cash App has gone from a simple product with a single purpose to a dynamic ecosystem, developing unique financial products, including Afterpay/Clearpay, to provide a better way to send, spend, invest, borrow and save to our 50+ million monthly active customers. We want to redefine the world's relationship with money to make it more relatable, instantly available, and universally accessible.
+
+ 
+
+Today, Cash App has thousands of employees working globally across office and remote locations, with a culture geared toward innovation, collaboration and impact. We've been a distributed team since day one, and many of our roles can be done remotely from the countries where Cash App operates. No matter the location, we tailor our experience to ensure our employees are creative, productive, and happy.
+
+The Role
+Cash App is offering a better way to file your taxes as an alternative to traditional online DIY tax preparation systems. As a Senior Software Engineer on our Tax Engine Server Engineering team, you will build and enhance the codebase that powers our tax filing experience. You will translate complex tax requirements into seamless software solutions that help millions of users confidently navigate and complete their returns with ease.
+
+You will collaborate closely with product managers, tax experts on our Tax Product Specialist team, and other cross-functional teams to ensure our platform remains accurate, reliable, and easy to use. If you are a skilled engineer who thrives on solving complex problems and wants to make a direct impact on a transformative product within a rapidly growing company, this role is for you.
+
+You Will
+Design, build, and own high-quality features and systems that power the Cash App Taxes filing experience, from federal and state form logic to e-file submission.
+Translate complex tax rules and requirements into clean, maintainable, and well-tested code in close partnership with Tax Product Specialists.
+Build tools and guardrails that enable non-technical contributors to make code changes safely that maintain our quality standards.
+Drive architectural and design decisions, ensuring our tax software remains scalable, secure, and maintainable.
+Write reliable, well-tested code and establish best practices for coding, testing, deployment, and documentation.
+Collaborate cross-functionally with Quality Assurance, Tax Product Specialists, Cloud Platform, Design, Product, Customer Care, and other teams to deliver cohesive solutions.
+Proactively identify and resolve issues related to accuracy, reliability, and performance, balancing new feature development with ongoing maintenance.
+Mentor teammates through code reviews, technical discussions, and knowledge sharing, fostering a culture of continuous improvement.
+Stay informed about emerging technologies and industry best practices to continually refine our development processes.
+Apply an AI-first mindset in your everyday work, raising the bar of AI application on our team
+You Have
+6+ years of professional software development experience, preferably in a fast-paced or product-centric environment. Experience in the tax industry is a major plus.
+Strong technical skills in backend development, including system design, architecture, and object-oriented programming.
+A track record of delivering reliable, high-quality software solutions on schedule.
+Excellent communication skills with the ability to collaborate effectively with both technical and non-technical stakeholders.
+Strong problem-solving skills with attention to detail and a methodical approach to debugging and implementation.
+A Bachelor's degree in Computer Science, Engineering, or a related field (or equivalent experience).
+Passion for building innovative software that simplifies complicated processes for everyday users.
+Technologies We Use and Teach
+Java / Kotlin
+iBatis / SQL Relational Databases
+Logging & monitoring tools — Datadog, Splunk, New Relic
+GCP / AWS
+GitHub
+HTTP, JSON, gRPC, Protocol Buffers
+Okta
+Linear
+AI Coding Agents (Claude, Codex, etc.)
+We’re working to build a more inclusive economy where our customers have equal access to opportunity, and we strive to live by these same values in building our workplace. Block is an equal opportunity employer evaluating all employees and job applicants without regard to identity or any legally protected class. We will consider qualified applicants with arrest or conviction records for employment in accordance with state and local laws and “fair chance” ordinances. We believe in being fair, and are committed to an inclusive interview experience, including providing reasonable accommodations to disabled applicants throughout the recruitment process. We encourage applicants to share any needed accommodations with their recruiter, who will treat these requests as confidentially as possible. Want to learn more about what we’re doing to build a workplace that is fair and square? Check out our I+D page.
+
+While there is no specific deadline to apply for this role, U.S. roles are typically open for an average of 55 days before being filled by a successful candidate. Please refer to the date listed at the top of this job page for when this role was first posted.
+
+ 
+
+Block takes a market-based approach to pay, and pay may vary depending on your location. U.S. locations are categorized into one of four zones based on a cost of labor index for that geographic area. The successful candidate’s starting pay will be determined based on job-related skills, experience, qualifications, work location, and market conditions. These ranges may be modified in the future.
+
+To find a location’s zone designation, please refer to this resource. If a location of interest is not listed, please speak with a recruiter for additional information. 
+
+ 
+
+Zone A:
+$217,800—$326,800 USD
+Zone B:
+$207,000—$310,400 USD
+Zone C:
+$196,100—$294,100 USD
+Zone D:
+$185,200—$277,800 USD
+Application Guidelines
+
+Candidates may submit up to 9 active applications within a 60-day period. Reapplications to the same role are accepted 90 days after a previous application has been reviewed.
+
+Use of AI in Our Hiring Process
+
+We may use automated AI tools to evaluate job applications for efficiency and consistency. These tools comply with local regulations, including bias audits, and we handle all personal data in accordance with state and local privacy laws. 
+
+Contact us here with hiring practice or data usage questions.
+
+Every benefit we offer is designed with one goal: empowering you to do the best work of your career while building the life you want. Remote work, medical insurance, flexible time off, retirement savings plans, and modern family planning are just some of our offering. Check out our other benefits at Block.
+
+Block, Inc. (NYSE: XYZ) builds technology to increase access to the global economy. Each of our brands unlocks different aspects of the economy for more people. Square makes commerce and financial services accessible to sellers. Cash App is the easy way to spend, send, and store money. Afterpay is transforming the way customers manage their spending over time. TIDAL is a music platform that empowers artists to thrive as entrepreneurs. Bitkey is a simple self-custody wallet built for bitcoin. Proto is a suite of bitcoin mining products and services. Together, we’re helping build a financial system that is open to everyone.
+
+https://recruitment.macquarie.com/en_US/careers/JobDetail?jobId=22476
+Our Detection Engineering team, in the Vulnerability Management service within our Cybersecurity division, is responsible for surfacing the most critical vulnerabilities across Macquarie's IT ecosystem and providing a prioritised and contextualised view that enables teams to focus remediation efforts where needed.
+We are a global financial services group operating in 30 markets with 57 years of unbroken profitability. At Macquarie, you’re empowered to shape a career that is fulfilling and creates value. You will bring your insights and expertise to the task at hand and feel supported as you make your own kind of impact for a better future.
+What role will you play?
+Press space or enter keys to toggle section visibility
+As a Senior Software Engineer, you will help us design, develop and maintain a greenfield platform using a modern tech stack. You will drive the future of our vulnerability management platform and ensure the delivery of robust, scalable software solutions. You will help build a collaborative environment to enhance our capabilities in identifying, analysing, and mitigating vulnerabilities across our multi-cloud environment.
+What you offer
+Press space or enter keys to toggle section visibility
+5+ years of experience in software engineering, with strong Python expertise across backend services and APIs
+Demonstrated ability to design, build and maintain scalable backend systems
+Solid background in microservices architecture, with a focus on Kubernetes and CI/CD best practices
+Good understanding of cloud-native environments and integrating security or operational tooling
+Commitment to high-quality, reliable code through testing, automation and engineering best practices
+Experience with data engineering or modern data platforms (cloud data lakes, Apache Iceberg, Airflow, dbt) is a strong advantage
+We love hearing from anyone inspired to build a better future with us, if you're excited about the role or working at Macquarie we encourage you to apply.
+What we offer
+Press space or enter keys to toggle section visibility
+At Macquarie, you’re empowered to shape a career that’s rewarding in all the ways that matter most to you. Macquarie employees can access a wide range of benefits which, depending on employment type, include:
+
+1 wellbeing leave day per year
+Up to 5 additional service bonus leave days per year
+Up to 20 weeks’ paid parental leave for primary caregivers along with 12 days of transition leave upon return to work, and 6 weeks’ paid leave for non-primary caregivers
+2 days of paid volunteer leave and donation matching
+Up to 12 months’ gender affirmation leave, including 6 weeks’ paid leave
+Access to Employee Assistance Program and wellbeing benefits including skin and health checks, and flu vaccinations
+Access to a wide range of salary packaging options
+Access to a wide range of learning and development opportunities, including reimbursement for professional membership or subscription
+Hybrid and flexible working arrangements, dependent on role
+Reimbursement for work from home equipment
+About Technology
+Press space or enter keys to toggle section visibility
+Technology enables every aspect of Macquarie, for our people, our customers and our communities. We’re a global team that is passionate about accelerating the digital enterprise, connecting people and data, building platforms and applications and designing tomorrow’s technology solutions.
+Inclusion at Macquarie
+Press space or enter keys to toggle section visibility
+
+We are committed to providing an inclusive environment for all, where different experiences, skills and perspectives are valued and respected. Macquarie provides access to opportunities for all individuals regardless of race, colour, religion, sex, sexual orientation, national origin, age, disability, protected veteran status, genetic information, marital status, gender identity or any other characteristic or circumstance. 
+
+
+We provide reasonable adjustments to individuals who may need support during the recruitment process and employment. If you require an adjustment, please let us know during the application process.

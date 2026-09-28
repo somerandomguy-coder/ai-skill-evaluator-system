@@ -770,21 +770,19 @@ async function main() {
       challengeId = createdChallenge.id;
     }
 
-    // 3. Insert requirements
-    if (challengeId) {
-      for (const req of challengeData.requirements) {
-        await prisma.requirement.create({
-          data: {
-            challengeId,
-            category: req.category,
-            statement: req.statement,
-            weight: req.weight,
-            successSignals: req.successSignals,
-            failureModes: req.failureModes,
-          },
-        });
-        totalRequirementsInserted++;
-      }
+    // 3. Insert requirements in batch
+    if (challengeId && challengeData.requirements.length > 0) {
+      await prisma.requirement.createMany({
+        data: challengeData.requirements.map((req) => ({
+          challengeId,
+          category: req.category,
+          statement: req.statement,
+          weight: req.weight,
+          successSignals: req.successSignals,
+          failureModes: req.failureModes,
+        })),
+      });
+      totalRequirementsInserted += challengeData.requirements.length;
     }
 
     console.log(`  ✓ Populated: [${challengeData.employer}] ${challengeData.roleTitle} (${challengeData.requirements.length} requirements)`);
