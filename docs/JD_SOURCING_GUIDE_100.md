@@ -2,20 +2,20 @@
 
 This guide provides an actionable, step-by-step strategy to source and populate **100 real-world Job Descriptions (JDs)** across the Australian technology ecosystem. Populating these into our PostgreSQL requirement bank ensures **instant challenge generation, zero LLM research latency, and deep SFIA 9 alignment**.
 
-### 📊 Ingestion Progress: 30 / 100 Real JDs (30%)
+### 📊 Ingestion Progress: 40 / 100 Real JDs (40%)
 | Cluster # | Technology Domain | Target Count | Ingested | Status |
 | :--- | :--- | :---: | :---: | :---: |
 | **Cluster 1** | Frontend Architecture & Canvas/WebGL | 10 | 10 | ✅ Completed |
 | **Cluster 2** | Distributed Backend Systems & Payments | 10 | 10 | ✅ Completed |
 | **Cluster 3** | Regulated Fintech, Payroll & Statutory Compliance | 10 | 10 | ✅ Completed |
-| **Cluster 4** | Cloud Telemetry, Observability & Site Reliability (SRE) | 10 | In Progress | 🔄 Sourcing |
-| **Cluster 5** | Applied AI & LLM Systems Engineering | 10 | 0 | ⏳ Pending |
+| **Cluster 4** | Cloud Telemetry, Observability & Site Reliability (SRE) | 10 | 10 | ✅ Completed |
+| **Cluster 5** | Applied AI & LLM Systems Engineering | 10 | In Progress | 🔄 Sourcing |
 | **Cluster 6** | Real-Time Collaboration, Audio/Video & WebSockets | 10 | 0 | ⏳ Pending |
 | **Cluster 7** | Data Platform, Streaming Pipelines & Lakehouses | 10 | 0 | ⏳ Pending |
 | **Cluster 8** | High-Growth B2C Mobile & Cross-Platform | 10 | 0 | ⏳ Pending |
 | **Cluster 9** | Cybersecurity, AppSec & Identity (IAM) | 10 | 0 | ⏳ Pending |
 | **Cluster 10**| Enterprise Workflow Automation & Vertical SaaS | 10 | 0 | ⏳ Pending |
-| **TOTAL** | **Real Production Tech Roles** | **100** | **30** | **30% Complete** |
+| **TOTAL** | **Real Production Tech Roles** | **100** | **40** | **40% Complete** |
 
 ---
 
