@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CircleAlert, FileText, LoaderCircle, Upload, X, Zap } from "lucide-react";
+import { ArrowRight, CircleAlert, ClipboardPaste, FileText, LoaderCircle, Upload, X, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,55 +12,6 @@ import { PIPELINE_STEPS, PipelineProgress, type ProgressStep } from "./pipeline-
 
 const MIN_CHARS = 80;
 const MAX_CHARS = 25_000;
-
-const PRESETS = [
-  {
-    id: "resume-screener",
-    name: "AI Resume Screener",
-    role: "Full-Stack Engineer — AI Resume Screener",
-    company: "TalentAI",
-    text: `Role: Full-Stack Engineer — AI Resume Screener
-Company: TalentAI (Sydney / Remote)
-Team: Fair Hiring & Applicant Review Systems
-
-What you will build:
-- Build a simple, clean review dashboard to screen job candidate resumes with an AI helper.
-- Check AI claims against real resume text to catch fake skills and AI hallucinations.
-- Filter candidates by required skills (e.g. Python, React) and minimum passing match score.
-- Let human recruiters easily approve or reject applicants with clear reasons and evidence.
-- Ensure fairness: ignore biased details like school prestige, age, or candidate location.`,
-  },
-  {
-    id: "task-tracker",
-    name: "Team Task Tracker",
-    role: "Frontend Engineer — Student & Team Task Tracker",
-    company: "Atlassian",
-    text: `Role: Frontend Engineer — Student & Team Task Tracker
-Company: Atlassian (Sydney / Remote)
-Team: Collaboration & Project Management
-
-What you will build:
-- Build an interactive project board to track tasks, homework, and bug tickets.
-- Support simple task states: To Do, In Progress, and Completed.
-- Add quick search, category filters, and priority tags so students can organize work easily.
-- Catch AI bugs and ensure task updates save properly without losing data.`,
-  },
-  {
-    id: "card-creator",
-    name: "Portfolio Card Creator",
-    role: "Web Developer — Simple Portfolio Card Creator",
-    company: "Canva",
-    text: `Role: Web Developer — Simple Portfolio Card Creator
-Company: Canva (Surry Hills / Remote)
-Team: Creative Tools & Student Templates
-
-What you will build:
-- Build a drag-and-drop card preview tool for students to showcase projects.
-- Let users customize colors, edit titles, and preview their cards in real time.
-- Validate inputs so cards look great and display cleanly on mobile and desktop.
-- Add a one-click button to export or share the completed card.`,
-  },
-];
 
 type Run = { status: "idle" } | { status: "running" | "error"; steps: ProgressStep[]; message?: string };
 
@@ -74,8 +25,7 @@ function applyEvent(steps: ProgressStep[], e: Extract<PipelineEvent, { type: "st
 
 export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandidate: boolean }) {
   const router = useRouter();
-  const [text, setText] = useState(PRESETS[0].text);
-  const [activePreset, setActivePreset] = useState<string | null>("resume-screener");
+  const [text, setText] = useState("");
   const [run, setRun] = useState<Run>({ status: "idle" });
   const [fastMode, setFastMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,13 +34,7 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
   const valid = text.trim().length >= MIN_CHARS && text.length <= MAX_CHARS;
   const busy = run.status === "running";
 
-  function handlePreset(p: typeof PRESETS[number]) {
-    setActivePreset(p.id);
-    setText(p.text);
-  }
-
   function handleClear() {
-    setActivePreset(null);
     setText("");
   }
 
@@ -102,7 +46,6 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
       const content = event.target?.result;
       if (typeof content === "string") {
         setText(content);
-        setActivePreset(null);
       }
     };
     reader.readAsText(file);
@@ -148,51 +91,36 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
     <div className="w-full space-y-3">
       <input ref={fileInputRef} type="file" accept=".txt,.md,.text" onChange={handleFileUpload} className="hidden" />
 
-      {/* An editor frame: presets are open files, the status bar carries state and the one action. */}
+      {/* Editor container with clean header and blank textarea */}
       <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-lift)] dark:shadow-[0_24px_60px_-30px_rgb(255_107_0/0.35)]">
-        <div className="flex items-center gap-1 border-b border-border bg-surface-container-low pr-2">
-          <div className="scrollbar-none flex min-w-0 flex-1 overflow-x-auto" role="group" aria-label="Sample job descriptions">
-            {PRESETS.map((p) => {
-              const active = activePreset === p.id;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  aria-pressed={active}
-                  disabled={busy}
-                  onClick={() => handlePreset(p)}
-                  className={cn(
-                    "relative flex shrink-0 items-center gap-2 border-r border-border px-3.5 py-2.5 text-[13px] transition-colors disabled:opacity-60",
-                    active ? "bg-card font-medium text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                  )}
-                >
-                  {active && <span className="slide-in absolute inset-x-0 top-0 h-0.5 bg-signal" aria-hidden />}
-                  <FileText className={cn("size-3.5", active ? "text-signal" : "text-muted-foreground")} aria-hidden />
-                  {p.name}
-                </button>
-              );
-            })}
+        <div className="flex items-center justify-between border-b border-border bg-surface-container-low px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <ClipboardPaste className="size-4 text-signal" aria-hidden />
+            <span className="text-[13px] font-semibold text-foreground">Job Description</span>
+            <span className="hidden text-xs text-muted-foreground sm:inline">— Copy & paste any real tech role</span>
           </div>
-          {text.length > 0 && !busy && (
+          <div className="flex items-center gap-2">
+            {text.length > 0 && !busy && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="grid size-7 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label="Clear the job description"
+                title="Clear text"
+              >
+                <X className="size-4" aria-hidden />
+              </button>
+            )}
             <button
               type="button"
-              onClick={handleClear}
-              className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Clear the job description"
-              title="Clear"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={busy}
+              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border/80 bg-background/80 px-2.5 py-1 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-60"
             >
-              <X className="size-4" aria-hidden />
+              <Upload className="size-3.5" aria-hidden />
+              <span>Upload file</span>
             </button>
-          )}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={busy}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-60"
-          >
-            <Upload className="size-3.5" aria-hidden />
-            <span className="hidden sm:inline">Upload</span>
-          </button>
+          </div>
         </div>
 
         {run.status === "running" || run.status === "error" ? (
@@ -219,20 +147,34 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
             <textarea
               id="jd"
               value={text}
-              onChange={(e) => {
-                setText(e.target.value);
-                setActivePreset(null);
-              }}
-              placeholder="Paste a job description: the role, the stack, what the team builds."
+              onChange={(e) => setText(e.target.value)}
+              placeholder={`Paste any real Job Description here (from LinkedIn, Seek, Indeed, or careers pages)...
+
+Tips:
+• Include the role title, technology stack, and what the team builds.
+• Minimum 80 characters.
+• We extract required SFIA 9 skills, calibrate difficulty, and build your custom 3-hour evaluation challenge.`}
               spellCheck={false}
-              className="block min-h-60 w-full resize-y sm:min-h-[19rem] bg-transparent px-5 py-4 font-mono text-[13px] leading-6 text-foreground outline-none placeholder:text-muted-foreground sm:px-6"
+              className="block min-h-60 w-full resize-y sm:min-h-[19rem] bg-transparent px-5 py-4 font-mono text-[13px] leading-6 text-foreground outline-none placeholder:text-muted-foreground/70 sm:px-6"
             />
 
             <div className="flex flex-col gap-3 border-t border-border bg-surface-container-low px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:pl-5">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5" aria-live="polite">
-                  <span className={cn("size-1.5 rounded-full", valid ? "bg-ok" : "bg-warn")} aria-hidden />
-                  {valid ? "Ready" : needed > 0 ? `${needed} more characters` : "Too long"}
+                  <span
+                    className={cn(
+                      "size-1.5 rounded-full",
+                      valid ? "bg-ok" : text.length === 0 ? "bg-muted-foreground/40" : "bg-warn"
+                    )}
+                    aria-hidden
+                  />
+                  {valid
+                    ? "Ready to generate"
+                    : text.length === 0
+                      ? "Paste a job description to get started"
+                      : needed > 0
+                        ? `${needed} more characters (min ${MIN_CHARS})`
+                        : "Too long"}
                 </span>
                 <span className="tabular font-mono">
                   {text.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}
@@ -255,7 +197,7 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
                 variant="signal"
                 size="xl"
                 className="w-full sm:w-auto"
-                disabled={busy || (signedIn && (!valid || !isCandidate))}
+                disabled={busy || !valid || (signedIn && !isCandidate)}
               >
                 {busy ? (
                   <>
@@ -273,7 +215,6 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
           </form>
         )}
       </div>
-
     </div>
   );
 }

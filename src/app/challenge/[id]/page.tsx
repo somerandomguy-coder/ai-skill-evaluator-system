@@ -41,6 +41,9 @@ export const metadata: Metadata = { title: "Your challenge" };
 
 export default async function ChallengePage({ params, searchParams }: PageProps<"/challenge/[id]">) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
+  if (id.startsWith("seed-")) {
+    redirect("/");
+  }
   const [challenge, user] = await Promise.all([data.getChallenge(id), getCurrentUser()]);
   if (!challenge) notFound();
 

@@ -7,7 +7,6 @@ import { APP_NAME } from "@/lib/brand";
 const LINKS = [
   { href: "/pricing", label: "Pricing" },
   { href: "/partnerships", label: "Partners" },
-  { href: "/report/seed-eval-strong", label: "Sample report" },
   { href: "/mentor", label: "Mentor portal" },
 ];
 

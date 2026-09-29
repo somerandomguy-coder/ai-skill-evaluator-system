@@ -9,6 +9,9 @@ export const metadata: Metadata = { title: "Build" };
 
 export default async function BuildPage({ params }: PageProps<"/build/[sessionId]">) {
   const { sessionId } = await params;
+  if (sessionId.startsWith("seed-")) {
+    redirect("/");
+  }
   const user = await requireUser(`/build/${sessionId}`, "CANDIDATE");
   const workspace = await data.getWorkspace(sessionId);
   if (!workspace) notFound();

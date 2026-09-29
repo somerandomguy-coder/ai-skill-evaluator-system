@@ -511,16 +511,18 @@ export const mockDataSource: DataSource = {
         barrierCount: challenge.job.barriers.length,
         sourceUrl: challenge.job.sourceUrl,
       },
-      mySessions: sessions
-        .filter((s) => (userId ? s.ownerId === userId : true))
-        .map((s) => ({
-          sessionId: s.id,
-          challengeTitle: challenge.title,
-          roleTitle: challenge.job.roleTitle,
-          status: s.evaluation ? "SUBMITTED" : "ACTIVE",
-          startedAt: new Date(s.startedAt).toISOString(),
-          evaluationId: s.evaluation?.id ?? null,
-        })),
+      mySessions: userId
+        ? sessions
+            .filter((s) => s.ownerId === userId && !s.id.startsWith("seed-"))
+            .map((s) => ({
+              sessionId: s.id,
+              challengeTitle: challenge.title,
+              roleTitle: challenge.job.roleTitle,
+              status: s.evaluation ? "SUBMITTED" : "ACTIVE",
+              startedAt: new Date(s.startedAt).toISOString(),
+              evaluationId: s.evaluation?.id ?? null,
+            }))
+        : [],
     };
   },
 
