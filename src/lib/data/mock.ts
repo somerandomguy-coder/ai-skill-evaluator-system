@@ -51,6 +51,7 @@ export function saveInMemoryChallenge(c: ChallengeView) {
 import type { ChallengeV2 } from "../types/assessment-v2";
 import { VERIFIED_CHALLENGE_BANK } from "../engine/verified-bank";
 import { getChallengeFromRepository } from "../engine/resolver";
+import { buildRoleStarterTemplate } from "../engine/starter-template";
 
 export function v2ToChallengeView(v2: ChallengeV2): ChallengeView {
   return {
@@ -556,15 +557,21 @@ export const mockDataSource: DataSource = {
     }
 
     if (memChallenge) {
+      const memStarter = buildRoleStarterTemplate({
+        title: memChallenge.title,
+        brief: memChallenge.brief,
+        technicalInvariants: memChallenge.technicalInvariants,
+        starterSchemas: memChallenge.starterSchemas,
+      });
       return {
         sessionId,
         ownerId: "candidate-1",
         status: "ACTIVE",
         startedAt: new Date().toISOString(),
         challenge: memChallenge,
-        starter: { ...SEED_CHALLENGE.starterTemplate },
+        starter: memStarter,
         turns: [],
-        files: { ...SEED_CHALLENGE.starterTemplate },
+        files: memStarter,
         evaluationId: null,
       };
     }

@@ -20,6 +20,7 @@ import { toJson } from "../json";
 import type { PipelineEvent } from "../pipeline-events";
 import { trackEvent } from "../ai/langfuse";
 import { resolveChallenge } from "../engine/resolver";
+import { buildRoleStarterTemplate } from "../engine/starter-template";
 import { v2ToChallengeView, saveInMemoryChallenge } from "../data/mock";
 import type { ChallengeView } from "../data/types";
 
@@ -142,7 +143,14 @@ async function runFastPipeline(
         brief: fallbackChallengeView.brief,
         domainContext: fallbackChallengeView.domainContext,
         timeboxMinutes: fallbackChallengeView.timeboxMinutes,
-        starterTemplate: toJson(SEED_CHALLENGE.starterTemplate),
+        starterTemplate: toJson(
+          buildRoleStarterTemplate({
+            title: challengeTitle,
+            brief: fallbackChallengeView.brief,
+            technicalInvariants: resolved.technicalInvariants,
+            starterSchemas: resolved.starterSchemas,
+          })
+        ),
         rubricVersion: "SFIA-9-ECD-v2",
         meta: toJson({
           validApproaches: [],
@@ -268,7 +276,14 @@ export async function runChallengePipeline(
             brief: resolved.briefMarkdown,
             domainContext: `Enterprise Australian assessment grounded in SFIA 9 standards for ${parsed.employer}.`,
             timeboxMinutes: resolved.sfiaProfile.level === 2 ? 120 : 180,
-            starterTemplate: toJson(SEED_CHALLENGE.starterTemplate),
+            starterTemplate: toJson(
+              buildRoleStarterTemplate({
+                title: resolved.roleTitle,
+                brief: resolved.briefMarkdown,
+                technicalInvariants: resolved.technicalInvariants,
+                starterSchemas: resolved.starterSchemas,
+              })
+            ),
             rubricVersion: "SFIA-9-ECD-v2",
             meta: toJson({
               validApproaches: [],

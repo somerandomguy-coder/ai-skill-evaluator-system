@@ -23,6 +23,7 @@ import { evaluateAndStore } from "./evaluations";
 import { RetryableError, ServiceError } from "./errors";
 import { trackEvent, trackUserTurn } from "../ai/langfuse";
 import { getInMemoryChallenge } from "../data/mock";
+import { buildRoleStarterTemplate } from "../engine/starter-template";
 import { SEED_CHALLENGE } from "../fixtures/seed-challenge";
 
 export const MAX_MESSAGE_CHARS = 8_000;
@@ -68,7 +69,14 @@ export async function startSession(challengeId: string, userId: string): Promise
             brief: mem.brief,
             domainContext: mem.domainContext,
             timeboxMinutes: mem.timeboxMinutes,
-            starterTemplate: toJson(SEED_CHALLENGE.starterTemplate),
+            starterTemplate: toJson(
+              buildRoleStarterTemplate({
+                title: mem.title,
+                brief: mem.brief,
+                technicalInvariants: mem.technicalInvariants,
+                starterSchemas: mem.starterSchemas,
+              })
+            ),
             rubricVersion: mem.rubricVersion,
             meta: toJson({ validApproaches: [], ambiguities: [] }),
           },
