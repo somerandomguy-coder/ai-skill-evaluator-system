@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { generateStructured } from "../ai/client";
-import { isDemoMode, openaiApiKey } from "../env";
+import { aiApiKey, isDemoMode } from "../env";
 import type {
   ChallengeV2,
   RubricRequirement,
@@ -27,15 +27,26 @@ export const SfiaProfileSchema = z.object({
 
 // --- Agent 2: ECD Task Model Schema ---
 
-export const EcdTaskModelSchema = z.object({
+export const StarterSchemaFile = z.object({
+  filename: z.string(),
+  contents: z.string(),
+});
+
+export const EcdTaskModelLlmSchema = z.object({
   title: z.string(),
   companyName: z.string(),
   briefMarkdown: z.string(),
   technicalInvariants: z.array(z.string()).min(2),
-  starterSchemas: z.record(z.string(), z.string()),
+  starterSchemas: z.array(StarterSchemaFile),
 });
 
-export type EcdTaskModel = z.infer<typeof EcdTaskModelSchema>;
+export interface EcdTaskModel {
+  title: string;
+  companyName: string;
+  briefMarkdown: string;
+  technicalInvariants: string[];
+  starterSchemas: Record<string, string>;
+}
 
 // --- Agent 3: 7-Category Interaction Rubric Schema ---
 
@@ -53,7 +64,7 @@ export const RubricRequirementSchema = z.object({
   weight: z.number().int().min(5).max(30),
   sfiaLevel: z.union([z.literal(2), z.literal(3)]),
   statement: z.string(),
-  injectedTrap: z.string().optional(),
+  injectedTrap: z.string().nullable(),
   successSignals: z.array(z.string()).min(1),
   failureModes: z.array(z.string()).min(1),
 });
@@ -114,7 +125,7 @@ export async function runAgent1SfiaDeconstructor(
   const isJunior = /junior|grad|graduate|intern|entry|associate/i.test(rawJd);
   const fallbackLevel: SfiaLevel = isJunior ? 2 : 3;
 
-  if (!openaiApiKey() || isDemoMode()) {
+  if (!aiApiKey() || isDemoMode()) {
     return generateGroundedSfiaProfile(rawJd, fallbackLevel);
   }
 
@@ -143,12 +154,12 @@ export async function runAgent2EcdTaskSynthesizer(
   rawJd: string,
   companyName: string
 ): Promise<EcdTaskModel> {
-  if (!openaiApiKey() || isDemoMode()) {
+  if (!aiApiKey() || isDemoMode()) {
     return generateGroundedEcdTaskModel(sfiaProfile, rawJd, companyName);
   }
 
   try {
-    const result = await generateStructured<EcdTaskModel>({
+    const result = await generateStructured({
       stage: "challenge",
       system: AGENT_2_SYSTEM,
       messages: [
@@ -157,10 +168,17 @@ export async function runAgent2EcdTaskSynthesizer(
           content: `SFIA Profile:\n${JSON.stringify(sfiaProfile, null, 2)}\n\nCompany: ${companyName}\n\nJob Description:\n${rawJd.slice(0, 5000)}`,
         },
       ],
-      schema: EcdTaskModelSchema,
+      schema: EcdTaskModelLlmSchema,
       maxTokens: 3000,
     });
-    return result.data;
+    const starterSchemas: Record<string, string> = {};
+    for (const f of result.data.starterSchemas) {
+      starterSchemas[f.filename] = f.contents;
+    }
+    return {
+      ...result.data,
+      starterSchemas,
+    };
   } catch (err) {
     console.warn("[Agent 2 ECD] Falling back to grounded task model:", err);
     return generateGroundedEcdTaskModel(sfiaProfile, rawJd, companyName);
@@ -171,12 +189,12 @@ export async function runAgent3RubricGenerator(
   sfiaProfile: SfiaProfile,
   taskModel: EcdTaskModel
 ): Promise<RubricRequirement[]> {
-  if (!openaiApiKey() || isDemoMode()) {
+  if (!aiApiKey() || isDemoMode()) {
     return generateGroundedRubric(sfiaProfile, taskModel);
   }
 
   try {
-    const result = await generateStructured<{ requirements: RubricRequirement[] }>({
+    const result = await generateStructured<{ requirements: z.infer<typeof RubricRequirementSchema>[] }>({
       stage: "challenge",
       system: AGENT_3_SYSTEM,
       messages: [
@@ -188,7 +206,10 @@ export async function runAgent3RubricGenerator(
       schema: RubricSchema,
       maxTokens: 3500,
     });
-    return result.data.requirements;
+    return result.data.requirements.map((r) => ({
+      ...r,
+      injectedTrap: r.injectedTrap ?? undefined,
+    }));
   } catch (err) {
     console.warn("[Agent 3 Rubric] Falling back to grounded rubric:", err);
     return generateGroundedRubric(sfiaProfile, taskModel);
@@ -270,9 +291,21 @@ function generateGroundedEcdTaskModel(
   companyName: string
 ): EcdTaskModel {
   const isFinance = /payroll|tax|payment|finance|superannuation|accounting|bank/i.test(rawJd);
-  const isCdr = /banking|cdr|open banking|account|security|oauth/i.test(rawJd);
+  const isFrontend = /frontend|front-end|react|vue|angular|ui|web|css|next\.js|client/i.test(rawJd);
+  const isCompliance = /compliance|privacy|security|audit|governance|risk|legal/i.test(rawJd);
 
-  const effectiveCompany = companyName || "Australian Technology Services";
+  const explicitCompany = (companyName && companyName.trim() && companyName.toLowerCase() !== "unknown") ? companyName.trim() : "";
+  const extractedCompany =
+    explicitCompany ||
+    rawJd.match(/(?:Company|Employer|Organisation|Organization|At):\s*([^\n\r(]+)/i)?.[1]?.trim() ||
+    rawJd.match(/at\s+([A-Z][A-Za-z0-9&.\s]{1,25})(?:\s|,|\.|$)/)?.[1]?.trim() ||
+    "Enterprise Tech";
+  const effectiveCompany = extractedCompany;
+
+  const extractedRole =
+    rawJd.match(/(?:Role|Title|Position|Job):\s*([^\n\r]+)/i)?.[1]?.trim() ||
+    rawJd.split("\n")[0]?.replace(/^[#*\s-]+/, "")?.slice(0, 50)?.trim() ||
+    "Software Engineer";
 
   if (isFinance) {
     return {
@@ -316,10 +349,50 @@ export interface StatutoryBreakdown {
     };
   }
 
+  if (isFrontend) {
+    return {
+      title: `${effectiveCompany} — ${extractedRole} Component & State Architecture`,
+      companyName: effectiveCompany,
+      briefMarkdown: `# ${effectiveCompany} Interactive Component & Data Flow Module
+
+## Context & Objectives
+You are engineering a core frontend module for **${effectiveCompany}**. The interface must handle dynamic user input, maintain smooth rendering performance, and enforce WCAG 2.1 AA accessibility guidelines.
+
+## Constraints & Objectives
+1. **Separation of Concerns**: Decouple pure state/domain logic from UI rendering components.
+2. **Deterministic State**: Prevent redundant re-renders and memory leaks during frequent state updates.
+3. **Inclusive Design**: Guarantee keyboard navigation and full screen-reader compliance.
+
+## Definition of Done
+- Interactive component with clean state management.
+- Unit tests verifying edge-case user interactions and boundary state changes.
+- Modular exports with strict TypeScript typing.`,
+      technicalInvariants: [
+        "Component state must be strictly immutable; no direct array or object mutation.",
+        "Async state must handle loading, error, and empty states explicitly.",
+        "All interactive controls must have accessible aria-labels and keyboard focus rings.",
+      ],
+      starterSchemas: {
+        "component-types.ts": `export interface ComponentProps {
+  id: string;
+  initialData: Record<string, unknown>[];
+  onAction: (actionId: string, payload: unknown) => Promise<void>;
+  disabled?: boolean;
+}
+
+export interface StateSnapshot {
+  status: "idle" | "loading" | "success" | "error";
+  items: unknown[];
+  errorMessage?: string;
+}`,
+      },
+    };
+  }
+
   return {
-    title: `${effectiveCompany} — Resilient API Gateway with Australian Privacy Masking`,
+    title: `${effectiveCompany} — ${extractedRole} Service & Data Policy Enforcement`,
     companyName: effectiveCompany,
-    briefMarkdown: `# Enterprise Workflow & Data Sanitization Component
+    briefMarkdown: `# ${effectiveCompany} Enterprise Workflow & Data Sanitization Component
 
 ## Context & Objectives
 Build a production-grade service module for **${effectiveCompany}** that handles workflow events, enforces strict data scoping, and guarantees compliance with the Australian Privacy Act 1988.

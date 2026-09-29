@@ -626,8 +626,9 @@ async function main() {
 
   const allChallengesToSeed = [...CURATED_ROLES];
 
-  for (const custom of customJds) {
-    const customId = `challenge-custom-${custom.employer.toLowerCase().replace(/[^a-z0-9]/g, "")}-${Date.now().toString(36)}`;
+  for (let i = 0; i < customJds.length; i++) {
+    const custom = customJds[i];
+    const customId = `challenge-custom-${custom.employer.toLowerCase().replace(/[^a-z0-9]/g, "")}-${i}-${Math.random().toString(36).slice(2, 7)}`;
     allChallengesToSeed.push({
       id: customId,
       roleTitle: custom.roleTitle,

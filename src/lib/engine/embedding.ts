@@ -70,8 +70,10 @@ export function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 let cachedOpenAi: OpenAI | null = null;
+let openAiDisabled = false;
 
 function getOpenAi(): OpenAI | null {
+  if (openAiDisabled) return null;
   const key = openaiApiKey();
   if (!key) return null;
   if (!cachedOpenAi) cachedOpenAi = new OpenAI({ apiKey: key });
@@ -90,7 +92,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   }
 
   // Check if live AI is available
-  if (!isDemoMode()) {
+  if (!isDemoMode() && !openAiDisabled) {
     const ai = getOpenAi();
     if (ai) {
       try {
@@ -102,7 +104,10 @@ export async function generateEmbedding(text: string): Promise<number[]> {
           return resp.data[0].embedding;
         }
       } catch (err) {
-        console.warn("[generateEmbedding] OpenAI embedding failed, falling back to deterministic vectorizer:", err);
+        if (err instanceof OpenAI.AuthenticationError || (err as any)?.status === 401) {
+          openAiDisabled = true;
+        }
+        console.warn("[generateEmbedding] OpenAI embedding failed, falling back to deterministic vectorizer:", (err as Error)?.message ?? err);
       }
     }
   }

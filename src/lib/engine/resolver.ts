@@ -2,6 +2,7 @@ import { ChallengeV2, TierLevel } from "../types/assessment-v2";
 import { cosineSimilarity, generateEmbedding } from "./embedding";
 import { runAgenticGenerationPipeline } from "./pipeline";
 import { VERIFIED_CHALLENGE_BANK } from "./verified-bank";
+import { prisma } from "../db";
 
 export interface ResolutionResult {
   challenge: ChallengeV2;
@@ -163,6 +164,80 @@ export async function resolveChallenge(
       similarityScore: Math.round(tier2Match.score * 100) / 100,
       latencyMs: Date.now() - startTime,
     };
+  }
+
+  // 2b. High-confidence Bank Search: Check if the raw JD matches an employer in our curated repository
+  const cleanComp = companyName?.toLowerCase().trim();
+  if (cleanComp && cleanComp !== "unknown" && cleanComp !== "australian technology services" && cleanComp !== "enterprise tech") {
+    for (const item of challengeRepository.values()) {
+      const itemComp = item.companyName.toLowerCase();
+      if (itemComp.length >= 3 && (itemComp.includes(cleanComp) || cleanComp.includes(itemComp))) {
+        await incrementChallengeUsage(item.id);
+        return {
+          challenge: item,
+          tierResolved: "TIER_1_VERIFIED",
+          similarityScore: 0.95,
+          latencyMs: Date.now() - startTime,
+        };
+      }
+    }
+
+    try {
+      const dbMatch = await prisma.challenge.findFirst({
+        where: {
+          OR: [
+            { title: { contains: cleanComp } },
+            { jobSubmission: { rawJd: { contains: cleanComp } } },
+          ],
+        },
+        include: { requirements: true },
+      });
+      if (dbMatch && dbMatch.requirements.length > 0) {
+        const item: ChallengeV2 = {
+          id: dbMatch.id,
+          tier: "TIER_1_VERIFIED",
+          companyName: companyName,
+          roleTitle: dbMatch.title,
+          sfiaProfile: {
+            level: (dbMatch.timeboxMinutes && dbMatch.timeboxMinutes <= 120) ? 2 : 3,
+            primarySkills: ["PROG", "DESN", "TEST"],
+            attributes: {
+              autonomy: "Works under general guidance; acts on own initiative within agreed boundaries.",
+              influence: "Influences component architecture; negotiates technical interfaces.",
+              complexity: "Resolves non-routine technical complexity and balances architectural trade-offs.",
+              knowledge: "Maintains deep knowledge of statutory standards and frameworks.",
+              businessSkills: "Communicates clearly in technical pairs and defends engineering choices.",
+            },
+          },
+          briefMarkdown: dbMatch.brief,
+          technicalInvariants: [
+            "Validate all input schemas with explicit boundary checks.",
+            "Prevent plain-text exposure of sensitive identifiers.",
+          ],
+          starterSchemas: {},
+          rubric: dbMatch.requirements.map((r) => ({
+            id: r.id,
+            category: r.category as any,
+            statement: r.statement,
+            weight: r.weight,
+            sfiaLevel: 3,
+            successSignals: (r.successSignals as string[]) || [],
+            failureModes: (r.failureModes as string[]) || [],
+          })),
+          verification: { status: "APPROVED" },
+          metadata: { createdAt: dbMatch.createdAt.toISOString(), usageCount: 1 },
+        };
+        registerChallengeInRepository(item);
+        return {
+          challenge: item,
+          tierResolved: "TIER_1_VERIFIED",
+          similarityScore: 0.95,
+          latencyMs: Date.now() - startTime,
+        };
+      }
+    } catch {
+      // Proceed to Tier 3 if DB lookup is unavailable
+    }
   }
 
   // 3. Tier 3 Fallback: Agentic Generation Pipeline
