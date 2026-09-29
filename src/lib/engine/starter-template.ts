@@ -1,6 +1,9 @@
+import { mergeStarter } from "../starter";
+
 /**
  * Generates clean, role-tailored starter workspace files for candidate challenges.
- * Replaces legacy hardcoded prototype seed files (teams.json, responses.json, summaries.json).
+ * Replaces legacy hardcoded prototype seed files (teams.json, responses.json, summaries.json)
+ * while preserving base boot files (package.json, vite.config.js, index.html) for WebContainer runtime.
  */
 export function buildRoleStarterTemplate(challenge: {
   title: string;
@@ -25,5 +28,18 @@ export function buildRoleStarterTemplate(challenge: {
     files["src/index.ts"] = `/**\n * Solution Module for: ${challenge.title}\n * Grounded in SFIA 9 & Evidence-Centered Design\n */\n\nexport function execute() {\n  // TODO: Implement solution logic adhering to the technical invariants\n}\n`;
   }
 
-  return files;
+  // Provide a clean, welcoming starter component tailored to the challenge
+  files["src/App.jsx"] = `export default function App() {
+  return (
+    <main className="shell">
+      <h1>${challenge.title.replace(/"/g, '&quot;')}</h1>
+      <p>
+        Review the brief in <code>README.md</code>, or message the AI assistant to start implementing your solution.
+      </p>
+    </main>
+  );
+}
+`;
+
+  return mergeStarter(files);
 }

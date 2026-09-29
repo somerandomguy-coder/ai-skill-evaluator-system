@@ -10,6 +10,7 @@ import { SEED_JD_SOURCE_URL } from "../fixtures/seed-jd";
 import { parseChallengeMeta, parseEscalationReasons, parseFileList, parseFileMap, parseRequirementResults } from "../json";
 import { effectiveScore } from "../services/effective-score";
 import { reconstructFiles, startSession } from "../services/sessions";
+import { mergeStarter } from "../starter";
 import { buildCognitiveSuites } from "../services/cognitive-rubric";
 import { DEMO_USERS } from "./demo-users";
 import { getInMemoryChallenge, mockDataSource } from "./mock";
@@ -271,7 +272,7 @@ export const prismaDataSource: DataSource = {
         return mockDataSource.getWorkspace(sessionId);
       }
       if (s) {
-        const starter = parseFileMap(s.challenge.starterTemplate);
+        const starter = mergeStarter(parseFileMap(s.challenge.starterTemplate));
         return {
           sessionId: s.id,
           ownerId: s.userId,

@@ -18,7 +18,7 @@ import { applyWrites, sanitizeWrites, toFileList, type FileMap, type FileWrite }
 import { toTurnView } from "../data/mappers";
 import type { TurnView } from "../data/types";
 import { parseFileList, parseFileMap, toJson } from "../json";
-import { guardPackageJson } from "../starter";
+import { guardPackageJson, mergeStarter } from "../starter";
 import { evaluateAndStore } from "./evaluations";
 import { RetryableError, ServiceError } from "./errors";
 import { trackEvent, trackUserTurn } from "../ai/langfuse";
@@ -187,7 +187,7 @@ export async function sendMessage(input: {
       challengeTitle: session.challenge.title,
     });
 
-    const files = reconstructFiles(parseFileMap(session.challenge.starterTemplate), turns);
+    const files = reconstructFiles(mergeStarter(parseFileMap(session.challenge.starterTemplate)), turns);
     const reply = await buildAssistant(
       historyOf(turns),
       files,
@@ -248,7 +248,7 @@ export async function submitSession(sessionId: string, userId: string): Promise<
     if (!session.turns.some((t) => t.role === "USER")) {
       throw new ServiceError("Send at least one message to the assistant before submitting.");
     }
-    const files = reconstructFiles(parseFileMap(session.challenge.starterTemplate), session.turns);
+    const files = reconstructFiles(mergeStarter(parseFileMap(session.challenge.starterTemplate)), session.turns);
     try {
       await prisma.$transaction([
         prisma.buildSession.update({ where: { id: session.id }, data: { status: "SUBMITTED", submittedAt: new Date() } }),
