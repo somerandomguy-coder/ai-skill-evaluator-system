@@ -19,6 +19,7 @@ import { AssistantTurnSchema } from "@/lib/ai/schemas";
 
 interface Canned {
   status?: number;
+  message?: string;
   content?: string | null;
   refusal?: string | null;
   finish?: string;
@@ -40,7 +41,7 @@ beforeAll(async () => {
       const c = queue.shift() ?? { content: VALID };
       if (c.status && c.status >= 400) {
         res.writeHead(c.status, { "content-type": "application/json" });
-        return res.end(JSON.stringify({ error: { message: "nope", type: "invalid_request_error" } }));
+        return res.end(JSON.stringify({ error: { message: c.message ?? "nope", type: "invalid_request_error" } }));
       }
       res.writeHead(200, { "content-type": "application/json" });
       res.end(
@@ -155,5 +156,47 @@ describe("generateStructured (OpenAI)", () => {
     const err = await req().catch((e) => e);
     expect(err).toBeInstanceOf(AiUnavailableError);
     expect(err.message).toMatch(/OPENAI_API_KEY/);
+  });
+
+  it("handles DeepSeek models with json_object format and max_tokens", async () => {
+    process.env.OPENAI_MODEL = "deepseek-v4-pro";
+    queue = [{ content: VALID }];
+    const out = await req();
+
+    expect(out.data.message).toBe("Done.");
+    expect(requests).toHaveLength(1);
+
+    const sent = requests[0] as {
+      model: string;
+      max_tokens: number;
+      max_completion_tokens?: number;
+      reasoning_effort?: string;
+      messages: { role: string; content: string }[];
+      response_format: { type: string };
+    };
+
+    expect(sent.model).toBe("deepseek-v4-pro");
+    expect(sent.max_tokens).toBe(500);
+    expect(sent.max_completion_tokens).toBeUndefined();
+    expect(sent.reasoning_effort).toBeUndefined();
+    expect(sent.response_format).toEqual({ type: "json_object" });
+    expect(sent.messages[0].content).toContain("CRITICAL: Respond ONLY with a valid JSON object");
+  });
+
+  it("automatically falls back to json_object when an endpoint rejects json_schema with 400", async () => {
+    queue = [
+      { status: 400, message: "This response_format type is unavailable now" },
+      { content: VALID },
+    ];
+    const out = await req();
+
+    expect(out.data.message).toBe("Done.");
+    expect(requests).toHaveLength(2);
+
+    const first = requests[0] as { response_format: { type: string } };
+    expect(first.response_format.type).toBe("json_schema");
+
+    const fallback = requests[1] as { response_format: { type: string } };
+    expect(fallback.response_format.type).toBe("json_object");
   });
 });
