@@ -167,11 +167,29 @@ export async function resolveChallenge(
   }
 
   // 2b. High-confidence Bank Search: Check if the raw JD matches an employer in our curated repository
-  const cleanComp = companyName?.toLowerCase().trim();
-  if (cleanComp && cleanComp !== "unknown" && cleanComp !== "australian technology services" && cleanComp !== "enterprise tech") {
+  const KNOWN_BANK_COMPANIES = [
+    "canva", "stripe", "atlassian", "datadog", "culture amp", "safetyculture",
+    "employment hero", "macquarie", "rippling", "xero", "myob", "zip co", "airwallex",
+    "block", "aws", "amazon", "anduril", "cloudflare", "fastly", "qantas",
+    "stake", "fetch", "luxury escapes", "linear", "tiktok", "finder", "wise", "vercel",
+    "propeller", "nine"
+  ];
+
+  let searchComp = companyName?.toLowerCase().trim() || "";
+  if (!searchComp || searchComp === "unknown" || searchComp === "australian technology services" || searchComp === "enterprise tech") {
+    const lowerJd = rawJd.toLowerCase();
+    for (const comp of KNOWN_BANK_COMPANIES) {
+      if (lowerJd.includes(comp)) {
+        searchComp = comp;
+        break;
+      }
+    }
+  }
+
+  if (searchComp && searchComp !== "unknown") {
     for (const item of challengeRepository.values()) {
       const itemComp = item.companyName.toLowerCase();
-      if (itemComp.length >= 3 && (itemComp.includes(cleanComp) || cleanComp.includes(itemComp))) {
+      if (itemComp.length >= 3 && (itemComp.includes(searchComp) || searchComp.includes(itemComp))) {
         await incrementChallengeUsage(item.id);
         return {
           challenge: item,
@@ -186,8 +204,8 @@ export async function resolveChallenge(
       const dbMatch = await prisma.challenge.findFirst({
         where: {
           OR: [
-            { title: { contains: cleanComp } },
-            { jobSubmission: { rawJd: { contains: cleanComp } } },
+            { title: { contains: searchComp, mode: "insensitive" } },
+            { jobSubmission: { rawJd: { contains: searchComp, mode: "insensitive" } } },
           ],
         },
         include: { requirements: true },
@@ -196,7 +214,7 @@ export async function resolveChallenge(
         const item: ChallengeV2 = {
           id: dbMatch.id,
           tier: "TIER_1_VERIFIED",
-          companyName: companyName,
+          companyName: companyName && companyName !== "Unknown" ? companyName : searchComp.toUpperCase(),
           roleTitle: dbMatch.title,
           sfiaProfile: {
             level: (dbMatch.timeboxMinutes && dbMatch.timeboxMinutes <= 120) ? 2 : 3,
