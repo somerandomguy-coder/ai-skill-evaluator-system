@@ -43,28 +43,62 @@ This document serves as the authoritative reference for available models, API en
 
 ## 2. OpenAI Models Catalog
 
-### Flagship Frontier Models
-* **`gpt-6-astra`**: Most capable model for the most demanding multi-step work.
-* **`gpt-6.1-sol`**: Near-Astra performance for complex agentic workflows at a lower cost.
-* **`gpt-6-luna`**: Most efficient GPT-6 class model for focused, high-volume tasks.
-* **`gpt-6-sol`**: Built specifically to power complex coding and agentic workflows.
+### Flagship Models (Prices per 1M Tokens)
 
-### Production Coding & Professional Models (GPT-5.x Series)
-* **`gpt-5.5`**: Default flagship intelligence for coding, architecture, and professional evaluation.
-* **`gpt-5.5-pro`**: Specialized version that produces smarter and more mathematically precise responses.
-* **`gpt-5.6-sol`**: High-capability flagship for complex professional workflows.
-* **`gpt-5.6-terra`**: Balanced intelligence and cost.
-* **`gpt-5.6-luna`**: Low-cost professional model.
-* **`gpt-5.4`**: Affordable model for coding and generation tasks.
-* **`gpt-5.4-pro`**: Precision edition of GPT-5.4.
-* **`gpt-5.4-mini`**: **Strongest mini model** for coding, computer use, and fast subagent operations (Ideal for the interactive workspace assistant).
-* **`gpt-5.4-nano`**: Cheapest GPT-5.4-class model for simple high-volume tasks.
-* **`gpt-5.3-codex`**: High-capability agentic coding model.
+| Model | Short Context: Input | Short Context: Cached Input | Short Context: Cache Writes | Short Context: Output | Long Context: Input | Long Context: Cached Input | Long Context: Cache Writes | Long Context: Output |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **`gpt-6-astra`** | $10.00 | $1.00 | $12.50 | $50.00 | $20.00 | $2.00 | $25.00 | $75.00 |
+| **`gpt-6.1-sol`** | $2.00 | $0.10 | $2.50 | $10.00 | $4.00 | $0.20 | $5.00 | $15.00 |
+| **`gpt-6-luna`** | $0.10 | $0.01 | $0.125 | $0.50 | $0.20 | $0.02 | $0.25 | $0.75 |
+| **`gpt-6-sol`** | $2.00 | $0.20 | $2.50 | $10.00 | $4.00 | $0.40 | $5.00 | $15.00 |
+| **`gpt-5.6-sol`** | $4.00 | $0.40 | $5.00 | $20.00 | $8.00 | $0.80 | $10.00 | $30.00 |
+| **`gpt-5.6-terra`** | $2.00 | $0.20 | $2.50 | $12.00 | $4.00 | $0.40 | $5.00 | $18.00 |
+| **`gpt-5.6-luna`** | $0.20 | $0.02 | $0.25 | $1.20 | $0.40 | $0.04 | $0.50 | $1.80 |
+| **`gpt-5.5`** | $5.00 | $0.50 | - | $30.00 | $10.00 | $1.00 | - | $45.00 |
+| **`gpt-5.5-pro`** | $30.00 | - | - | $180.00 | $60.00 | - | - | $270.00 |
+| **`gpt-5.4`** | $2.50 | $0.25 | - | $15.00 | $5.00 | $0.50 | - | $22.50 |
+| **`gpt-5.4-pro`** | $30.00 | - | - | $180.00 | $60.00 | - | - | $270.00 |
 
-### Deprecated / Succeeded Legacy Models (Reference Only)
-* `gpt-4o` & `gpt-4o-mini`: Succeeded by `gpt-5.4-mini` / `gpt-5.5`.
-* `o1`, `o1-mini`, `o1-pro`, `o3`, `o3-mini`: Succeeded by the GPT-5 and GPT-6 reasoning families.
-* `gpt-4.5-preview`, `gpt-4-turbo`, `gpt-3.5-turbo`: Retired.
+### Compact, Standard & Reasoning Models (Prices per 1M Tokens)
+
+| Model | Input | Cached Input | Output | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **`gpt-5.4-mini`** | **$0.75** | **$0.075** | **$4.50** | **Strongest mini model** for coding, subagents & workspace assistant |
+| **`gpt-5.4-nano`** | $0.20 | $0.02 | $1.25 | Ultra low-cost for simple high-volume tasks |
+| **`gpt-5.2`** | $1.75 | $0.175 | $14.00 | Previous flagship model with configurable reasoning effort |
+| **`gpt-5.2-pro`** | $21.00 | - | $168.00 | Precision edition of GPT-5.2 |
+| **`gpt-5.1`** | $1.25 | $0.125 | $10.00 | Coding and agentic model with reasoning effort |
+| **`gpt-5`** | $1.25 | $0.125 | $10.00 | Previous intelligent reasoning model |
+| **`gpt-5-mini`** | $0.25 | $0.025 | $2.00 | Low-latency high-volume model |
+| **`gpt-5-nano`** | $0.05 | $0.005 | $0.40 | Fastest, most cost-efficient GPT-5 tier |
+| **`gpt-5-pro`** | $15.00 | - | $120.00 | Precision edition of GPT-5 |
+| **`gpt-4.1`** | $2.00 | $0.50 | $8.00 | Smartest non-reasoning model |
+| **`gpt-4.1-mini`** | $0.40 | $0.10 | $1.60 | Smaller, faster version of GPT-4.1 |
+| **`gpt-4.1-nano`** | $0.10 | $0.025 | $0.40 | Deprecated nano tier |
+| **`gpt-4o`** | $2.50 | $1.25 | $10.00 | Fast, intelligent multimodal GPT model |
+| **`gpt-4o-mini`** | $0.15 | $0.075 | $0.60 | Lightweight mini model |
+| **`o4-mini`** | $1.10 | $0.275 | $4.40 | Fast reasoning model, succeeded by GPT-5 Mini |
+| **`o3`** | $2.00 | $0.50 | $8.00 | Reasoning model for complex tasks, succeeded by GPT-5 |
+| **`o3-mini`** | $1.10 | $0.55 | $4.40 | Small model alternative to o3 |
+| **`o3-pro`** | $20.00 | - | $80.00 | Deep compute reasoning edition |
+| **`o1`** | $15.00 | $7.50 | $60.00 | Previous full o-series reasoning model |
+| **`o1-pro`** | $150.00 | - | $600.00 | Frontier o1 compute edition |
+
+### Legacy Pricing Reference
+* `gpt-4o-2024-05-13`: $5.00 Input / $15.00 Output
+* `gpt-4-turbo-2024-04-09`: $10.00 Input / $30.00 Output
+* `gpt-4-0613`: $30.00 Input / $60.00 Output
+* `gpt-3.5-turbo` / `gpt-3.5-turbo-0125`: $0.50 Input / $1.50 Output
+* `gpt-3.5-turbo-1106`: $1.00 Input / $2.00 Output
+* `gpt-3.5-turbo-instruct`: $1.50 Input / $2.00 Output
+* `davinci-002`: $2.00 Input / $2.00 Output
+* `babbage-002`: $0.40 Input / $0.40 Output
+
+### Policy & Billing Notes
+* **Regional Data Residency**: Regional processing endpoints carry a **10% uplift** for models released on or after March 5, 2026.
+* **FedRAMP Endpoints**: Also charged a **10% uplift**.
+* **Processing Speed Tier**: "Priority processing" was renamed to **Fast mode** on July 30, 2026.
+* **Promotional Pricing**: GPT-5.6 Sol promotional pricing is available at least through November 21, 2026.
 
 ---
 
