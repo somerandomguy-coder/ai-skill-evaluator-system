@@ -12,7 +12,7 @@
  *    retry it without sending a duplicate.
  */
 import type { ChatTurn, Prisma } from "@prisma/client";
-import { buildAssistant, type ChatMessage } from "../ai/build-assistant";
+import { buildAssistant, buildAssistantStream, type ChatMessage } from "../ai/build-assistant";
 import { prisma } from "../db";
 import { applyWrites, sanitizeWrites, toFileList, type FileMap, type FileWrite } from "../files";
 import { toTurnView } from "../data/mappers";
@@ -28,6 +28,7 @@ import { SEED_CHALLENGE } from "../fixtures/seed-challenge";
 
 export const MAX_MESSAGE_CHARS = 8_000;
 export const MAX_TURNS = 200;
+export const MAX_USER_MESSAGES = 25;
 
 /** Starter template plus every turn's writes, in order. The same function rebuilds the final snapshot. */
 export function reconstructFiles(starter: FileMap, turns: Pick<ChatTurn, "filesWritten">[]): FileMap {
@@ -154,6 +155,11 @@ export async function sendMessage(input: {
   if (session.status !== "ACTIVE") throw new ServiceError("This session has already been submitted.", 409);
   if (session.turns.length >= MAX_TURNS) throw new ServiceError("This session has reached its message limit. Please submit.", 409);
 
+  const userTurnsCount = session.turns.filter((t) => t.role === "USER").length;
+  if (userTurnsCount >= MAX_USER_MESSAGES && !input.retry) {
+    throw new ServiceError(`You have reached the maximum limit of ${MAX_USER_MESSAGES} messages for this session. Please submit your work.`, 409);
+  }
+
   let turns = session.turns;
   const last = turns[turns.length - 1];
   let userTurn: ChatTurn;
@@ -232,6 +238,115 @@ export async function sendMessage(input: {
     return { turns: [toTurnView(userTurn), toTurnView(assistantTurn)], writes, notes };
   } catch (err) {
     // The candidate's message is saved: whatever went wrong from here on, a retry is safe.
+    throw err instanceof ServiceError ? err : new RetryableError(err);
+  }
+}
+
+export type ChatSessionStreamEvent =
+  | { type: "token"; delta: string }
+  | { type: "reasoning"; delta: string }
+  | { type: "status"; message: string }
+  | { type: "done"; result: SendResult };
+
+export async function sendMessageStream(
+  input: {
+    sessionId: string;
+    userId: string;
+    message: string;
+    retry?: boolean;
+  },
+  onEvent: (event: ChatSessionStreamEvent) => void
+): Promise<SendResult> {
+  const session = await loadOwned(input.sessionId, input.userId);
+  if (session.status !== "ACTIVE") throw new ServiceError("This session has already been submitted.", 409);
+  if (session.turns.length >= MAX_TURNS) throw new ServiceError("This session has reached its message limit. Please submit.", 409);
+
+  const userTurnsCount = session.turns.filter((t) => t.role === "USER").length;
+  if (userTurnsCount >= MAX_USER_MESSAGES && !input.retry) {
+    throw new ServiceError(`You have reached the maximum limit of ${MAX_USER_MESSAGES} messages for this session. Please submit your work.`, 409);
+  }
+
+  let turns = session.turns;
+  const last = turns[turns.length - 1];
+  let userTurn: ChatTurn;
+
+  if (input.retry) {
+    if (!last || last.role !== "USER") throw new ServiceError("There is no unanswered message to retry.", 409);
+    userTurn = last;
+  } else {
+    if (last?.role === "USER") throw new ServiceError("Your previous message has not been answered yet. Retry it first.", 409, true);
+    const text = input.message.trim();
+    if (!text) throw new ServiceError("Write a message first.");
+    if (text.length > MAX_MESSAGE_CHARS) throw new ServiceError(`Please keep messages under ${MAX_MESSAGE_CHARS.toLocaleString()} characters.`);
+    try {
+      userTurn = await prisma.chatTurn.create({
+        data: { buildSessionId: session.id, seq: (last?.seq ?? 0) + 1, role: "USER", content: text },
+      });
+    } catch (err) {
+      if ((err as Prisma.PrismaClientKnownRequestError).code === "P2002") {
+        throw new ServiceError("Another message is already being processed.", 409);
+      }
+      throw err;
+    }
+    turns = [...turns, userTurn];
+  }
+
+  try {
+    trackUserTurn({
+      sessionId: session.id,
+      userId: session.userId,
+      message: userTurn.content,
+      challengeTitle: session.challenge.title,
+    });
+
+    const files = reconstructFiles(mergeStarter(parseFileMap(session.challenge.starterTemplate)), turns);
+    const reply = await buildAssistantStream(
+      historyOf(turns),
+      files,
+      {
+        title: session.challenge.title,
+        brief: session.challenge.brief,
+        domainContext: session.challenge.domainContext,
+        timeboxMinutes: session.challenge.timeboxMinutes,
+      },
+      (event) => {
+        onEvent(event);
+      },
+      {
+        sessionId: session.id,
+        userId: session.userId,
+        tags: ["workspace_chat"],
+        metadata: { challengeTitle: session.challenge.title, turnSeq: userTurn.seq },
+      }
+    );
+
+    const { valid, rejected } = sanitizeWrites(reply.files, files);
+    const notes = rejected.map((r) => `Skipped ${r.path || "(no path)"}: ${r.reason}.`);
+    let writes = valid;
+    const pkg = writes.find((w) => w.path === "package.json");
+    if (pkg) {
+      const guarded = guardPackageJson(pkg.contents, files["package.json"] ?? "");
+      notes.push(...guarded.notes);
+      writes = guarded.accepted
+        ? writes.map((w) => (w.path === "package.json" ? { ...w, contents: guarded.contents } : w))
+        : writes.filter((w) => w.path !== "package.json");
+    }
+
+    const assistantTurn = await prisma.chatTurn.create({
+      data: {
+        buildSessionId: session.id,
+        seq: userTurn.seq + 1,
+        role: "ASSISTANT",
+        content: reply.message,
+        filesWritten: toJson(writes),
+        reasoning: reply.reasoning || null,
+      },
+    });
+
+    const result: SendResult = { turns: [toTurnView(userTurn), toTurnView(assistantTurn)], writes, notes };
+    onEvent({ type: "done", result });
+    return result;
+  } catch (err) {
     throw err instanceof ServiceError ? err : new RetryableError(err);
   }
 }

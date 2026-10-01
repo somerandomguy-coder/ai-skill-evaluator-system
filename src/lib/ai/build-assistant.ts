@@ -92,3 +92,97 @@ export async function buildAssistant(
   return data;
 }
 
+export function extractStreamingMessage(rawJson: string): string {
+  const match = rawJson.match(/"message"\s*:\s*"/);
+  if (!match || match.index === undefined) {
+    if (!rawJson.trim().startsWith("{")) return rawJson;
+    return "";
+  }
+  const startIndex = match.index + match[0].length;
+  let result = "";
+  let escaped = false;
+  for (let i = startIndex; i < rawJson.length; i++) {
+    const char = rawJson[i];
+    if (escaped) {
+      if (char === "n") result += "\n";
+      else if (char === "r") result += "\r";
+      else if (char === "t") result += "\t";
+      else if (char === '"') result += '"';
+      else if (char === "\\") result += "\\";
+      else result += char;
+      escaped = false;
+    } else if (char === "\\") {
+      escaped = true;
+    } else if (char === '"') {
+      break;
+    } else {
+      result += char;
+    }
+  }
+  return result;
+}
+
+export type AssistantStreamEvent =
+  | { type: "token"; delta: string }
+  | { type: "reasoning"; delta: string }
+  | { type: "status"; message: string };
+
+export async function buildAssistantStream(
+  history: ChatMessage[],
+  files: FileMap,
+  challenge: ChallengeContext,
+  onEvent: (event: AssistantStreamEvent) => void,
+  traceContext?: TraceContext
+): Promise<AssistantTurn> {
+  const last = history[history.length - 1];
+  if (!last || last.role !== "user") throw new Error("buildAssistant needs a final user message to answer.");
+
+  if (isDemoMode()) {
+    const turn = demoAssistantTurn(history.filter((m) => m.role === "assistant").length);
+    const words = turn.message.split(" ");
+    for (let i = 0; i < words.length; i++) {
+      onEvent({ type: "token", delta: (i === 0 ? "" : " ") + words[i] });
+      await new Promise((r) => setTimeout(r, 20));
+    }
+    if (turn.files.length) {
+      onEvent({ type: "status", message: "Updating project files..." });
+    }
+    return turn;
+  }
+
+  const messages = history.slice(0, -1).map((m) => ({ role: m.role, content: m.content }));
+  messages.push({ role: "user", content: `${renderProjectFiles(files)}\n\n${last.content}` });
+
+  let accumulatedJson = "";
+  let lastEmittedLength = 0;
+  let statusEmitted = false;
+
+  const { data } = await generateStructured({
+    stage: "assistant",
+    system: buildSystemPrompt(challenge),
+    messages,
+    schema: AssistantTurnSchema,
+    maxTokens: 32_000,
+    effort: "medium",
+    traceContext,
+    onReasoning: (chunk) => {
+      onEvent({ type: "reasoning", delta: chunk });
+    },
+    onToken: (chunk) => {
+      accumulatedJson += chunk;
+      const currentMessage = extractStreamingMessage(accumulatedJson);
+      if (currentMessage.length > lastEmittedLength) {
+        const delta = currentMessage.slice(lastEmittedLength);
+        lastEmittedLength = currentMessage.length;
+        onEvent({ type: "token", delta });
+      }
+      if (!statusEmitted && accumulatedJson.includes('"files"')) {
+        statusEmitted = true;
+        onEvent({ type: "status", message: "Generating project files..." });
+      }
+    },
+  });
+
+  return data;
+}
+

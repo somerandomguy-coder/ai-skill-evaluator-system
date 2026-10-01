@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FileBrowser } from "@/components/evidence/file-browser";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ApiError, sendChat, submitBuild } from "@/lib/client/api";
+import { ApiError, sendChatStream, submitBuild } from "@/lib/client/api";
 import type { TurnView, WorkspaceView } from "@/lib/data/types";
 import { downloadProjectZip } from "@/lib/export/zip";
 import { applyWrites, toFileList, type FileMap } from "@/lib/files";
@@ -47,6 +47,9 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
   const [notes, setNotes] = useState<Record<number, string[]>>({});
   const [pending, setPending] = useState(false);
   const [pendingSince, setPendingSince] = useState<number | null>(null);
+  const [streamingMessage, setStreamingMessage] = useState<string | null>(null);
+  const [streamingReasoning, setStreamingReasoning] = useState<string | null>(null);
+  const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
   const [error, setError] = useState<ChatError | null>(null);
   const [tab, setTab] = useState<Tab>("preview");
   const [file, setFile] = useState<string | null>(null);
@@ -83,8 +86,19 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
     setPending(true);
     setPendingSince(Date.now());
     setError(null);
+    setStreamingMessage(null);
+    setStreamingReasoning(null);
+    setStreamingStatus(null);
     try {
-      const res = await sendChat(workspace.sessionId, req);
+      const res = await sendChatStream(workspace.sessionId, req, (event) => {
+        if (event.type === "token") {
+          setStreamingMessage((prev) => (prev ?? "") + event.delta);
+        } else if (event.type === "reasoning") {
+          setStreamingReasoning((prev) => (prev ?? "") + event.delta);
+        } else if (event.type === "status") {
+          setStreamingStatus(event.message);
+        }
+      });
       // The persisted pair replaces the optimistic message.
       setTurns((prev) => [...prev.filter((t) => t.seq !== optimistic?.seq && !res.turns.some((r) => r.seq === t.seq)), ...res.turns]);
       if (res.writes.length) {
@@ -106,6 +120,9 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
       if (!retryable && optimistic) setTurns((prev) => prev.filter((t) => t.seq !== optimistic.seq));
       return retryable;
     } finally {
+      setStreamingMessage(null);
+      setStreamingReasoning(null);
+      setStreamingStatus(null);
       setPending(false);
       setPendingSince(null);
     }
@@ -207,6 +224,9 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
           notes={notes}
           pending={pending}
           pendingSince={pendingSince}
+          streamingMessage={streamingMessage}
+          streamingReasoning={streamingReasoning}
+          streamingStatus={streamingStatus}
           error={error}
           onSend={send}
           onRetry={() => void runChat({ message: "", retry: true })}

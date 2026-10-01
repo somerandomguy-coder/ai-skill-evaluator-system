@@ -31,14 +31,21 @@ const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
 
 /** Model for a pipeline stage: stage override -> global override -> provider default. */
 export function modelFor(stage: AiStage): string {
+  if (aiProvider() === "deepseek") {
+    const stageVar = process.env[`DEEPSEEK_MODEL_${stage.toUpperCase()}`] || process.env[`AI_MODEL_${stage.toUpperCase()}`];
+    if (stageVar?.trim()) return stageVar.trim();
+    const dsModel = process.env.DEEPSEEK_MODEL?.trim() || process.env.AI_MODEL?.trim();
+    if (dsModel) return dsModel;
+    const globalVar = process.env.OPENAI_MODEL?.trim();
+    if (globalVar && !globalVar.toLowerCase().startsWith("gpt-")) return globalVar;
+    return DEFAULT_DEEPSEEK_MODEL;
+  }
+
   const stageVar = process.env[`OPENAI_MODEL_${stage.toUpperCase()}`] || process.env[`AI_MODEL_${stage.toUpperCase()}`];
   if (stageVar?.trim()) return stageVar.trim();
   const globalVar = process.env.OPENAI_MODEL?.trim() || process.env.AI_MODEL?.trim();
   if (globalVar) return globalVar;
 
-  if (aiProvider() === "deepseek") {
-    return DEFAULT_DEEPSEEK_MODEL;
-  }
   return DEFAULT_OPENAI_MODEL;
 }
 

@@ -63,6 +63,8 @@ export interface StructuredRequest<T> {
   maxTokens: number;
   effort?: Effort;
   traceContext?: TraceContext;
+  onToken?: (chunk: string) => void;
+  onReasoning?: (chunk: string) => void;
 }
 
 
@@ -223,7 +225,9 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
         let completionModel: string;
         let usage = { inputTokens: 0, outputTokens: 0 };
 
-        if (responseFormatMode === "json_schema") {
+        const wantsStream = Boolean(req.onToken || req.onReasoning);
+
+        if (responseFormatMode === "json_schema" && !wantsStream) {
           const completion = await openai.chat.completions.parse({
             model,
             max_completion_tokens: req.maxTokens,
@@ -256,14 +260,59 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
             ? `\n\nCRITICAL: Respond ONLY with a valid JSON object strictly matching this schema:\n${schemaJson}`
             : `\n\nCRITICAL: Respond ONLY with a valid JSON object.`;
 
-          const completion = await openai.chat.completions.create({
-            model,
-            messages: [{ role: "system", content: `${req.system}${schemaInstruction}` }, ...messages],
-            ...(responseFormatMode === "json_object" ? { response_format: { type: "json_object" } } : {}),
-            ...(isReasoning
-              ? { max_completion_tokens: req.maxTokens, reasoning_effort: toReasoningEffort(req.effort) }
-              : { max_tokens: req.maxTokens }),
-          });
+          if (wantsStream) {
+            const stream = await openai.chat.completions.create({
+              model,
+              messages: [{ role: "system", content: `${req.system}${schemaInstruction}` }, ...messages],
+              ...(responseFormatMode === "json_object" ? { response_format: { type: "json_object" } } : {}),
+              ...(isReasoning
+                ? { max_completion_tokens: req.maxTokens, reasoning_effort: toReasoningEffort(req.effort) }
+                : { max_tokens: req.maxTokens }),
+              stream: true,
+            });
+
+            let rawContent = "";
+            for await (const chunk of stream) {
+              const delta = chunk.choices[0]?.delta;
+              const content = delta?.content || "";
+              const reasoning = (delta as any)?.reasoning_content || "";
+              if (reasoning && req.onReasoning) {
+                req.onReasoning(reasoning);
+              }
+              if (content) {
+                rawContent += content;
+                if (req.onToken) {
+                  req.onToken(content);
+                }
+              }
+            }
+
+            if (!rawContent || !rawContent.trim()) {
+              throw new InvalidOutputError(`The AI returned no structured output (stage: ${req.stage}).`, "no_output");
+            }
+
+            let jsonParsed: unknown;
+            try {
+              jsonParsed = JSON.parse(extractJsonFromText(rawContent));
+            } catch (e) {
+              throw new SyntaxError(`The output was not valid JSON: ${e instanceof Error ? e.message : String(e)}`);
+            }
+
+            parsedData = req.schema.parse(jsonParsed);
+            completionModel = model;
+            usage = {
+              inputTokens: 0,
+              outputTokens: Math.ceil(rawContent.length / 4),
+            };
+          } else {
+            const completion = await openai.chat.completions.create({
+              model,
+              messages: [{ role: "system", content: `${req.system}${schemaInstruction}` }, ...messages],
+              ...(responseFormatMode === "json_object" ? { response_format: { type: "json_object" } } : {}),
+              ...(isReasoning
+                ? { max_completion_tokens: req.maxTokens, reasoning_effort: toReasoningEffort(req.effort) }
+                : { max_tokens: req.maxTokens }),
+            });
 
           const choice = completion.choices[0];
           if (!choice) throw new InvalidOutputError(`The AI returned no answer (stage: ${req.stage}).`, "no_output");
@@ -293,9 +342,10 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
             outputTokens: completion.usage?.completion_tokens ?? 0,
           };
         }
+      }
 
-        return {
-          data: parsedData,
+      return {
+        data: parsedData,
           model: completionModel,
           usage,
         };

@@ -9,6 +9,7 @@ import { useNowSeconds } from "@/lib/hooks/use-now";
 import { cn } from "@/lib/utils";
 
 const MAX_CHARS = 8000;
+const MAX_MESSAGES = 25;
 
 const PROMPT_SUGGESTIONS = [
   "Check edge case: respondents without comment text",
@@ -26,6 +27,9 @@ interface Props {
   notes: Record<number, string[]>;
   pending: boolean;
   pendingSince: number | null;
+  streamingMessage?: string | null;
+  streamingReasoning?: string | null;
+  streamingStatus?: string | null;
   error: ChatError | null;
   onSend: (text: string) => Promise<boolean>;
   onRetry: () => void;
@@ -35,20 +39,83 @@ interface Props {
   className?: string;
 }
 
-function Waiting({ since }: { since: number | null }) {
+function Waiting({ since, status }: { since: number | null; status?: string | null }) {
   const now = useNowSeconds();
   const seconds = since && now > 0 ? Math.max(0, now - Math.floor(since / 1000)) : 0;
   return (
     <div className="slide-in flex items-center gap-3" role="status">
       <AssistantAvatar busy />
-      <div className="flex items-center gap-2.5 rounded-2xl rounded-tl-md bg-surface-container px-3.5 py-2.5 text-[13px] text-muted-foreground">
-        <span className="typing flex items-center gap-1 text-signal" aria-hidden>
-          <span />
-          <span />
-          <span />
-        </span>
-        Writing code
-        <span className="tabular font-mono text-xs">{seconds}s</span>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2.5 rounded-2xl rounded-tl-md bg-surface-container px-3.5 py-2.5 text-[13px] text-muted-foreground">
+          <span className="typing flex items-center gap-1 text-signal" aria-hidden>
+            <span />
+            <span />
+            <span />
+          </span>
+          {status || "Writing code"}
+          <span className="tabular font-mono text-xs">{seconds}s</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StreamingAssistantMessage({
+  message,
+  reasoning,
+  status,
+  since,
+}: {
+  message?: string | null;
+  reasoning?: string | null;
+  status?: string | null;
+  since: number | null;
+}) {
+  const now = useNowSeconds();
+  const seconds = since && now > 0 ? Math.max(0, now - Math.floor(since / 1000)) : 0;
+
+  return (
+    <div className="slide-in flex gap-3" role="status">
+      <AssistantAvatar busy />
+      <div className="min-w-0 flex-1 space-y-2.5">
+        {reasoning && (
+          <div className="rounded-xl border border-border/70 bg-surface-container-low p-2.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground mb-1.5">
+              <span className="live-dot size-1.5 rounded-full bg-signal" />
+              Thinking process
+            </div>
+            <p className="font-mono text-[11px] leading-relaxed whitespace-pre-wrap text-muted-foreground/90 max-h-48 overflow-y-auto">
+              {reasoning}
+              <span className="inline-block w-1.5 h-3 ml-0.5 bg-signal/60 animate-pulse align-middle" />
+            </p>
+          </div>
+        )}
+
+        {message ? (
+          <div className="rounded-2xl rounded-tl-md bg-surface-container px-3.5 py-2.5 text-[13.5px] leading-relaxed">
+            <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">
+              {message}
+              <span className="inline-block w-1.5 h-3.5 ml-0.5 bg-signal animate-pulse align-middle" />
+            </p>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2.5 rounded-2xl rounded-tl-md bg-surface-container px-3.5 py-2.5 text-[13px] text-muted-foreground">
+            <span className="typing flex items-center gap-1 text-signal" aria-hidden>
+              <span />
+              <span />
+              <span />
+            </span>
+            {reasoning ? "Synthesizing answer..." : "Thinking & planning..."}
+            <span className="tabular font-mono text-xs">{seconds}s</span>
+          </div>
+        )}
+
+        {status && (
+          <div className="flex items-center gap-2 text-xs text-signal font-medium">
+            <span className="live-dot size-1.5 rounded-full bg-signal" />
+            {status}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -133,12 +200,35 @@ function UserMessage({ turn }: { turn: TurnView }) {
   );
 }
 
-export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, onRetry, onDismissError, onOpenFile, onOpenBrief, className }: Props) {
+export function ChatPanel({
+  turns,
+  notes,
+  pending,
+  pendingSince,
+  streamingMessage,
+  streamingReasoning,
+  streamingStatus,
+  error,
+  onSend,
+  onRetry,
+  onDismissError,
+  onOpenFile,
+  onOpenBrief,
+  className,
+}: Props) {
   const [draft, setDraft] = useState("");
   const [attachedImage, setAttachedImage] = useState<{ name: string; url: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
 
+  // Instant scroll during token streaming
+  useEffect(() => {
+    if (scroller.current && (streamingMessage || streamingReasoning)) {
+      scroller.current.scrollTop = scroller.current.scrollHeight;
+    }
+  }, [streamingMessage, streamingReasoning]);
+
+  // Smooth scroll on turn completions, pending state changes, and errors
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
   }, [turns.length, pending, error]);
@@ -156,8 +246,10 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
     reader.readAsDataURL(file);
   };
 
-  const blocked = pending || (error?.retryable ?? false);
-  const canSend = (draft.trim().length > 0 || attachedImage !== null) && draft.length <= MAX_CHARS && !blocked;
+  const sent = turns.filter((t) => t.role === "USER").length;
+  const isCapReached = sent >= MAX_MESSAGES;
+  const blocked = pending || (error?.retryable ?? false) || isCapReached;
+  const canSend = !isCapReached && (draft.trim().length > 0 || attachedImage !== null) && draft.length <= MAX_CHARS && !blocked;
 
   const isSendingRef = useRef(false);
 
@@ -180,7 +272,7 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
     }
   }
 
-  const sent = turns.filter((t) => t.role === "USER").length;
+  const showStreamingBubble = pending && (Boolean(streamingMessage) || Boolean(streamingReasoning));
 
   return (
     <section className={cn("flex min-h-0 flex-col bg-card", className)} aria-label="Chat with the assistant">
@@ -189,9 +281,39 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
           <span className={cn("size-1.5 rounded-full", pending ? "live-dot text-signal" : "bg-ok")} aria-hidden />
           AI assistant
         </div>
-        <span className="tabular font-mono text-[11px] text-muted-foreground">
-          {sent} {sent === 1 ? "message" : "messages"}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "tabular font-mono text-[11px] font-medium px-2 py-0.5 rounded-full border transition-colors",
+              isCapReached
+                ? "bg-bad-soft text-bad border-bad/30"
+                : sent >= 20
+                  ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                  : "bg-muted text-muted-foreground border-border"
+            )}
+            title={isCapReached ? "Message limit reached" : `${MAX_MESSAGES - sent} messages remaining`}
+          >
+            {sent} / {MAX_MESSAGES} messages
+          </span>
+        </div>
+      </div>
+
+      {/* Thin message budget progress bar */}
+      <div
+        className="h-1 w-full bg-muted/80 overflow-hidden shrink-0"
+        role="progressbar"
+        aria-valuenow={sent}
+        aria-valuemin={0}
+        aria-valuemax={MAX_MESSAGES}
+        aria-label="Message budget"
+      >
+        <div
+          className={cn(
+            "h-full transition-all duration-300 ease-out",
+            isCapReached ? "bg-bad" : sent >= 20 ? "bg-amber-500" : "bg-signal"
+          )}
+          style={{ width: `${Math.min(100, (sent / MAX_MESSAGES) * 100)}%` }}
+        />
       </div>
 
       <div ref={scroller} className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-5" aria-live="polite">
@@ -214,7 +336,16 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
           turns.map((t) => (t.role === "USER" ? <UserMessage key={t.seq} turn={t} /> : <AssistantMessage key={t.seq} turn={t} notes={notes[t.seq]} onOpenFile={onOpenFile} />))
         )}
 
-        {pending && <Waiting since={pendingSince} />}
+        {showStreamingBubble ? (
+          <StreamingAssistantMessage
+            message={streamingMessage}
+            reasoning={streamingReasoning}
+            status={streamingStatus}
+            since={pendingSince}
+          />
+        ) : (
+          pending && <Waiting since={pendingSince} status={streamingStatus} />
+        )}
 
         {error && (
           <Alert variant="destructive" className="slide-in rounded-xl border-bad/30 bg-bad-soft text-[13px]">
@@ -237,6 +368,16 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
       </div>
 
       <div className="shrink-0 space-y-2 border-t border-border p-3">
+        {/* Cap warning banner if 25 messages reached */}
+        {isCapReached && (
+          <div className="flex items-center gap-2 rounded-xl border border-bad/30 bg-bad-soft px-3 py-2 text-xs text-bad">
+            <TriangleAlert className="size-4 shrink-0" />
+            <span>
+              <strong>Message limit reached (25/25):</strong> You have used all available assistant messages. Review your codebase in Preview / Files and submit your project when ready.
+            </span>
+          </div>
+        )}
+
         <div className="scrollbar-none -mx-3 flex gap-1.5 overflow-x-auto px-3" role="group" aria-label="Prompt ideas">
           {PROMPT_SUGGESTIONS.map((suggestion) => (
             <button
@@ -252,7 +393,12 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
         </div>
 
         <form
-          className="group/composer rounded-2xl border border-input bg-background transition-[border-color,box-shadow] focus-within:border-signal focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal)_18%,transparent)]"
+          className={cn(
+            "group/composer rounded-2xl border bg-background transition-[border-color,box-shadow]",
+            isCapReached
+              ? "border-bad/30 bg-muted/30 opacity-75"
+              : "border-input focus-within:border-signal focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal)_18%,transparent)]"
+          )}
           onSubmit={(e) => {
             e.preventDefault();
             void submit();
@@ -265,6 +411,7 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
             className="hidden"
             onChange={handleImageChange}
             aria-label="Upload design reference image"
+            disabled={blocked}
           />
 
           {attachedImage && (
@@ -303,7 +450,11 @@ export function ChatPanel({ turns, notes, pending, pendingSince, error, onSend, 
                 }
               }
             }}
-            placeholder="Ask for a plan, a check, an edge case…"
+            placeholder={
+              isCapReached
+                ? "Message limit reached (25/25) — please submit your project."
+                : "Ask for a plan, a check, an edge case…"
+            }
             aria-label="Message the assistant"
             disabled={blocked}
             rows={2}
