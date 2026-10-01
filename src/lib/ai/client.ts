@@ -14,7 +14,7 @@ import OpenAI from "openai";
 import { ContentFilterFinishReasonError, LengthFinishReasonError } from "openai/core/error";
 import { zodResponseFormat } from "openai/helpers/zod";
 import type { z } from "zod";
-import { aiApiKey, aiBaseUrl, aiProvider, isDemoMode, modelFor, openaiApiKey, type AiStage } from "../env";
+import { aiApiKey, aiBaseUrl, aiProvider, isDeepSeekThinkingEnabled, isDemoMode, modelFor, openaiApiKey, type AiStage } from "../env";
 import { flushLangfuse, observeOpenAiClient } from "./langfuse";
 
 export class AiError extends Error {
@@ -255,25 +255,39 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
           };
         } else {
           const isReasoning = supportsReasoningEffort(model);
+          const isDeepSeek = aiProvider() === "deepseek" || /deepseek/i.test(model);
+          const deepSeekThinking = isDeepSeek ? isDeepSeekThinkingEnabled(req.stage, model) : false;
+          const effectiveMaxTokens = isDeepSeek && deepSeekThinking ? Math.max(req.maxTokens, 64_000) : req.maxTokens;
+
           const schemaJson = getJsonSchemaPrompt(req.schema, `${req.stage}_output`);
           const schemaInstruction = schemaJson
             ? `\n\nCRITICAL: Respond ONLY with a valid JSON object strictly matching this schema:\n${schemaJson}`
             : `\n\nCRITICAL: Respond ONLY with a valid JSON object.`;
 
+          const commonPayload: Record<string, unknown> = {
+            model,
+            messages: [{ role: "system", content: `${req.system}${schemaInstruction}` }, ...messages],
+            ...(responseFormatMode === "json_object" ? { response_format: { type: "json_object" } } : {}),
+            ...(isReasoning
+              ? { max_completion_tokens: effectiveMaxTokens, reasoning_effort: toReasoningEffort(req.effort) }
+              : { max_tokens: effectiveMaxTokens }),
+            ...(isDeepSeek ? { thinking: { type: deepSeekThinking ? "enabled" : "disabled" } } : {}),
+          };
+
           if (wantsStream) {
             const stream = await openai.chat.completions.create({
-              model,
-              messages: [{ role: "system", content: `${req.system}${schemaInstruction}` }, ...messages],
-              ...(responseFormatMode === "json_object" ? { response_format: { type: "json_object" } } : {}),
-              ...(isReasoning
-                ? { max_completion_tokens: req.maxTokens, reasoning_effort: toReasoningEffort(req.effort) }
-                : { max_tokens: req.maxTokens }),
+              ...commonPayload,
               stream: true,
-            });
+            } as any);
 
             let rawContent = "";
+            let streamFinishReason: string | null = null;
             for await (const chunk of stream) {
-              const delta = chunk.choices[0]?.delta;
+              const choice = chunk.choices[0];
+              if (choice?.finish_reason) {
+                streamFinishReason = choice.finish_reason;
+              }
+              const delta = choice?.delta;
               const content = delta?.content || "";
               const reasoning = (delta as any)?.reasoning_content || "";
               if (reasoning && req.onReasoning) {
@@ -285,6 +299,17 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
                   req.onToken(content);
                 }
               }
+            }
+
+            if (streamFinishReason === "length") {
+              throw new TruncatedOutputError(
+                `The AI's answer was cut off at ${effectiveMaxTokens} tokens (stage: ${req.stage}). ${
+                  rawContent
+                    ? "Partial output was received."
+                    : "The model exhausted its token limit during thinking before generating output. Disable thinking mode or increase token limit."
+                }`,
+                "truncated"
+              );
             }
 
             if (!rawContent || !rawContent.trim()) {
@@ -305,23 +330,16 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
               outputTokens: Math.ceil(rawContent.length / 4),
             };
           } else {
-            const completion = await openai.chat.completions.create({
-              model,
-              messages: [{ role: "system", content: `${req.system}${schemaInstruction}` }, ...messages],
-              ...(responseFormatMode === "json_object" ? { response_format: { type: "json_object" } } : {}),
-              ...(isReasoning
-                ? { max_completion_tokens: req.maxTokens, reasoning_effort: toReasoningEffort(req.effort) }
-                : { max_tokens: req.maxTokens }),
-            });
+            const completion = await openai.chat.completions.create(commonPayload as any);
 
-          const choice = completion.choices[0];
-          if (!choice) throw new InvalidOutputError(`The AI returned no answer (stage: ${req.stage}).`, "no_output");
-          if (choice.message.refusal || choice.finish_reason === "content_filter") {
-            throw new ModelRefusalError("The AI declined this request. Try rewording the input, or reduce sensitive content.", "refusal");
-          }
-          if (choice.finish_reason === "length") {
-            throw new TruncatedOutputError(`The AI's answer was cut off at ${req.maxTokens} tokens (stage: ${req.stage}).`, "truncated");
-          }
+            const choice = completion.choices[0];
+            if (!choice) throw new InvalidOutputError(`The AI returned no answer (stage: ${req.stage}).`, "no_output");
+            if (choice.message.refusal || choice.finish_reason === "content_filter") {
+              throw new ModelRefusalError("The AI declined this request. Try rewording the input, or reduce sensitive content.", "refusal");
+            }
+            if (choice.finish_reason === "length") {
+              throw new TruncatedOutputError(`The AI's answer was cut off at ${effectiveMaxTokens} tokens (stage: ${req.stage}).`, "truncated");
+            }
 
           const rawContent = choice.message.content;
           if (!rawContent || !rawContent.trim()) {

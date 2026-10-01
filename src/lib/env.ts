@@ -49,6 +49,29 @@ export function modelFor(stage: AiStage): string {
   return DEFAULT_OPENAI_MODEL;
 }
 
+/**
+ * Determine if DeepSeek Thinking Mode should be enabled for a given stage.
+ * Defaults:
+ *   - "assistant", "parse", "research": false (prevents token budget exhaustion and cuts latency from 30s to <1.5s)
+ *   - "evaluator", "challenge": true if using pro/reasoner models or explicitly requested
+ * Overrides:
+ *   - DEEPSEEK_THINKING_<STAGE>=true|false
+ *   - DEEPSEEK_THINKING=true|false
+ */
+export function isDeepSeekThinkingEnabled(stage: AiStage, model: string): boolean {
+  const stageVar = process.env[`DEEPSEEK_THINKING_${stage.toUpperCase()}`];
+  if (stageVar !== undefined) return stageVar.toLowerCase() === "true" || stageVar === "1";
+
+  const globalVar = process.env.DEEPSEEK_THINKING;
+  if (globalVar !== undefined) return globalVar.toLowerCase() === "true" || globalVar === "1";
+
+  if (stage === "assistant" || stage === "parse" || stage === "research") {
+    return false;
+  }
+
+  return model.includes("pro") || model.includes("reasoner");
+}
+
 export function openaiApiKey(): string | undefined {
   const key = process.env.OPENAI_API_KEY?.trim();
   return key ? key : undefined;
