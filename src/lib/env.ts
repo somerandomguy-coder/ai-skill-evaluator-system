@@ -27,7 +27,7 @@ export function aiProvider(): AiProvider {
 }
 
 const DEFAULT_OPENAI_MODEL = "gpt-5.5";
-const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
+const DEFAULT_DEEPSEEK_MODEL = "deepseek-flash";
 
 /** Model for a pipeline stage: stage override -> global override -> provider default. */
 export function modelFor(stage: AiStage): string {
