@@ -275,10 +275,10 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
           };
 
           if (wantsStream) {
-            const stream = await openai.chat.completions.create({
+            const stream = (await openai.chat.completions.create({
               ...commonPayload,
               stream: true,
-            } as any);
+            } as any)) as unknown as AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
 
             let rawContent = "";
             let streamFinishReason: string | null = null;
