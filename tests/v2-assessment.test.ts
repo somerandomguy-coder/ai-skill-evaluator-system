@@ -1,4 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+const savedDemoMode = process.env.DEMO_MODE;
+beforeAll(() => {
+  process.env.DEMO_MODE = "true";
+});
+afterAll(() => {
+  process.env.DEMO_MODE = savedDemoMode;
+});
 import {
   cosineSimilarity,
   generateEmbedding,

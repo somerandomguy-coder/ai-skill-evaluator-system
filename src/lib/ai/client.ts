@@ -16,6 +16,7 @@ import { zodResponseFormat } from "openai/helpers/zod";
 import type { z } from "zod";
 import { aiApiKey, aiBaseUrl, aiProvider, isDeepSeekThinkingEnabled, isDemoMode, modelFor, openaiApiKey, type AiStage } from "../env";
 import { flushLangfuse, observeOpenAiClient } from "./langfuse";
+import { calculateCost, type CalculatedCost } from "./pricing";
 
 export class AiError extends Error {
   constructor(
@@ -72,11 +73,11 @@ export interface StructuredResult<T> {
   data: T;
   model: string;
   usage: { inputTokens: number; outputTokens: number };
+  cost?: CalculatedCost;
 }
 
 /** Reasoning models accept `reasoning_effort`; chat/non-reasoning models reject it. */
 export function supportsReasoningEffort(model: string): boolean {
-  if (aiProvider() === "deepseek") return false;
   if (/deepseek/i.test(model)) return false;
   return /^(gpt-5|gpt-6|o1|o3|o4)/.test(model) && !/-chat-latest$/.test(model);
 }
@@ -278,12 +279,17 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
             const stream = (await openai.chat.completions.create({
               ...commonPayload,
               stream: true,
+              stream_options: { include_usage: true },
             } as any)) as unknown as AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
 
             let rawContent = "";
             let streamFinishReason: string | null = null;
+            let streamUsage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null = null;
             for await (const chunk of stream) {
-              const choice = chunk.choices[0];
+              if ((chunk as any)?.usage) {
+                streamUsage = (chunk as any).usage;
+              }
+              const choice = chunk.choices?.[0];
               if (choice?.finish_reason) {
                 streamFinishReason = choice.finish_reason;
               }
@@ -325,9 +331,12 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
 
             parsedData = req.schema.parse(jsonParsed);
             completionModel = model;
+            const estimatedPromptTokens = Math.ceil(
+              (req.system.length + messages.reduce((acc, m) => acc + (m.content?.length || 0), 0)) / 4
+            );
             usage = {
-              inputTokens: 0,
-              outputTokens: Math.ceil(rawContent.length / 4),
+              inputTokens: streamUsage?.prompt_tokens ?? estimatedPromptTokens,
+              outputTokens: streamUsage?.completion_tokens ?? Math.ceil(rawContent.length / 4),
             };
           } else {
             const completion = await openai.chat.completions.create(commonPayload as any);
@@ -341,31 +350,33 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
               throw new TruncatedOutputError(`The AI's answer was cut off at ${effectiveMaxTokens} tokens (stage: ${req.stage}).`, "truncated");
             }
 
-          const rawContent = choice.message.content;
-          if (!rawContent || !rawContent.trim()) {
-            throw new InvalidOutputError(`The AI returned no structured output (stage: ${req.stage}).`, "no_output");
-          }
+            const rawContent = choice.message.content;
+            if (!rawContent || !rawContent.trim()) {
+              throw new InvalidOutputError(`The AI returned no structured output (stage: ${req.stage}).`, "no_output");
+            }
 
-          let jsonParsed: unknown;
-          try {
-            jsonParsed = JSON.parse(extractJsonFromText(rawContent));
-          } catch (e) {
-            throw new SyntaxError(`The output was not valid JSON: ${e instanceof Error ? e.message : String(e)}`);
-          }
+            let jsonParsed: unknown;
+            try {
+              jsonParsed = JSON.parse(extractJsonFromText(rawContent));
+            } catch (e) {
+              throw new SyntaxError(`The output was not valid JSON: ${e instanceof Error ? e.message : String(e)}`);
+            }
 
-          parsedData = req.schema.parse(jsonParsed);
-          completionModel = completion.model;
-          usage = {
-            inputTokens: completion.usage?.prompt_tokens ?? 0,
-            outputTokens: completion.usage?.completion_tokens ?? 0,
-          };
+            parsedData = req.schema.parse(jsonParsed);
+            completionModel = completion.model;
+            usage = {
+              inputTokens: completion.usage?.prompt_tokens ?? 0,
+              outputTokens: completion.usage?.completion_tokens ?? 0,
+            };
+          }
         }
-      }
 
-      return {
-        data: parsedData,
+        const cost = calculateCost(completionModel, usage);
+        return {
+          data: parsedData,
           model: completionModel,
           usage,
+          cost,
         };
       } catch (err) {
         // Fallback if provider rejected json_schema or response_format

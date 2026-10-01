@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:benchmark": "tsx scripts/eval-benchmarks.ts",
+    "langfuse:sync-models": "tsx scripts/sync-langfuse-models.ts",
     "db:up": "docker compose up -d db",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
