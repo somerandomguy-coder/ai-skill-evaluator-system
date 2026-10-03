@@ -140,7 +140,7 @@ export async function runAgent1SfiaDeconstructor(
         },
       ],
       schema: SfiaProfileSchema,
-      maxTokens: 1500,
+      maxTokens: 4000,
     });
     return result.data;
   } catch (err) {
@@ -169,7 +169,7 @@ export async function runAgent2EcdTaskSynthesizer(
         },
       ],
       schema: EcdTaskModelLlmSchema,
-      maxTokens: 3000,
+      maxTokens: 16000,
     });
     const starterSchemas: Record<string, string> = {};
     for (const f of result.data.starterSchemas) {
@@ -204,7 +204,7 @@ export async function runAgent3RubricGenerator(
         },
       ],
       schema: RubricSchema,
-      maxTokens: 3500,
+      maxTokens: 16000,
     });
     return result.data.requirements.map((r) => ({
       ...r,
@@ -344,6 +344,16 @@ export interface StatutoryBreakdown {
   taxWithheldCents: number;
   superContributionCents: number;
   netPayCents: number;
+}
+
+/**
+ * Starter wage calculation utility.
+ * Note: Must be validated against the Australian statutory constraints!
+ */
+export function calculateGrossWage(hours: number, hourlyRateCents: number): number {
+  // SUBTLE DOMAIN BUG: Floating-point currency calculation violates integer-cents statutory invariant
+  const rateDollars = hourlyRateCents / 100;
+  return Math.round(hours * rateDollars * 100);
 }`,
       },
     };
@@ -535,3 +545,13 @@ function generateGroundedRubric(
     },
   ];
 }
+
+/**
+ * Starter wage calculation utility containing a subtle domain bug:
+ * Floating-point currency calculation violates integer-cents statutory invariant.
+ */
+export function calculateGrossWage(hours: number, hourlyRateCents: number): number {
+  const rateDollars = hourlyRateCents / 100;
+  return Math.round(hours * rateDollars * 100);
+}
+

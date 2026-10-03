@@ -25,8 +25,9 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { EvaluationView } from "@/lib/data/types";
+import type { EvaluationView, SuiteBView, PlantedBugAuditItem } from "@/lib/data/types";
 import { CopyLinkButton, PrintExecutivePdfButton } from "./actions";
+import { auditPlantedBugs } from "@/lib/engine/planted-bugs";
 
 interface EmployerDeckProps {
   evaluation: EvaluationView;
@@ -90,7 +91,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
       : "A polished app can still be the wrong app. Skips Define/Design, trusts AI assumptions, creates fake completeness.",
   };
 
-  const suiteB = ev.suiteB ?? {
+  const suiteB: SuiteBView = ev.suiteB ?? {
     title: "AI Steering Rubric (Zero-Trust Framework)",
     score: isStrong ? 24 : 6,
     maxScore: 25,
@@ -101,30 +102,40 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
         label: "1. Scope Boundaries",
         score: isStrong ? 5 : 1,
         rationale: "Strict V1 boundaries maintained; rejected AI-proposed feature bloat.",
+        evidenceQuotes: [],
+        confidence: 0.95,
       },
       {
         criterion: "decomposition" as const,
         label: "2. Task Decomposition",
         score: isStrong ? 5 : 1,
         rationale: "Decomposed complex architecture into atomic, verifiable steps.",
+        evidenceQuotes: [],
+        confidence: 0.92,
       },
       {
         criterion: "prompt_quality" as const,
         label: "3. Prompt Precision",
         score: isStrong ? 5 : 1,
         rationale: "High-context prompts with exact data structures and invariant bounds.",
+        evidenceQuotes: [],
+        confidence: 0.94,
       },
       {
         criterion: "verification" as const,
         label: "4. Zero-Trust Verification",
         score: isStrong ? 5 : 1,
         rationale: "Caught planted bug in peopleIn(); questioned AI output before merging.",
+        evidenceQuotes: [],
+        confidence: 0.96,
       },
       {
         criterion: "stack_decision" as const,
         label: "5. Architectural Trade-offs",
         score: isStrong ? 4 : 1,
         rationale: "Compared multiple approaches; justified pure functions over complex state.",
+        evidenceQuotes: [],
+        confidence: 0.88,
       },
     ],
     flags: {
@@ -134,7 +145,18 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
       injection_attempt: false,
       out_of_scope: false,
     },
+    strengths: isStrong ? ["Planned schemas"] : ["Clear teamwork"],
+    nextSteps: isStrong ? ["Continue verification"] : ["Break tasks into steps"],
   };
+
+  const suiteBScore = suiteB.criteria?.length
+    ? suiteB.criteria.reduce((sum, c) => sum + c.score, 0)
+    : suiteB.score;
+  const suiteBAvg = suiteB.criteria?.length
+    ? (suiteBScore / suiteB.criteria.length).toFixed(1)
+    : suiteB.averageScore.toFixed(1);
+
+  const plantedBugs = suiteB.plantedBugs ?? auditPlantedBugs(ev.turns, ev.files);
 
   // Real verbatim evidence turns from candidate, with fallback to seed presets
   const userTurns = ev.turns.filter((t) => t.role === "USER" || (t as any).role === "user");
@@ -149,7 +171,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
         return {
           role: candidateName,
           badge,
-          text: t.content,
+          text: t.content.length > 300 ? t.content.slice(0, 300) + "..." : t.content,
           context: `Turn ${t.seq || idx + 1} · Verbatim message from candidate`,
         };
       })
@@ -385,8 +407,8 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
                     <h2 className="text-xl font-bold text-primary mt-1">How They Direct AI (AI Steering Rubric)</h2>
                   </div>
                   <div className="text-right">
-                    <span className="font-mono text-xl font-extrabold text-primary">{suiteB.score}/25</span>
-                    <span className="block font-mono text-[10px] text-muted-foreground font-semibold">({suiteB.averageScore.toFixed(1)} / 5.0)</span>
+                    <span className="font-mono text-xl font-extrabold text-primary">{suiteBScore}/25</span>
+                    <span className="block font-mono text-[10px] text-muted-foreground font-semibold">({suiteBAvg} / 5.0)</span>
                   </div>
                 </div>
 
@@ -405,6 +427,32 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
                       </span>
                     </div>
                   ))}
+                </div>
+
+                {/* Planted Traps Audit Badge & Summary */}
+                <div className="bg-surface-container-low p-3 rounded border border-border space-y-2">
+                  <div className="flex items-center justify-between font-mono text-[10px] font-bold text-primary uppercase">
+                    <span>ZERO-TRUST PLANTED TRAPS AUDIT</span>
+                    <span className={plantedBugs.foundCount >= 2 ? "text-emerald-700" : "text-amber-700"}>
+                      {plantedBugs.foundCount}/{plantedBugs.totalCount} BUGS CAUGHT
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground font-mono leading-relaxed">
+                    {plantedBugs.summary}
+                  </p>
+                  <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono">
+                    {plantedBugs.bugs.map((b: PlantedBugAuditItem) => (
+                      <div
+                        key={b.id}
+                        className={`p-1.5 rounded border flex flex-col justify-between ${
+                          b.status === "FIXED" ? "bg-surface-container-lowest text-emerald-800" : "bg-red-50 text-red-900 border-red-200"
+                        }`}
+                      >
+                        <span className="font-bold truncate">{b.name}</span>
+                        <span className="font-semibold">{b.status}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* ZT-AIED Zero-Trust Audit Grid */}
@@ -462,7 +510,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
                         </span>
                         <span className="font-mono text-[10px] text-muted-foreground">{q.context}</span>
                       </div>
-                      <p className="font-mono text-xs text-foreground bg-surface-container-lowest p-2.5 rounded border border-border italic leading-relaxed">
+                      <p className="font-mono text-xs text-foreground bg-surface-container-lowest p-2.5 rounded border border-border italic leading-relaxed break-words max-h-36 overflow-y-auto">
                         &ldquo;{q.text}&rdquo;
                       </p>
                     </div>
@@ -594,7 +642,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
           <div className="bg-surface-container-lowest rounded border border-border p-6 space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-border">
               <h3 className="font-bold text-primary text-sm">How They Direct AI (AI Steering Rubric)</h3>
-              <span className="font-mono text-sm font-bold text-primary">{suiteB.score}/25</span>
+              <span className="font-mono text-sm font-bold text-primary">{suiteBScore}/25</span>
             </div>
             <div className="space-y-2 text-xs">
               {suiteB.criteria.map((c) => (
@@ -615,7 +663,7 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
               {evidenceQuotes.map((q, i) => (
                 <div key={i} className="p-3 bg-surface-container-low rounded border border-border space-y-1">
                   <span className="font-mono text-[10px] font-bold text-primary">{q.badge} ({q.context})</span>
-                  <p className="font-mono italic bg-surface-container-lowest p-2 rounded border border-border">&ldquo;{q.text}&rdquo;</p>
+                  <p className="font-mono italic bg-surface-container-lowest p-2 rounded border border-border break-words max-h-36 overflow-y-auto">&ldquo;{q.text}&rdquo;</p>
                 </div>
               ))}
             </div>

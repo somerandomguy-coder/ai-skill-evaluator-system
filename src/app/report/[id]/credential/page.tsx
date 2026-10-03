@@ -260,7 +260,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
                 <h2 className="font-title text-base">AI steering</h2>
               </div>
               <span className="tabular font-display text-2xl">
-                {suiteB.score}
+                {suiteB.criteria?.length ? suiteB.criteria.reduce((sum, c) => sum + c.score, 0) : suiteB.score}
                 <span className="text-sm font-normal text-muted-foreground">/{suiteB.maxScore || 25}</span>
               </span>
             </div>
@@ -277,7 +277,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
             </ul>
             <p className="mt-auto flex items-start gap-2 rounded-2xl bg-signal-soft p-3 text-xs leading-relaxed text-signal-ink">
               <Terminal className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-              Scores read from the recorded prompts and the code they produced.
+              {suiteB.plantedBugs ? suiteB.plantedBugs.summary : "Scores read from the recorded prompts and the code they produced."}
             </p>
           </section>
         </div>

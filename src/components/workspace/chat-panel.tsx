@@ -37,6 +37,7 @@ interface Props {
   onOpenFile: (path: string) => void;
   onOpenBrief: () => void;
   className?: string;
+  id?: string;
 }
 
 function Waiting({ since, status }: { since: number | null; status?: string | null }) {
@@ -215,6 +216,7 @@ export function ChatPanel({
   onOpenFile,
   onOpenBrief,
   className,
+  id,
 }: Props) {
   const [draft, setDraft] = useState("");
   const [attachedImage, setAttachedImage] = useState<{ name: string; url: string } | null>(null);
@@ -275,7 +277,7 @@ export function ChatPanel({
   const showStreamingBubble = pending && (Boolean(streamingMessage) || Boolean(streamingReasoning));
 
   return (
-    <section className={cn("flex min-h-0 flex-col bg-card", className)} aria-label="Chat with the assistant">
+    <section id={id} className={cn("flex min-h-0 flex-col bg-card", className)} aria-label="Chat with the assistant">
       <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
         <div className="flex items-center gap-2 text-[13px] font-semibold">
           <span className={cn("size-1.5 rounded-full", pending ? "live-dot text-signal" : "bg-ok")} aria-hidden />

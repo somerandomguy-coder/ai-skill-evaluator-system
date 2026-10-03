@@ -253,63 +253,59 @@ export async function runChallengePipeline(
     emit({ type: "step", step: "save", status: "start" });
     let createdId: string;
     try {
-      const created = await prisma.$transaction(async (tx) => {
-        // Ensure user exists so foreign key constraint never fails
-        await tx.user.upsert({
-          where: { id: input.userId },
-          update: {},
-          create: {
-            id: input.userId,
-            email: `${input.userId}@proofcraft.dev`,
-            name: "Candidate",
-            role: "CANDIDATE",
-          },
-        });
+      await prisma.user.upsert({
+        where: { id: input.userId },
+        update: {},
+        create: {
+          id: input.userId,
+          email: `${input.userId}@proofcraft.dev`,
+          name: "Candidate",
+          role: "CANDIDATE",
+        },
+      });
 
-        const submission = await tx.jobSubmission.create({
-          data: { userId: input.userId, rawJd: text, sourceUrl, parsedJd: toJson(parsed), companyResearch: toJson(research) },
-        });
-        const row = await tx.challenge.create({
-          data: {
-            jobSubmissionId: submission.id,
-            title: resolved.roleTitle,
-            brief: resolved.briefMarkdown,
-            domainContext: `Enterprise Australian assessment grounded in SFIA 9 standards for ${parsed.employer}.`,
-            timeboxMinutes: resolved.sfiaProfile.level === 2 ? 120 : 180,
-            starterTemplate: toJson(
-              buildRoleStarterTemplate({
-                title: resolved.roleTitle,
-                brief: resolved.briefMarkdown,
-                technicalInvariants: resolved.technicalInvariants,
-                starterSchemas: resolved.starterSchemas,
-              })
-            ),
-            rubricVersion: "SFIA-9-ECD-v2",
-            meta: toJson({
-              validApproaches: [],
-              ambiguities: [],
-              tier: resolution.tierResolved,
-              sfiaProfile: resolved.sfiaProfile,
+      const submission = await prisma.jobSubmission.create({
+        data: { userId: input.userId, rawJd: text, sourceUrl, parsedJd: toJson(parsed), companyResearch: toJson(research) },
+      });
+      const row = await prisma.challenge.create({
+        data: {
+          jobSubmissionId: submission.id,
+          title: resolved.roleTitle,
+          brief: resolved.briefMarkdown,
+          domainContext: `Enterprise Australian assessment grounded in SFIA 9 standards for ${parsed.employer}.`,
+          timeboxMinutes: resolved.sfiaProfile.level === 2 ? 120 : 180,
+          starterTemplate: toJson(
+            buildRoleStarterTemplate({
+              title: resolved.roleTitle,
+              brief: resolved.briefMarkdown,
               technicalInvariants: resolved.technicalInvariants,
               starterSchemas: resolved.starterSchemas,
-              verification: resolved.verification,
-              similarityScore: resolution.similarityScore,
-            }),
-          },
-        });
-        await tx.requirement.createMany({
-          data: resolved.rubric.map((r) => ({
-            challengeId: row.id,
-            category: r.category,
-            statement: r.statement,
-            weight: r.weight,
-            successSignals: r.successSignals,
-            failureModes: r.failureModes,
-          })),
-        });
-        return row;
+            })
+          ),
+          rubricVersion: "SFIA-9-ECD-v2",
+          meta: toJson({
+            validApproaches: [],
+            ambiguities: [],
+            tier: resolution.tierResolved,
+            sfiaProfile: resolved.sfiaProfile,
+            technicalInvariants: resolved.technicalInvariants,
+            starterSchemas: resolved.starterSchemas,
+            verification: resolved.verification,
+            similarityScore: resolution.similarityScore,
+          }),
+        },
       });
-      createdId = created.id;
+      await prisma.requirement.createMany({
+        data: resolved.rubric.map((r) => ({
+          challengeId: row.id,
+          category: r.category,
+          statement: r.statement,
+          weight: r.weight,
+          successSignals: r.successSignals,
+          failureModes: r.failureModes,
+        })),
+      });
+      createdId = row.id;
     } catch (dbErr: any) {
       console.warn(`[runChallengePipeline] Database save failed (${dbErr?.message ?? dbErr}). Storing in-memory.`);
       const fallbackId = `gen-${Date.now()}`;

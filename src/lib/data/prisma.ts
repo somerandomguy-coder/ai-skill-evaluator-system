@@ -251,16 +251,13 @@ export const prismaDataSource: DataSource = {
     } catch (err) {
       console.warn(`[prismaDataSource.getChallenge] DB error: ${err}`);
     }
-    if (id === "seed-challenge" || id.startsWith("demo-") || id.startsWith("seed-")) {
-      return mockDataSource.getChallenge(id);
-    }
-    return null;
+    return mockDataSource.getChallenge(id);
   },
 
   startSession,
 
   async getWorkspace(sessionId): Promise<WorkspaceView | null> {
-    if (sessionId.startsWith("demo-") || sessionId.startsWith("seed-")) {
+    if (sessionId.startsWith("demo-") || sessionId.startsWith("seed-") || sessionId.startsWith("mock-") || sessionId.startsWith("sess-")) {
       return mockDataSource.getWorkspace(sessionId);
     }
     try {
@@ -268,7 +265,7 @@ export const prismaDataSource: DataSource = {
         where: { id: sessionId },
         include: { challenge: { include: { requirements: true } }, turns: { orderBy: { seq: "asc" } }, evaluation: { select: { id: true } } },
       });
-      if (!s && (sessionId === "seed-session-active" || sessionId.startsWith("seed-") || sessionId.startsWith("demo-"))) {
+      if (!s && (sessionId === "seed-session-active" || sessionId.startsWith("seed-") || sessionId.startsWith("demo-") || sessionId.startsWith("mock-") || sessionId.startsWith("sess-"))) {
         return mockDataSource.getWorkspace(sessionId);
       }
       if (s) {
@@ -293,8 +290,39 @@ export const prismaDataSource: DataSource = {
           evaluationId: s.evaluation?.id ?? null,
         };
       }
-    } catch (err) {
-      console.warn(`[prismaDataSource.getWorkspace] DB error: ${err}`);
+    } catch (err: any) {
+      console.warn(`[prismaDataSource.getWorkspace] Connection hiccup (${err?.message ?? err}). Retrying in 400ms...`);
+      try {
+        await new Promise((r) => setTimeout(r, 400));
+        const s = await prisma.buildSession.findUnique({
+          where: { id: sessionId },
+          include: { challenge: { include: { requirements: true } }, turns: { orderBy: { seq: "asc" } }, evaluation: { select: { id: true } } },
+        });
+        if (s) {
+          const starter = mergeStarter(parseFileMap(s.challenge.starterTemplate));
+          return {
+            sessionId: s.id,
+            ownerId: s.userId,
+            status: s.status,
+            startedAt: s.startedAt.toISOString(),
+            challenge: {
+              id: s.challenge.id,
+              title: s.challenge.title,
+              brief: s.challenge.brief,
+              domainContext: s.challenge.domainContext,
+              timeboxMinutes: s.challenge.timeboxMinutes,
+              rubricVersion: s.challenge.rubricVersion,
+              requirements: sortRequirements(s.challenge.requirements).map(toRequirementView),
+            },
+            starter,
+            turns: s.turns.map(toTurnView),
+            files: reconstructFiles(starter, s.turns),
+            evaluationId: s.evaluation?.id ?? null,
+          };
+        }
+      } catch (retryErr) {
+        console.warn(`[prismaDataSource.getWorkspace] Retry failed: ${retryErr}`);
+      }
     }
     return mockDataSource.getWorkspace(sessionId);
   },

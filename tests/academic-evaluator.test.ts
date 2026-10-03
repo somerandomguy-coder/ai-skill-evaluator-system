@@ -149,4 +149,111 @@ describe("buildCognitiveSuites() Integration", () => {
     expect(res.groundedAssessment?.dimensions).toHaveLength(5);
     expect(typeof res.groundedAssessment?.automationBiasIndex).toBe("number");
   });
+
+  it("strictly computes totalSuiteBScore as the exact sum of individual criteria (e.g. 4+5+5+5+5 = 24/25)", () => {
+    // Session where candidate did not start with exploration keywords on turn 1, but explored on later turn
+    // This yields scores: Exploration=4, Decomp=5, Constraint=5, Verification=5, Sensemaking=5 (Sum: 24)
+    const res = buildCognitiveSuites({
+      sessionId: "session-high-performer-late-exploration",
+      challengeTitle: "Solar Battery Gateway",
+      overallScore: 90,
+      turns: [
+        {
+          seq: 1,
+          role: "USER",
+          content: "Let's implement the core calculation function first.",
+          filesWritten: [],
+          reasoning: null,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          seq: 2,
+          role: "USER",
+          content: "Now let's explore the schema and architecture trade-offs between polling and WebSockets.",
+          filesWritten: [],
+          reasoning: null,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          seq: 3,
+          role: "USER",
+          content: "I notice a bug in the battery discharge bounds. Let's write a unit test to verify error handling.",
+          filesWritten: [],
+          reasoning: null,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    const scores = res.suiteB.criteria.map((c) => c.score);
+    const sumCriteria = scores.reduce((sum, s) => sum + s, 0);
+
+    // AI steering score MUST mathematically equal the sum of criteria
+    expect(res.suiteB.score).toBe(sumCriteria);
+    expect(res.suiteB.score).toBeLessThanOrEqual(25);
+    if (scores.includes(4) && scores.filter((s) => s === 5).length === 4) {
+      expect(res.suiteB.score).toBe(24);
+    }
+  });
+});
+
+describe("Backend Substring Verifier & Bounded Evidence Extraction", () => {
+  it("verifies exact candidate citations and flags hallucinated LLM quotes", async () => {
+    const { verifySubstringCitation } = await import("@/lib/quote");
+    const sourceChat = "We should enforce integer cents for all Australian award calculations to avoid floating point drift.";
+
+    // 1. Exact verbatim quote
+    const exactResult = verifySubstringCitation("Australian award calculations", sourceChat);
+    expect(exactResult.verified).toBe(true);
+    expect(exactResult.cleanQuote).toContain("Australian award calculations");
+
+    // 2. Hallucinated quote fabricated by LLM evaluator
+    const hallucinatedResult = verifySubstringCitation(
+      "The candidate said they wanted to use USD currency and bypass statutory checks.",
+      sourceChat
+    );
+    expect(hallucinatedResult.verified).toBe(false);
+    // Verifier provides safe, verified excerpt from candidate's actual source
+    expect(hallucinatedResult.cleanQuote).toContain("Australian award calculations");
+  });
+
+  it("extracts clean bounded sentence excerpt from runaway multi-paragraph prompts", async () => {
+    const { extractCleanExcerpt } = await import("@/lib/quote");
+    const longChatPrompt =
+      "First, decompose this into pure statutory functions. " +
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ".repeat(40) +
+      "Finally, verify that zero-trust invariant checks pass.";
+
+    expect(longChatPrompt.length).toBeGreaterThan(1000);
+
+    const excerpt = extractCleanExcerpt(longChatPrompt, { keyword: "decompose", maxLength: 240 });
+    expect(excerpt.length).toBeLessThanOrEqual(240);
+    expect(excerpt).toContain("First, decompose this into pure statutory functions.");
+    expect(excerpt.endsWith("...")).toBe(false); // Clean complete first sentence
+  });
+});
+
+describe("Planted Subtle Domain Bugs in Starter Template", () => {
+  it("plants unmasked identity field bug in starter template audit utility", async () => {
+    const { buildRoleStarterTemplate } = await import("@/lib/engine/starter-template");
+    const template = buildRoleStarterTemplate({
+      title: "CDR Gateway Challenge",
+      brief: "Implement Consumer Data Right gateway adhering to CDR statutory invariants.",
+    });
+
+    expect(template["src/utils/audit.ts"]).toBeDefined();
+    const auditCode = template["src/utils/audit.ts"];
+    // Verifies the subtle domain bug: email is masked, but userId identity field is left unmasked in logger output
+    expect(auditCode).toContain("userId: context.userId");
+    expect(auditCode).toContain("sanitizedEmail");
+  });
+
+  it("plants floating-point currency calculation bug in statutory calculations", async () => {
+    const { calculateGrossWage } = await import("@/lib/engine/pipeline");
+    // Verify floating point currency calculation is present in starter statutory utility
+    expect(typeof calculateGrossWage).toBe("function");
+    // 33.33 hours @ $25.55/hr ($2555 cents)
+    const result = calculateGrossWage(33.33, 2555);
+    expect(typeof result).toBe("number");
+  });
 });

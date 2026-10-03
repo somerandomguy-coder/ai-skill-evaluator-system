@@ -7,6 +7,7 @@
  */
 import type { EscalationReason } from "../ai/escalation";
 import type { Barrier, RequirementCategory, RequirementResult } from "../ai/schemas";
+export type { FileMap, FileWrite } from "../files";
 import type { FileMap, FileWrite } from "../files";
 
 export type Role = "CANDIDATE" | "MENTOR";
@@ -141,6 +142,25 @@ export interface AuditFlags {
   scope_creep_resisted: boolean;
   injection_attempt: boolean;
   out_of_scope: boolean;
+  planted_bugs_found?: number;
+  planted_bugs_total?: number;
+}
+
+export interface PlantedBugAuditItem {
+  id: "currency" | "privacy" | "boundary";
+  name: string;
+  category: string;
+  description: string;
+  status: "FIXED" | "MISSED";
+  evidence?: string;
+  remedy: string;
+}
+
+export interface PlantedBugsSummary {
+  foundCount: number;
+  totalCount: number;
+  bugs: PlantedBugAuditItem[];
+  summary: string;
 }
 
 export interface FourDPhase {
@@ -176,6 +196,7 @@ export interface SuiteBView {
   averageScore: number; // out of 5.0
   criteria: PromptRubricCriterion[];
   flags: AuditFlags;
+  plantedBugs?: PlantedBugsSummary;
   strengths: string[];
   nextSteps: string[];
 }

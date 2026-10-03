@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpenText, Download, FolderTree, MessageSquare, MonitorPlay, SquareTerminal } from "lucide-react";
+import { BookOpenText, Database, Download, FolderTree, HelpCircle, MessageSquare, MonitorPlay, SquareTerminal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FileBrowser } from "@/components/evidence/file-browser";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiError, sendChatStream, submitBuild } from "@/lib/client/api";
 import type { TurnView, WorkspaceView } from "@/lib/data/types";
+import { isBackendChallenge } from "@/lib/engine/starter-template";
 import { downloadProjectZip } from "@/lib/export/zip";
 import { applyWrites, toFileList, type FileMap } from "@/lib/files";
 import { applyRuntimeWrites, startRuntime, stopRuntime } from "@/lib/runtime/webcontainer";
@@ -16,10 +17,12 @@ import { BriefSheet } from "./brief-sheet";
 import { ChatPanel, type ChatError } from "./chat-panel";
 import { PreviewPanel } from "./preview-panel";
 import { RuntimePill, useRuntime } from "./runtime-status";
+import { SqlitePanel } from "./sqlite-panel";
 import { SubmitDialog } from "./submit-dialog";
 import { SessionTimer } from "./timer";
+import { WorkspaceTour } from "./workspace-tour";
 
-type Tab = "preview" | "files" | "console";
+type Tab = "preview" | "files" | "console" | "database";
 
 function lastWrites(turns: TurnView[]): ReadonlySet<string> {
   const lastAssistant = [...turns].reverse().find((t) => t.role === "ASSISTANT" && t.filesWritten.length);
@@ -54,7 +57,35 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
   const [tab, setTab] = useState<Tab>("preview");
   const [file, setFile] = useState<string | null>(null);
   const [briefOpen, setBriefOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
   const [mobile, setMobile] = useState<"chat" | "work">("chat");
+
+  const isBackend = useMemo(
+    () => isBackendChallenge(workspace.challenge) || Boolean(files["schema.sql"]),
+    [workspace.challenge, files]
+  );
+
+  // Auto-prompt onboarding tour on candidate's first visit to the workspace
+  useEffect(() => {
+    try {
+      const completed = localStorage.getItem("ai_skill_workspace_tour_completed");
+      if (!completed) {
+        const timer = setTimeout(() => setTourOpen(true), 650);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // Ignore localStorage access failures
+    }
+  }, []);
+
+  const handleTourStepChange = (stepIndex: number) => {
+    if (stepIndex === 1) {
+      setMobile("chat");
+    } else if (stepIndex === 2) {
+      setMobile("work");
+    }
+  };
+
   const turnsRef = useRef(turns);
   useEffect(() => {
     turnsRef.current = turns;
@@ -174,9 +205,25 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
         <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold" title={workspace.challenge.title}>
           {workspace.challenge.title}
         </h1>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-[13px]" onClick={() => setBriefOpen(true)}>
+        <Button
+          id="tour-brief-button"
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 text-[13px]"
+          onClick={() => setBriefOpen(true)}
+        >
           <BookOpenText className="size-3.5" aria-hidden />
           <span className="hidden sm:inline">Brief & rubric</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 text-[13px] text-muted-foreground hover:text-foreground"
+          onClick={() => setTourOpen(true)}
+          title="Interactive workspace walkthrough tour"
+        >
+          <HelpCircle className="size-3.5 text-signal" aria-hidden />
+          <span className="hidden sm:inline">Tour</span>
         </Button>
         <Button
           variant="outline"
@@ -219,6 +266,7 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
 
       <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)]">
         <ChatPanel
+          id="tour-chat-panel"
           className={cn("border-r border-border", mobile !== "chat" && "hidden lg:flex")}
           turns={turns}
           notes={notes}
@@ -235,7 +283,10 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
           onOpenBrief={() => setBriefOpen(true)}
         />
 
-        <div className={cn("flex min-h-0 min-w-0 flex-col bg-background", mobile !== "work" && "hidden lg:flex")}>
+        <div
+          id="tour-work-panel"
+          className={cn("flex min-h-0 min-w-0 flex-col bg-background", mobile !== "work" && "hidden lg:flex")}
+        >
           <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="min-h-0 flex-1 gap-0">
             <div className="border-b border-border bg-card px-2">
               <TabsList variant="line" className="h-10 gap-0 p-0">
@@ -250,6 +301,15 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
                 <TabsTrigger value="console" className={tabClass}>
                   <SquareTerminal aria-hidden /> Console
                 </TabsTrigger>
+                {isBackend && (
+                  <TabsTrigger value="database" className={tabClass}>
+                    <Database aria-hidden className="size-3.5 text-sky-400" />
+                    <span>Database</span>
+                    <span className="rounded bg-sky-500/15 px-1 py-0.5 font-mono text-[10px] font-semibold text-sky-400">
+                      SQL
+                    </span>
+                  </TabsTrigger>
+                )}
               </TabsList>
             </div>
             <TabsContent value="preview" className="fade-in min-h-0 overflow-hidden">
@@ -261,11 +321,22 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
             <TabsContent value="console" className="fade-in min-h-0 overflow-hidden">
               <ConsoleView />
             </TabsContent>
+            {isBackend && (
+              <TabsContent value="database" className="fade-in min-h-0 flex-1 overflow-hidden">
+                <SqlitePanel files={files} />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </div>
 
       <BriefSheet challenge={workspace.challenge} open={briefOpen} onOpenChange={setBriefOpen} />
+      <WorkspaceTour
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        onOpenBrief={() => setBriefOpen(true)}
+        onStepChange={handleTourStepChange}
+      />
     </div>
   );
 }

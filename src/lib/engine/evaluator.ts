@@ -10,6 +10,7 @@ import {
   type QualitativeBand,
 } from "../types/assessment-academic";
 import type { SfiaLevel } from "../types/assessment-v2";
+import { extractCleanExcerpt, verifySubstringCitation } from "../quote";
 
 export interface AcademicEvaluationInput {
   sessionId: string;
@@ -115,11 +116,30 @@ export async function evaluateAcademicInteraction(
     });
 
     const parsed = result.data;
-    const dimensions: DimensionEvaluation[] = parsed.dimensions.map((d) => ({
-      ...d,
-      frameworkSource: ACADEMIC_FRAMEWORK_SOURCES[d.dimension].citationKey,
-      paperMeta: ACADEMIC_FRAMEWORK_SOURCES[d.dimension],
-    }));
+    const dimensions: DimensionEvaluation[] = parsed.dimensions.map((d) => {
+      const verifiedTraces = d.evidenceTraces.map((trace) => {
+        const turnNum = Number.parseInt(/\d+/.exec(trace.turnId)?.[0] ?? "", 10);
+        const turn = Number.isFinite(turnNum)
+          ? input.turns.find((t) => t.seq === turnNum)
+          : input.turns[0];
+        const sourceText = turn?.content || "";
+        const check = verifySubstringCitation(trace.excerpt, sourceText);
+        return {
+          ...trace,
+          excerpt: check.verified ? trace.excerpt : (check.cleanQuote || trace.excerpt),
+          observedBehavior: check.verified
+            ? trace.observedBehavior
+            : ("AUTOMATION_BIAS_TRAP" as const),
+        };
+      });
+
+      return {
+        ...d,
+        evidenceTraces: verifiedTraces,
+        frameworkSource: ACADEMIC_FRAMEWORK_SOURCES[d.dimension].citationKey,
+        paperMeta: ACADEMIC_FRAMEWORK_SOURCES[d.dimension],
+      };
+    });
 
     const validScores = dimensions.map((d) => d.score).filter((s): s is number => s !== null);
     const totalScore = validScores.reduce((sum, s) => sum + s, 0);
@@ -215,9 +235,13 @@ export function generateDeterministicAcademicReport(
     ? 3
     : 1;
 
+  const archTurn = userMessages.find((m) =>
+    /because|tradeoff|performance|maintain|reason|architecture|pure function|component/i.test(m.content)
+  );
+
   const scoreSensemaking = isHighPerformer
     ? 5
-    : userMessages.some((m) => /because|tradeoff|performance|maintain|reason/i.test(m.content))
+    : archTurn
     ? 4
     : isModeratePerformer
     ? 3
@@ -230,7 +254,9 @@ export function generateDeterministicAcademicReport(
     return "AT_RISK";
   }
 
-  const defaultExcerpt = userMessages[0]?.content || "No candidate prompt recorded in session.";
+  const defaultExcerpt = userMessages[0]
+    ? extractCleanExcerpt(userMessages[0].content, { maxLength: 240 })
+    : "No candidate prompt recorded in session.";
   const defaultTurnId = userMessages[0] ? `Turn ${userMessages[0].seq}` : "Turn 1";
 
   const dimensions: DimensionEvaluation[] = [
@@ -250,7 +276,9 @@ export function generateDeterministicAcademicReport(
       evidenceTraces: [
         {
           turnId: explorationTurns[0] ? `Turn ${explorationTurns[0].seq}` : defaultTurnId,
-          excerpt: explorationTurns[0]?.content || defaultExcerpt,
+          excerpt: explorationTurns[0]
+            ? extractCleanExcerpt(explorationTurns[0].content, { keyword: "explore", maxLength: 240 })
+            : defaultExcerpt,
           observedBehavior: startsWithExploration || explorationTurns.length > 0 ? "SUCCESS_SIGNAL" : "AUTOMATION_BIAS_TRAP",
           interpretation: startsWithExploration
             ? "Set design boundaries before coding."
@@ -274,7 +302,9 @@ export function generateDeterministicAcademicReport(
       evidenceTraces: [
         {
           turnId: verificationTurns[0] ? `Turn ${verificationTurns[0].seq}` : defaultTurnId,
-          excerpt: verificationTurns[0]?.content || defaultExcerpt,
+          excerpt: verificationTurns[0]
+            ? extractCleanExcerpt(verificationTurns[0].content, { keyword: "test", maxLength: 240 })
+            : defaultExcerpt,
           observedBehavior: verificationTurns.length > 0 ? "SUCCESS_SIGNAL" : "AUTOMATION_BIAS_TRAP",
           interpretation: verificationTurns.length > 0
             ? "Actively tested and questioned AI code."
@@ -316,7 +346,9 @@ export function generateDeterministicAcademicReport(
       evidenceTraces: [
         {
           turnId: userMessages[1] ? `Turn ${userMessages[1].seq}` : defaultTurnId,
-          excerpt: userMessages[1]?.content || defaultExcerpt,
+          excerpt: userMessages[1]
+            ? extractCleanExcerpt(userMessages[1].content, { keyword: "first", maxLength: 240 })
+            : defaultExcerpt,
           observedBehavior: userMessages.length >= 2 ? "SUCCESS_SIGNAL" : "AUTOMATION_BIAS_TRAP",
           interpretation: "Guided the AI step-by-step.",
         },
@@ -335,8 +367,10 @@ export function generateDeterministicAcademicReport(
         : "Accepted AI design defaults without discussing pros or cons.",
       evidenceTraces: [
         {
-          turnId: defaultTurnId,
-          excerpt: defaultExcerpt,
+          turnId: archTurn ? `Turn ${archTurn.seq}` : defaultTurnId,
+          excerpt: archTurn
+            ? extractCleanExcerpt(archTurn.content, { keyword: "architecture", maxLength: 240 })
+            : defaultExcerpt,
           observedBehavior: scoreSensemaking >= 3 ? "SUCCESS_SIGNAL" : "AUTOMATION_BIAS_TRAP",
           interpretation: "Justified technical choices.",
         },

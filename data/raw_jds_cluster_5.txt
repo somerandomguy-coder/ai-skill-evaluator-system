@@ -1,0 +1,573 @@
+### Cluster 5: Applied AI & LLM Systems Engineering
+
+https://www.linkedin.com/jobs/view/4463327086/
+About the job
+Your new companyOur client is a rapidly growing AI-focused organisation that has built its Data & AI capability from the ground up and is currently scaling across multiple concurrent projects. The business operates in a high-growth environment and is investing heavily in AI initiatives.
+Your new roleAs a senior member of the AI function, you will be responsible for delivering complex AI and machine learning solutions from research through to production. The position offers exposure to a wide variety of projects and the opportunity to influence both technical direction and business outcomes.Responsibilities are likely to include:
+Delivering end-to-end AI and machine learning projects
+Building and deploying production-grade AI solutions
+Working across Data Engineering, Machine Learning and AI platforms
+Partnering with stakeholders to solve complex business problems
+Supporting the growth and development of AI capability within the organisation
+Contributing to technical strategy and innovation initiatives
+What you'll need to succeed
+Strong experience in AI Engineering, Machine Learning Engineering and Data Engineering
+Demonstrated ability to take AI solutions from research and proof-of-concept into production
+Experience working on complex AI, machine learning or computer vision problems
+Strong stakeholder engagement and communication skills
+Previous experience leading teams, mentoring engineers or driving project delivery
+Commercially minded approach with the ability to balance innovation and business outcomes
+Experience operating within fast-paced, growth-oriented environments
+Ability to influence technical direction and contribute to scaling AI capability across an organisation.
+What you'll get in return
+Work on cutting-edge AI and Machine Learning projects, taking solutions from research and experimentation through to production deployment.
+Join a growing AI function where you'll have the opportunity to influence technical direction, drive innovation and work on complex business-critical challenges.
+Competitive salary package, strong career development opportunities and exposure to a diverse range of AI, ML and Data Engineering initiatives.
+
+
+If this sounds like you then apply today!
+If you’re interested or know someone who might be — feel free to send an updated resume to reshu@hays.com.au. If all aligns, you will be reached out.
+We believe in working for a place that works for you. We have many flexible working options within our team so talk to us about which arrangements would work best for you.
+
+https://www.linkedin.com/jobs/view/4435652836/
+About the job
+Our AI Engineering Platform team builds scalable artificial intelligence solutions using modern cloud technologies. We work closely with engineers and data scientists to create tools and platforms that support the development, deployment and monitoring of artificial intelligence solutions across our organisation.
+
+We are a global financial services group operating in 30 markets with 57 years of unbroken profitability. At Macquarie, you’re empowered to shape a career that is fulfilling and creates value. You will bring your insights and expertise to the task at hand and feel supported as you make your own kind of impact for a better future.
+
+ What role will you play? 
+
+In this role you will own the full software development lifecycle of artificial intelligence solutions within an Agile DevOps environment. You will work alongside engineers and data scientists to deliver innovative products, improve model deployment and monitoring, and explore emerging technologies, including Generative AI. You will have the opportunity to help shape scalable artificial intelligence capabilities that support our digital banking business.
+
+What You Offer
+
+5+ years’ of experience in software engineering using Java, Go or Python across the full software development lifecycle in an Agile DevOps environment
+Experience implementing artificial intelligence and machine learning best practices, including continuous integration and continuous delivery pipelines and model monitoring
+Strong understanding of cloud technologies, machine learning services, SQL and Python development environments
+Hands-on experience with artificial intelligence frameworks and tools such as LangChain, Semantic Kernel, TensorFlow, PyTorch and Hugging Face
+Knowledge of architectural patterns, cloud-native solutions on AWS and Azure, microservices, solution integration and containerisation technology.
+
+We love hearing from anyone inspired to build a better future with us, if you're excited about the role or working at Macquarie we encourage you to apply.
+
+What We Offer
+
+Benefits
+
+At Macquarie, you’re empowered to shape a career that’s rewarding in all the ways that matter most to you. Macquarie employees can access a wide range of benefits which, depending on employment type, include:
+
+1 wellbeing leave day per year
+Up to 5 additional service bonus leave days per year
+Up to 20 weeks’ paid parental leave for primary caregivers along with 12 days of transition leave upon return to work, and 6 weeks’ paid leave for non-primary caregivers
+2 days of paid volunteer leave and donation matching
+Up to 12 months’ gender affirmation leave, including 6 weeks’ paid leave
+Access to Employee Assistance Program and wellbeing benefits including skin and health checks, and flu vaccinations
+Access to a wide range of salary packaging options
+Access to a wide range of learning and development opportunities, including reimbursement for professional membership or subscription
+Hybrid and flexible working arrangements, dependent on role
+Reimbursement for work from home equipment
+
+About Banking and Financial Services 
+
+Banking and Financial Services is our technology-driven retail bank. You will be part of a team that supports clients to achieve their full potential - whether that’s buying a home, growing a business or investing to manage wealth.
+
+ Inclusion at Macquarie 
+
+We are committed to providing an inclusive environment for all, where different experiences, skills and perspectives are valued and respected. Macquarie provides access to opportunities for all individuals regardless of race, colour, religion, sex, sexual orientation, national origin, age, disability, protected veteran status, genetic information, marital status, gender identity or any other characteristic or circumstance.
+
+We provide reasonable adjustments to individuals who may need support during the recruitment process and employment. If you require an adjustment, please let us know during the application process.
+
+https://www.linkedin.com/jobs/view/4443107962/
+About the job
+About TCS:Join Tata Consultancy Services, Asia Pacific and be part of an organization committed to sustainable development for our future. TCS follows the Tata group philosophy of building sustainable businesses that are rooted in the community and demonstrate care for the environment. Our unique values position us to combine a purpose-driven worldview with digital innovation, collaborating with customers, communities and governments to lead and shape innovative solutions for a sustainable future. TCS has been carbon neutral in its operations across 11 countries, 12 delivery centres and 18 offices in Asia Pacific since 2022. This is only the initial stage in TCS’ journey as we strive to achieve long-term net zero emissions by 2030.
+Corporate sustainability is embedded in our triple-bottom-line, focusing on people, the planet, and our purpose. Our offices are designed with eco-friendly features that significantly reduce our carbon footprint and enhance energy efficiency. We actively champion green initiatives, such as promoting paperless operations, implementing energy-efficient practices, and fostering employee engagement in sustainability efforts. When you become part of the TCS family, you will play an essential role dedicated to innovation, excellence, and crafting a brighter, greener future together. Join us and be a part of our mission to drive sustainability through technology and talent at Tata Consultancy Services, APAC today.
+Role : AI Cloud EngineerExperience : 6- 10 YearsLocation : Sydney
+
+Essential Criteria:
+Demonstrated ability to deliver Gen AI solutions, into an enterprise scale production environments, with a focus on application security and observability.
+Experience building and deploying enterprise grade agent-based architectures and multi-agent orchestration.
+Strong programming skills in Python, and experience with full-stack development, ensuring quality with automated unit and regression testing.
+Considerable hands-on experience with the following AI "tech stack".
+AWS CloudEKS / ECSBedrockSemantic KernelLangChainLangGraphHuggingFaceSageMaker
+Deep understanding of foundational AI models, prompt engineering, and fine-tuning techniques.
+Experience deploying Generative AI solutions using enterprise-grade DevOps practices and CI/CD pipelines.
+Exposure to AI governance, compliance, and ethical AI frameworks, and the development and implementation of security guardrails.
+Experience delivering software solutions in a banking environment.
+Experience in fraud detection, customer personalisation, or conversational AI is a plus.
+Strong communication and stakeholder engagement skills.
+
+
+
+Top Reasons to Join Our Team at TCS Australia
+Attractive compensation & rewardsWe offer a highly competitive salary package aligned with the Australian market, complemented by performance-based incentives, recognition programs, and comprehensive employee benefits. Your achievements are celebrated, and your contributions truly matter.
+Global exposure with local impactAt TCS, you’ll work with leading Australian enterprises across diverse industries while collaborating with our global network of experts. This means access to world-class practices, transformative technologies, and the chance to shape solutions that have a real impact — locally and globally.
+Empowering leadership & supportive environmentOur leadership team is committed to helping you succeed. We encourage initiative, reward innovation, and provide a collaborative environment where your ideas are heard and valued.
+Long-term career growthWe believe in careers, not just jobs. With continuous learning, certification support, career mobility, and clear progression pathways, TCS empowers you to grow and evolve — whether you want to deepen your expertise, explore new domains, or take on leadership roles.
+Inclusive, collaborative cultureDiversity, inclusion, and respect are central to who we are. At TCS Australia, you’ll join a workplace where collaboration thrives, individuality is valued, and everyone can contribute to meaningful outcomes.
+Continuous learning & cutting-edge innovationWe invest heavily in your development, offering structured learning programs, global certifications, leadership development, and opportunities to work with emerging technologies. You’ll be part of an environment that constantly challenges and expands your capabilities.
+A Great Fit for the TCS Culture
+We’re looking for people who are:
+Passionate about technology and transformation
+Driven by curiosity, innovation, and continuous learning
+Excited to work in a collaborative, purpose-driven environment
+Motivated by delivering real impact for clients, communities, and society
+
+Our core values — Integrity, Excellence, Responsibility, Pioneering Spirit, and Unity — shape how we work and how we grow together.
+The TCS Community in Australia and Beyond
+Global strength: Over 600,000+ associates in 55+ countries, united by a shared purpose — to innovate and make a difference.
+Local presence: A trusted partner to Australia’s leading enterprises across financial services, government, retail, healthcare, telecom, and more.
+Social impact: Deeply committed to sustainability, digital inclusion, and community engagement initiatives in Australia and around the world.
+Empowered workplace: We foster a culture where diversity, equity, and accessibility are integral to how we operate.
+
+We don’t just imagine a better future — we help build it.About TCSTata Consultancy Services (TCS) is a global leader in IT services, consulting, and business solutions. We have partnered with many of the world’s largest organisations to help them transform their businesses, operating models, and technology ecosystems.Learn more at www.tcs.com.
+Equal Opportunity EmployerTCS is an equal opportunity employer. All qualified applicants will be considered without regard to race, colour, religion, gender, gender identity, sexual orientation, national origin, disability, veteran status, or any other characteristic protected by applicable law.
+Note: Compensation details are accurate as of this posting and may be adjusted in line with Australian laws and market conditions. Applicants may be asked to attend interviews in person or via video conference and present valid identification during the process
+
+
+Thank you for your interest in applying for this position with TCS. All applicants who meet the requirements will be considered equally and fairly for employment. We will review your application and will get back to you if we are considering your interest in this opportunity
+
+Requirements added by the job poster
+
+• 6+ years of work experience with Amazon Web Services (AWS)
+
+• 3+ years of work experience with Generative AI
+
+• 3+ years of work experience with Python (Programming Language)
+
+https://www.linkedin.com/jobs/view/4429988962/
+About the job
+Company Description
+
+Join the team redefining how the world experiences design.
+
+Hey, g'day, kia ora, 你好, hallo, vítejte!
+
+Thanks for stopping by. We know job hunting can be a little time consuming and you're probably keen to find out what's on offer, so we'll get straight to the point.
+
+Where And How You Can Work
+
+Our flagship Sydney campus is uniquely Canva - an extension of our Surry Hills neighbourhood. It’s a thoughtfully designed space with plenty of room to collaborate, focus, and connect.
+
+This role is based in Sydney, and we’re looking for someone who calls it home. Our hybrid way of working gives you the flexibility to work remotely, and to come together on campus for meaningful in-person collaboration and connection when it matters most. We trust our Canvanauts to choose the balance that empowers them and their team to achieve their goals.
+
+Job Description
+
+At Canva, our mission is to empower the world to design. To get cutting-edge research into the hands of millions of users faster, we're looking for a Machine Learning Engineer focused on research enablement and performance, turning promising experiments into stable, scalable, user-facing capabilities while making training and inference faster, cheaper, and more reliable.
+
+About The Role
+
+You'll be the bridge between research and production. Partnering closely with researchers, you'll ensure experimental code is production ready, integrate models into our monorepo, build shared libraries and services, and create the tooling and processes that let multiple model variants ship safely and quickly. You'll also work across the training stack, profiling and tuning PyTorch workloads, improving GPU utilisation, and shaping how we use distributed training and storage to get the most out of our compute. Your work shortens the research-to-user loop, reduces duplication, and ensures our ML features are reliable, observable, and easy for other teams to adopt.
+
+At The Moment, This Role Is Focused On
+
+Research-to-Production Pipeline: Hardening experimental models (containerisation, tests, CI/CD), making them deployable for real users.
+Training Performance and GPU Efficiency: Profiling PyTorch training jobs, improving GPU utilisation, and applying techniques like mixed precision, efficient data loading, and distributed training strategies (FSDP, DDP, DeepSpeed) to reduce time and cost per experiment.
+Library development: Converting experiments into well-factored libraries with clear APIs, dependency hygiene, and versioning, so teams can import rather than copy-paste.
+Developer Experience & Documentation: Creating templates, examples, and guidance; offering supportive, high-signal communication so others can adopt libraries confidently.
+Reliability, Observability & Cost: Instrumenting services with metrics/logging/tracing, setting SLIs/SLOs, and optimising training and inference performance and spend.
+
+
+Primary Responsibilities
+
+Productionise research models: refactor, test, containerise, and integrate them into the monorepo for scalable reuse.
+Profile and optimise PyTorch training jobs, working with researchers to identify bottlenecks across compute, memory, I/O, and networking.
+Improve distributed training setups (multi-GPU, multi-node) and help teams pick the right parallelism strategy for their workload.
+Build and maintain inference services, SDKs, and shared libraries that standardise pre/post-processing and interfaces across variants.
+Create multi-variant runners and rollout frameworks (feature flags, canaries, A/B testing, automated rollbacks).
+Establish CI/CD workflows, artifact management, and reproducible builds for ML services and model assets.
+Add robust observability (dashboards, alerts) and reliability practices (load tests, chaos/resiliency checks) across training and inference workloads.
+Optimise inference (batching, caching, quantisation/compilation, hardware utilisation) to reduce latency and cost.
+Work across the broader training stack, including Kubernetes orchestration, storage (e.g. Weka, Vast, Lustre), and data pipelines, to remove friction for research teams.
+Partner with researchers and product engineers via code reviews, pair sessions, and clear documentation to accelerate adoption.
+Drive good engineering hygiene in the research codebase: testing strategy, dependency management, and de-duplication across multiple model variants.
+
+
+You're Probably a Match If You
+
+Have strong software engineering fundamentals and excellent Python skills; you're comfortable turning notebooks and prototypes into production-grade services.
+Have shipped ML systems in production (containers, APIs, CI/CD), ideally within a monorepo environment.
+Have hands-on experience optimising PyTorch training or inference, profiling workloads, and reasoning about GPU memory, compute, and throughput.
+Are comfortable in containerised environments and understand Kubernetes concepts well enough to debug and improve ML workloads running on it.
+Can read research code and refactor it into clean abstractions with stable, well-documented interfaces.
+Understand service reliability and observability (metrics, tracing, logging) and how they apply to ML systems.
+Think holistically about the stack, from storage and networking through to model code, and can hold a credible conversation with researchers, DevOps, and platform engineers alike.
+Communicate clearly and empathetically, especially when guiding others to adopt libraries and best practices and mentoring engineers earlier in their ML journey.
+Bring cloud experience (AWS a plus) without needing to be a deep specialist.
+
+
+Nice To Have
+
+Familiarity with model-serving/optimisation tooling (e.g., ONNX, TorchScript, Triton, quantisation).
+Experience writing or optimising CUDA kernels, or using compilation frameworks (torch.compile, Triton, TensorRT) to speed up models.
+Experience with distributed training frameworks (FSDP, DDP, DeepSpeed, Megatron) at meaningful scale.
+Familiarity with high-performance storage systems (Weka, Vast, Lustre) and the data loading patterns that make or break training throughput.
+Experience with experimentation platforms (feature flags, A/B testing) and safe rollout strategies.
+Background with multimodal/image generation stacks or LLM-adjacent tooling (not the core focus, but helpful).
+Knowledge of MLOps practices (model registries, artifact stores, dependency/version management).
+
+
+Impact You'll Have
+
+You'll dramatically reduce the time it takes to move from a successful experiment to a reliable, observable feature in production. You'll eliminate copy-paste, unify interfaces, enable parallel variants, and build the shared foundations that let Canva ship ML innovation at scale. You'll also help our research teams get more out of every GPU hour, making training faster and inference cheaper as we scale up the work CORE is doing.
+
+Additional Information
+
+What's in it for you?
+
+Achieving our crazy big goals motivates us to work hard - and we do - but you'll experience lots of moments of magic, connectivity and fun woven throughout life at Canva, too. We also offer a range of benefits to set you up for every success in and outside of work.
+
+Here's a Taste Of What's On Offer
+
+Equity packages - we want our success to be yours too
+Inclusive parental leave policy that supports all parents & carers
+An annual Vibe & Thrive allowance to support your wellbeing, social connection, office setup & more
+Flexible leave options that empower you to be a force for good, take time to recharge and supports you personally
+
+
+Check out lifeatcanva.com for more info.
+
+Other Stuff To Know
+
+We make hiring decisions based on your experience, skills and passion, as well as how you can enhance Canva and our culture. We see AI as a powerful amplifier of creativity and technology at Canva. We’re evolving how we assess AI skills in our Technology hiring experience - you’ll tackle interactive, real-time challenges that reflect the kind of work we do. In some interviews, you may also be asked to solve a problem using an AI tool to show how you approach challenges with tech by your side.
+
+Please note that interviews are conducted virtually.
+
+https://www.linkedin.com/jobs/view/4472736704/
+About the job
+Sia is a next-generation, global management consulting group. Founded in 1999, we were born digital. Today our strategy and management capabilities are augmented by data science, enhanced by creativity and driven by responsibility. We’re optimists for change and we help clients initiate, navigate and benefit from transformation. We believe optimism is a force multiplier, helping clients to mitigate downside and maximize opportunity. With expertise across a broad range of sectors and services, our 3,000 consultants serve clients worldwide from 48 locations in 19 countries. Our expertise delivers results. Our optimism transforms outcomes.    
+
+
+
+Job Description
+
+Within the AI & Data Business Unit in Sydney, you will help our clients transform their business processes through Artificial Intelligence, Generative AI, and Data Science. Working alongside Data Scientists, Machine Learning Engineers, Solution Architects, and Platform Engineers, and step-by-step with clients, you will design, build, and deploy AI and data solutions that create measurable business value. Depending on client needs and your profile, your assignments may span the two areas below:  
+
+AI & Generative AI Engineering  
+
+Assist the GenAI Solution Architect in designing scalable and secure AI solutions. 
+
+Develop applications powered by foundation models, both self-managed and API-accessible, that meet business needs and comply with applicable regulations (GDPR, EU AI Act, model licenses, etc.). 
+
+Design prompting and orchestration strategies to improve reasoning, controllability, reliability, and user experience. 
+
+Design and optimize Retrieval-Augmented Generation (RAG) systems leveraging enterprise knowledge sources, semantic search, and source attribution. 
+
+Design, implement, and optimize agentic AI systems using orchestration frameworks such as LangGraph, CrewAI, AutoGen, Semantic Kernel, or equivalent. 
+
+Develop AI agents capable of tool usage, workflow orchestration, planning, reasoning, memory management, and human-in-the-loop interactions. 
+
+Architect AI solutions integrating enterprise systems, APIs, databases, and knowledge repositories. 
+
+Evaluate and select the most appropriate models based on business requirements, performance, latency, and cost constraints. 
+
+Monitor AI system performance in production and contribute to observability, evaluation, and governance practices. 
+
+ 
+
+Data Science & Machine Learning 
+
+Machine Learning and Statistics: build explanatory and predictive models to support decision-making (supervised and unsupervised learning algorithms, econometrics, time series forecasting, reinforcement learning, etc.). 
+
+Deep Learning: intelligent processing of unstructured data such as text (Natural Language Processing), images (Computer Vision), and audio (Speech-to-Text and Text-to-Speech). 
+
+Generative AI & Large Language Models (LLMs): design and deploy LLM-based solutions (GPT, Claude, Mistral, etc.), develop RAG pipelines, and create business-focused conversational assistants and autonomous agents. 
+
+Operations Research: help design and implement constrained optimization solutions and simulation models. 
+
+Big Data: apply algorithmic knowledge to process large volumes of structured and unstructured data. 
+
+Conduct research on the latest advances in foundation models, multimodal AI, and agentic AI systems. 
+
+
+
+Qualifications
+
+You hold a Master's degree from an engineering school or an advanced degree in computer science, artificial intelligence, information processing, statistical engineering, or econometrics, and you have at least one year of technical experience in Data Science, Big Data, or building AI solutions. 
+
+You are proficient in Python programming and code versioning. You have knowledge of at least one of the following: Generative AI frameworks (LangChain, LangGraph, RAG) and advanced prompting techniques, Deep Learning frameworks (PyTorch, TensorFlow), or strong statistics and quantitative analysis skills (theoretical and practical knowledge, intuition, and ease in understanding and applying models). Familiarity with cloud platforms (Azure, AWS, or GCP) and API development (Flask, FastAPI) is a plus. 
+
+You want to get involved and quickly take on responsibility for high-value-added assignments within a dynamic organization. You have a strong interest in AI and data-related challenges, the ability to quickly build expertise in these areas, and enthusiasm for helping our clients seize the opportunities they present. 
+
+Finally, are you curious and enjoy working as part of a team? Are you known for your analytical skills? Do you want to join a dynamic and motivating professional environment? Do you share our values of excellence, entrepreneurship, innovation, sharing, kindness, and work-life balance? 
+
+Are you fluent in English? 
+
+Then join us! 
+
+
+
+Additional Information
+
+Please send us your CV in English.  
+
+Please ensure you meet the VIE contract eligibility criteria as established by Business France:
+
+Anyone over 18 and under 28 years of age on the date of registration may apply for an International Volunteer Program (VIE).
+Departure on assignment must take place no later than the day of your 29th birthday. Beyond this, no exceptions are granted.
+You must hold French or European nationality (a national of a Member State of the European Economic Area, which comprises the 28 Member States of the European Union, Norway, Iceland, and Liechtenstein) or Monégasque nationality.
+You must be in compliance with the national service obligations of the country of which you are a national.
+You must be in possession of your civic rights and have a clean criminal record.
+Sia is an equal opportunity employer. All aspects of employment, including hiring, promotion, remuneration, or discipline, are based solely on performance, competence, conduct, or business needs.
+
+https://jobs.lever.co/appen-2/67603849-5e76-426d-84aa-890f5bc1bc1d
+Role Purpose
+
+The Forward Deployed Engineer works directly with enterprise clients to design, deploy, and optimise GenAI data solutions, with full ownership of final delivered data quality. Embedded across engineering, data operations, and client delivery, this role ensures datasets, pipelines, workflows, and automations meet defined accuracy, reliability, and performance requirements for GenAI model development.
+
+ 
+
+Your Impact
+
+Act as a trusted consultative partner to clients by defining requirements, clarifying success criteria, shaping high‑quality annotation guidelines, and proactively providing insights and innovative solutions that strengthen trust and improve data quality, efficiency, and model outcomes.
+Influence the what and the why behind GenAI data solutions by translating ambiguous client needs into clear, scalable workflows.
+Deliver zero-defect GenAI datasets that meet all defined acceptance and quality criteria.
+Build scalable, reproducible, and observable validation and automation pipelines that reduce variance, manual review effort, rework, and time to validation.
+Contribute reusable quality frameworks and validators adopted across multiple projects.
+What you Bring
+Experience working on GenAI, machine learning, or model evaluation data.
+A consultative problem-solving approach when leading client conversations, asking sharp questions, and guiding stakeholders toward better decisions.
+Hands-on experience designing and implementing data pipelines, validation systems, or workflow automation.
+Previous experience in owning final data quality and acting as the authority on delivery readiness.
+The ability to translate business or model development needs technical workflows and validation logic.
+Confidence in working directly with client engineering or machine learning teams.
+Strong documentation that prioritizes reproducibility, observability, and reliability.
+Why You’ll Love Working Here
+
+At Appen, we foster a culture of innovation, collaboration, and excellence. We value curiosity, accountability, and a commitment to delivering the highest-quality AI solutions for frontier models.
+
+You’ll work on complex challenges that shape the future of AI across industries and geographies, alongside talented people in a culture that values humility over ego. You’ll have the flexibility to deliver in a way that works for you and your team, supported by tools, resources and development opportunities to continue to build your capability over time.
+
+About Appen
+
+Appen has been a leader in AI training data for over 30 years. We specialise in human generated data to train, fine tune, and evaluate models across generative AI, large language models, computer vision, and speech recognition. Our AI assisted data annotation platform and global crowd of more than 1 million contributors in over 200 countries support model pre-training, supervised fine tuning, evaluation and benchmarking, safety and red teaming, and multilingual global expansion.
+
+The total target compensation for this full-time role ranges from $150K–$200K USD annually, inclusive of base salary and performance-based incentive. Actual compensation is determined based on role, level, experience and technical expertise. Appen offers a comprehensive benefits package, including medical, dental, and vision coverage, retirement plan options and paid time off. 
+
+We may use artificial intelligence (AI) tools to support parts of the hiring process, such as reviewing applications, analyzing resumes, or assessing responses and identifying potential inconsistencies or verification signals in application materials based on available information. These tools assist our recruitment team but do not replace human judgment. Final hiring decisions are ultimately made by humans. If you would like more information about how your data is processed, please contact us.
+
+https://www.lifeatcanva.com/en/jobs/6000000001228519/research-mle-training-optimization-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E4%BC%98%E5%8C%96%E5%B7%A5%E7%A8%8B%E5%B8%88/
+Description
+About the Group/Team
+
+We're the CORE team within the Generative AI supergroup. Our mission is to invent foundational technologies that will power the future of AI-assisted design. From large-scale models to groundbreaking research, our team builds the technical core of Canva’s creative intelligence engine. We collaborate globally to ship research that makes a real impact—from smart editing to AI video tools—at massive scale.
+
+ 
+
+About the Role/Specialty
+
+As a Machine Learning Engineer, you’ll lead efforts to scale and optimize the training system for our large-scale multimodal and foundation models. You’ll design distributed training systems using Megatron-LM, NVIDIA NeMo, FSDP, and Triton—pushing the limits of performance across compute, memory, and communication layers. You'll sit at the intersection of systems and AI research, directly shaping how we train the models that will power Canva’s next generation of products.
+
+ 
+
+What you’ll do (responsibilities)
+
+You’ll design, implement, and optimize large-scale machine learning systems for training
+You’ll improve all aspects of performance, including GPU utilization, communication overhead, and memory efficiency.
+You’ll partner with research and modeling teams to align systems with algorithmic needs.
+You’ll evaluate and apply best practices for distributed training using industry-leading frameworks.
+You’ll dive deep into low-level optimization, including custom CUDA or Triton kernels.
+• • You’ll debug, profile, and fine-tune training workflows to unlock new levels of scalability.
+
+What we're looking for
+
+We’re looking for a systems-first engineer who thrives in fast-paced, high-impact environments. You’re deeply familiar with distributed model training at scale and understand the nuances of optimizing compute at every level of the stack. You're excited by challenges that stretch current boundaries, and you’re a strong collaborator who communicates clearly across domains.
+
+Strong background in LLMs, multimodal AI, or diffusion models.
+Proficiency in Python. Familiarity with a system programming language (e.g. C++ or Rust) is a plus.
+Deep knowledge of PyTorch or JAX as well as libraries such as Megatron-LM, NeMo, or DeepSpeed.
+Familiarity with common optimization techniques such as FSDP/ZeRO, gradient checkpointing, or low-precision data types.
+Hands-on experience writing custom GPU kernels in CUDA or Triton.
+Excellent communication and problem-solving skills, incl. full proficiency in English.
+大模型训练优化工程师（多模态/图像生成），技术要求：算子优化/分布式训练/GPU集群/训练框架。该岗位面向所有经验阶段的候选人开放，包括社会招聘、应届毕业生，同时开放实习生岗位。
+
+At Canva, we're building a future powered by AI that's as magical as it is impactful. As a Research Scientist at Canva, you'll be responsible for advancing the future of AI by experimenting with cutting-edge techniques, as well as improving models for real-world quality and performance.
+
+https://au.seek.com/SEEK-jobs/at-this-company?jobId=94909337&type=standard
+Company Description
+About SEEK
+
+SEEK’s portfolio of diverse businesses make a positive impact on a truly global scale. Our purpose is to help people live more fulfilling and productive working lives and help organisations succeed. We create world-class technology solutions to connect more people to relevant employment, education, small business and volunteer opportunities. We have a culture of high-performance in our workplaces and celebrate the diversity of our employees who contribute to the success of our organisation.
+
+Life at SEEK
+
+SEEK’s purpose is at the centre of everything we do. Our SEEK, which defines the way we work, is all about what makes us unique and a little bit different. Passion, Team, Delivery and Future are our principles that drive innovation and creativity. SEEK strives to support employee wellbeing by providing an amazing experience at work which led us to being named AFR BOSS Top 10 Best Places to Work in Technology (2021-2024). We are proud to work in an environment that's inclusive where everyone's unique ideas, experiences and perspectives are valued.
+
+Our award-winning head office in Cremorne (just a 4 min walk from Richmond station) provides an exceptional space to collaborate with colleagues. The building provides sweeping views of the city, a games area, sit and stand desks at every workstation, modern end-of-trip facilities and Thursday night drinks which gives our people an opportunity to connect in a social setting.
+
+Job Description
+Why this opportunity
+
+This is an opportunity to shape how SEEK operates by developing practical AI-enabled tools and platforms that can be adopted, scaled and continuously improved. The role offers end-to-end ownership—from identifying high-value opportunities through to implementation, adoption and measurable business impact. You’ll join a fast-paced and supportive environment where people are passionate about SEEK’s purpose, collaborate closely and take a long-term view.
+
+You will work day-to-day embedded in one or more of SEEK’s teams, partnering with people across the organisation to understand their needs and improve how work gets done. In this role, you will design and deploy AI-enabled intelligence platforms, workflows and tools that strengthen decision-making and improve productivity across SEEK.
+
+Reporting to the Head of Operational Excellence, this is a senior individual contributor role with no direct reports. You’ll partner with teams across the organisation, including Product, Data, Architecture, AI and Engineering, to solve business problems by building scalable systems, workflows and decision-support tools that improve the speed, quality and consistency of work.
+
+What you’ll be doing
+
+Own the end-to-end delivery of solutions for embedded teams, from opportunity identification and approach development through to implementation, adoption and realised benefits.
+
+Build—and partner with others to build—solutions such as intelligence platforms, copilots embedded into ways of working, and agents that orchestrate and automate core processes.
+
+Collaborate across Product, Data, Architecture, AI and Engineering to deliver solutions aligned with SEEK’s technology patterns and share learnings across the organisation.
+
+Build capability and encourage adoption through training, coaching, playbooks, templates, communities of practice and effective operating rhythms.
+
+Monitor adoption, quality, productivity and business impact, using these insights to continuously improve AI-enabled workflows and tools.
+
+Qualifications
+What we’re looking for
+
+Experience designing and building AI-enabled products, workflows, agents or decision-support systems.
+Strong understanding of modern AI technologies including LLMs, retrieval systems, agent architectures, evaluation approaches and guardrails.
+Ability to translate ambiguous business problems into practical, scalable and maintainable technical solutions.
+Strong business judgement, with the ability to connect organisational objectives to effective systems, workflows and decision-support tools.
+Experience embedding new tools, technologies or operating models through stakeholder engagement, training and coaching.
+Experience in areas such as forward deployed engineering, solutions engineering, product management, consulting, transformation or startup environments will be valuable, as will experience building internal AI products, knowledge systems or intelligence platforms.
+Additional Information
+Permanent Perks
+At SEEK we offer:
+
+Annual Performance Bonus Plan
+Support of flexible working, including a mix of office and work from home days depending on your role.
+Paid and unpaid leave benefits including Personal Flexi Days and Volunteer Days, as well as the opportunity to purchase additional leave
+Support for parents with 14 weeks paid primary carers leave and 2 weeks paid leave for partners
+At SEEK, we are passionate about fostering a culture of inclusion and wellbeing that embraces and values the diversity of our people. We are a purpose driven business that works with heart.
+
+We know teams with diverse ideas, experiences and perspectives are more creative and are critical to ensuring effective delivery and innovating to enable our future success. As such, we welcome applications from people with diverse backgrounds and life experiences, especially as they relate to gender, sexual identity, culture, faith, disability and life stages. If you have the skills, curiosity and an adaptable mindset but don't meet every responsibility or qualification listed in this advertisement, please still get in touch with us.
+
+Should you require any specific support or adjustments throughout the recruitment process and beyond, please advise us and we will be happy to assist.
+
+For this role, only those candidates with the eligible right to work will be considered.
+
+At SEEK, we may use AI tools to support parts of the hiring process, including reviewing applications or assessing responses. These tools are designed to assist our hiring teams, not replace human judgment. All hiring decisions are made by people. If you’d like more information about how your information is managed during recruitment, please contact the Talent Acquisition Team.
+
+SEEK kindly requests no unsolicited resumes or approaches from recruitment agencies and will not be responsible for any associated fees.
+
+
+https://www.atlassian.com/company/careers/details/27208
+Working at Atlassian
+
+Atlassians can choose where they work – whether in an office, from home, or a combination of the two. That way, Atlassians have more control over supporting their family, personal goals, and other priorities. We can hire people in any country where we have a legal entity. We are looking for a Senior Machine Learning Engineer to join our Confluence Cloud AI team.
+
+The Confluence Cloud AI team builds and deploys machine-learning solutions that drive revenue generation, expand our active user base, and provide sophisticated forecasting for company top-line metrics. We work across the complete end-to-end machine-learning development lifecycle, from problem definition and experimentation through production deployment and ongoing improvement.
+
+This is a unique opportunity to work in a highly collaborative environment, apply advanced machine-learning techniques, particularly forecasting models, and solve challenging, high-impact problems. You’ll collaborate with stakeholders across Growth, GTM, Product, Finance, and Sales while working alongside experienced ML engineers and full-stack engineers.
+
+Working at Atlassian
+
+Atlassians have flexibility in where they work, whether in an office, from home, or a combination of the two. That way, Atlassians have more control over supporting their family, personal goals, and other priorities. We can hire people in any country where we have a legal entity. Interviews and onboarding are conducted virtually, as part of being a distributed-first company.
+
+
+Drive the development and implementation of advanced machine-learning algorithms for business-critical applications.
+
+Build scalable, reliable, and highly performant forecasting algorithms, including deep-learning-based models, to forecast company top-line metrics at a granular level.
+
+Lead the end-to-end machine-learning development lifecycle, including problem definition, data preparation, modeling, experimentation, evaluation, deployment, and iteration.
+
+Design system and model architectures that support production-quality machine-learning solutions.
+
+Develop rigorous model-evaluation approaches and use data-driven insights to improve model quality and business impact.
+
+Collaborate with business, engineering, analytics, Growth, GTM, Product, Finance, and Sales teams to translate complex problems into practical solutions.
+
+Build and improve machine-learning infrastructure and modeling applications that can scale with the needs of the business.
+
+Explain machine-learning concepts and recommendations clearly to both technical and non-technical audiences.
+
+Provide technical guidance and mentorship to junior ML engineers.
+
+Balance high-quality output with business practicality, rapid iteration, and measurable customer and business outcomes.
+
+
+At Atlassian, we strive to design equitable, explainable, and competitive compensation programs. We follow consistent hiring practices and account for each candidate's skills, knowledge, and experience when setting base pay within the range.
+
+Please visit go.atlassian.com/payzones for more information on which locations are included in each of our geographic pay zones. However, please confirm the zone for your specific location with your recruiter.
+
+This role may also be eligible for benefits, bonuses, commissions, and equity.
+
+
+In The United States, we have three geographic pay zones. For this role, our current base pay ranges for new hires in each zone are:
+
+Zone A: $206,100 - $269,075
+
+Zone B: $185,490 - $242,168
+
+Zone C: $171,063 - $223,332
+
+
+Benefits & Perks
+
+Atlassian offers a wide range of perks and benefits designed to support you, your family and to help you engage with your local community. Our offerings include health and wellbeing resources, paid volunteer days, and so much more. To learn more, visit go.atlassian.com/perksandbenefits.
+
+About Atlassian
+
+At Atlassian, we're motivated by a common goal: to unleash the potential of every team. Our software products help teams all over the planet and our solutions are designed for all types of work. Team collaboration through our tools makes what may be impossible alone, possible together.
+
+We believe that the unique contributions of all Atlassians create our success. To ensure that our products and culture continue to incorporate everyone's perspectives and experience, we never discriminate based on race, religion, national origin, gender identity or expression, sexual orientation, age, or marital, veteran, or disability status. All your information will be kept confidential according to EEO guidelines.
+
+To provide you the best experience, we can support with accommodations or adjustments at any stage of the recruitment process. Simply inform our Recruitment team during your conversation with them.
+
+To learn more about our culture and hiring process, visit go.atlassian.com/crh.
+
+In line with local law, identity verification (which may include use of biometric data) is a condition of employment with Atlassian for employment fraud purposes.
+
+Apply for this job
+
+https://apply.workable.com/lyka/j/41B978C5E0/
+Description
+Description
+Who are we?
+Lyka is an Australian founded pet wellness company that's shaking up an outdated industry and paving the way for happier, healthier pets. Despite medical advancements, animal lifespans are on the decline. Today, the average pet only reaches 37% of their full potential lifespan and statistics have shown us that many suffer from dental disease, cancer, and obesity. Simply put, the status quo is not enough.
+
+As humans, we've experienced firsthand the positive impact fresh wholefoods can have on our health and wellbeing, and we believe our furry friends deserve the same. We're on a mission to do just that, starting with nutritionally balanced, wholefood meals delivered direct to doors around Australia. As the world's most sustainable pet wellness company, we're putting pets and our planet first - one bowl at a time.
+
+Today, we are proud to share we've served 100 million meals to puppers and their parents across Australia, and this is just the beginning. Our vision is to create multiple nutritional products, adding disease prevention meals and supplements, and expand into new markets.
+
+Currently, we have a team of 250+ pet-obsessed people and we're continuing to grow (yes, looking at you!). These carefully selected people are dedicated to building the next generation of technology and products to help empower pet parents to take control over their pet's wellbeing.
+
+To date, we have raised over $60M in funding from venture capital investors and pet industry insiders, who believe in our mission and ability to drive change in a stagnant industry, providing nutrition that nourishes puppers from the inside out.
+
+Are you ready to shake things up and give pets the life they deserve? Come join our pack!      
+
+ 
+
+Our Mission:
+
+The time we share with our pets is being cut short. Despite medical advancements, they're getting sicker earlier. They're dying prematurely. The industry has it backwards - prioritising treating symptoms instead of addressing the root cause. That's where we come in.
+
+At Lyka, we take a preventative, holistic and personalised approach to pet care. We look at the full picture, factoring in the diet, lifestyle and environment of each individual animal.
+
+We don't stop at symptoms, instead we dig for the root cause. We create nutrition plans unique to each pet, because it's not just about living longer, but living well too.
+
+Our mission is to increase the lifespan of dogs and cats.
+
+The role:
+
+As a Data Analytics Engineer in Lyka’s Data team, you’ll be instrumental in enabling data driven decision-making across the business and uplifting our data capabilities. While you’ll partner closely with Analyst, this role will collaborate closely with Product and Engineering teams to build scalable data products, and empower teams with reliable, self-service access to data by building on the semantic layer.
+
+This is a hands-on, high-impact role where you’ll bridge the gap between data engineering and analytics — enabling fast, trustworthy insights through well-modelled data, intuitive tools, and robust pipelines.
+
+What you’ll do:
+
+Collaborate with Data Analysts, Product Managers, and Engineers to design and implement analytics-ready data models that enables data capabilities and decision-making.
+Build and maintain robust, scalable data pipelines using tools like dbt, Airflow, and Python to transform raw data into clean, reliable datasets.
+Develop and optimise semantic layers and metrics definitions to support consistent reporting across BI and Analytic tools.
+Ensure data quality, reliability, and performance across analytics workflows, proactively identifying and resolving issues.
+Requirements
+1+ years experience in data modelling, analytics engineering, or BI development, ideally in fast-paced or high-growth environments.
+Strong proficiency in SQL and experience with dbt, Airflow, and modern data warehouses like Snowflake or BigQuery.
+Familiarity with BI tools (e.g., Looker, Tableau, Omni) and designing intuitive, scalable dashboards.
+A solid understanding of data lifecycle and analytics workflows, from ingestion to insight.
+Experience working cross-functionally with Analytics, Product, and Engineering teams to deliver impactful data solutions.
+Basic understanding and experience in using AI tools to optimise your day to day and improve processes
+Benefits
+Work in a fast-growing start-up, experiencing what goes behind the scenes to sustain hyper-growth for a start-up with a physical product!
+Growth and Development - Lyka is growing extremely quickly, which means you will have the opportunity to experience different challenges every day and progressively acquire more responsibilities as our facility and team expands. We provide an annual budget for you to continue your personal development.
+Work for a sustainability focused company - we care about the health of our pets and our planet. We’re proud to be Australia’s only carbon-negative and plastic-negative pet company and we’re always looking at ways for us improve sustainability practices.
+Be part of a diverse top talent team, coming from widely different backgrounds and geographies.
+Up to 18 weeks of paid parental leave top-up.
+Wellbeing assistance and tools to take care of your mental and physical wellbeing so you can do your best work.
+Pupper parent support to care for your furry friends - flexible arrangements for new pets, pet-friendly offices, discounts, and financial allowance for dog training & care to help them live their best life.
+We are committed to building inclusive and diverse teams
+
+Lyka is an equal opportunity employer devoted to providing a working environment that embraces and values diversity and inclusion. We celebrate diversity, are devoted to creating an inclusive environment for all staff and encourage people of all backgrounds to apply. If you have any support or access requirements, we encourage you to advise us at the time of application.

@@ -17,7 +17,7 @@ export default async function BuildPage({ params }: PageProps<"/build/[sessionId
   if (!workspace) notFound();
 
   // In demo/prototype mode or for seeded sessions, permit candidate exploration:
-  const isDemoSession = sessionId.startsWith("seed-") || sessionId.startsWith("mock-");
+  const isDemoSession = sessionId.startsWith("seed-") || sessionId.startsWith("mock-") || sessionId.startsWith("sess-");
   if (workspace.ownerId !== user.id && !isDemoSession && data.kind === "db") {
     notFound();
   }

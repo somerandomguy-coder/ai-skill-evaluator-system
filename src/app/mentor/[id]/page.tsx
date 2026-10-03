@@ -124,7 +124,9 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
                           </p>
                         </div>
                         <span className="font-mono text-sm font-bold text-primary">
-                          {suiteB ? `${suiteB.score}/25` : `${Math.round((ev.overallScore / 100) * 25)}/25`}
+                          {suiteB
+                            ? `${suiteB.criteria?.length ? suiteB.criteria.reduce((sum, c) => sum + c.score, 0) : suiteB.score}/25`
+                            : `${Math.round((ev.overallScore / 100) * 25)}/25`}
                         </span>
                       </div>
 
@@ -141,7 +143,7 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
                                 <div className="space-y-1 pt-1 border-t border-border">
                                   <span className="font-mono text-[10px] text-primary font-semibold uppercase">Cited Transcript Quote:</span>
                                   {c.evidenceQuotes.map((q, idx) => (
-                                    <p key={idx} className="font-mono text-[11px] bg-surface-container-low p-1.5 rounded border border-border text-foreground">
+                                    <p key={idx} className="font-mono text-[11px] bg-surface-container-low p-1.5 rounded border border-border text-foreground break-words max-h-36 overflow-y-auto">
                                       &ldquo;{q}&rdquo;
                                     </p>
                                   ))}
@@ -214,8 +216,18 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
                 </div>
 
                 {suiteB && (
-                  <div className="pt-3 border-t border-border space-y-1 text-xs">
-                    <span className="font-mono text-[10px] uppercase font-bold text-muted-foreground">Audit Flags</span>
+                  <div className="pt-3 border-t border-border space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10px] uppercase font-bold text-muted-foreground">Planted Traps Audit</span>
+                      <span className="font-mono text-[10px] font-bold text-primary">
+                        {suiteB.plantedBugs ? `${suiteB.plantedBugs.foundCount}/${suiteB.plantedBugs.totalCount} CAUGHT` : (suiteB.flags.flaw_caught ? "1/3 CAUGHT" : "0/3 CAUGHT")}
+                      </span>
+                    </div>
+                    {suiteB.plantedBugs && (
+                      <p className="font-mono text-[10px] text-muted-foreground bg-surface-container-low p-1.5 rounded border border-border">
+                        {suiteB.plantedBugs.summary}
+                      </p>
+                    )}
                     <div className="grid grid-cols-2 gap-1 font-mono text-[10px]">
                       <div className="flex justify-between bg-surface-container-low p-1.5 rounded border border-border">
                         <span className="text-muted-foreground">flaw_caught</span>

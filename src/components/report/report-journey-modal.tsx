@@ -81,7 +81,8 @@ export function ReportJourneyModal({
   // Animated values for active step
   const animOverall = useAnimatedCounter(ev.effective.score, 600, isOpen && step === 0);
   const animSuiteA = useAnimatedCounter(suiteA.score, 600, isOpen && step === 1);
-  const animSuiteB = useAnimatedCounter(suiteB.score, 600, isOpen && step === 2);
+  const suiteBScore = suiteB.criteria?.length ? suiteB.criteria.reduce((sum, c) => sum + c.score, 0) : suiteB.score;
+  const animSuiteB = useAnimatedCounter(suiteBScore, 600, isOpen && step === 2);
   const animBias = useAnimatedCounter(biasPct, 600, isOpen && step === 3);
 
   // Keyboard navigation
@@ -279,7 +280,7 @@ export function ReportJourneyModal({
                 <div className="flex items-center justify-between pb-2 border-b border-border/40">
                   <span className="font-medium">Exploration vs Speed:</span>
                   <span className="text-muted-foreground">
-                    {suiteB.score >= 18 ? "Planned design before coding" : "Jumped to coding quickly"}
+                    {suiteBScore >= 18 ? "Planned design before coding" : "Jumped to coding quickly"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between pt-1">

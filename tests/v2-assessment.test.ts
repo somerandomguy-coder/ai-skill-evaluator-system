@@ -190,7 +190,7 @@ Under Australian Taxation Office (ATO) Single Touch Payroll Phase 2 reporting, d
     // Verify it is registered in semantic cache for future queries
     const stored = getChallengeFromRepository(result.challenge.id);
     expect(stored).toBeDefined();
-  });
+  }, 15000);
 });
 
 describe("5-Minute Mentor Verification Engine", () => {

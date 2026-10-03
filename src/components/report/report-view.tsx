@@ -4,6 +4,7 @@ import {
   ArrowRight,
   BadgeCheck,
   Briefcase,
+  Bug,
   CalendarDays,
   ChevronDown,
   ChevronsUpDown,
@@ -184,9 +185,11 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
     challengeTitle: ev.challenge.title,
     overallScore: ev.overallScore,
     turns: ev.turns,
+    files: ev.files,
   });
   const suiteA = ev.suiteA ?? dynamicCognitive.suiteA;
   const suiteB = ev.suiteB ?? dynamicCognitive.suiteB;
+  const plantedBugs = suiteB.plantedBugs ?? dynamicCognitive.suiteB.plantedBugs;
   const groundedAssessment: GroundedAssessmentReport | undefined = ev.groundedAssessment ?? dynamicCognitive.groundedAssessment;
 
   const groups = REQUIREMENT_CATEGORIES.map((category) => ({
@@ -391,7 +394,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
               <div className="flex items-baseline justify-between gap-2">
                 <h2 className="text-sm font-semibold">AI steering</h2>
                 <span className="tabular font-display text-2xl">
-                  {suiteB.score}
+                  {suiteB.criteria?.length ? suiteB.criteria.reduce((sum, c) => sum + c.score, 0) : suiteB.score}
                   <span className="text-sm font-normal text-muted-foreground">/{suiteB.maxScore || 25}</span>
                 </span>
               </div>
@@ -558,6 +561,69 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
             open={open.signals}
             onToggle={() => toggle("signals")}
           >
+            {plantedBugs && (
+              <div className="mb-4 rounded-xl border border-border bg-surface-container-lowest p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <Bug className="size-4 text-primary" aria-hidden />
+                    <span className="font-mono text-xs font-bold uppercase tracking-wider text-primary">
+                      Planted AI Traps Audit
+                    </span>
+                  </div>
+                  <span
+                    className={cn(
+                      "font-mono text-xs font-extrabold px-2.5 py-1 rounded-full border",
+                      plantedBugs.foundCount === 3
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                        : plantedBugs.foundCount >= 1
+                        ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                        : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/30"
+                    )}
+                  >
+                    {plantedBugs.foundCount}/{plantedBugs.totalCount} BUGS FOUND
+                  </span>
+                </div>
+
+                <p className="text-xs sm:text-[13px] leading-relaxed text-foreground font-medium">
+                  {plantedBugs.summary}
+                </p>
+
+                <div className="grid gap-2.5 sm:grid-cols-3 pt-1">
+                  {plantedBugs.bugs.map((b) => {
+                    const isFixed = b.status === "FIXED";
+                    return (
+                      <div
+                        key={b.id}
+                        className={cn(
+                          "rounded-lg p-3 border flex flex-col justify-between space-y-2 text-xs",
+                          isFixed
+                            ? "bg-emerald-500/5 border-emerald-500/30 text-foreground"
+                            : "bg-amber-500/5 border-amber-500/30 text-foreground"
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold truncate text-[12px]">{b.name}</span>
+                          <span
+                            className={cn(
+                              "font-mono text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0",
+                              isFixed
+                                ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                                : "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                            )}
+                          >
+                            {isFixed ? "FIXED" : "MISSED"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] leading-relaxed text-muted-foreground">
+                          {isFixed ? b.evidence : b.remedy}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {FLAGS.map((f) => {
                 const value = suiteB.flags[f.key];
@@ -639,15 +705,19 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
         </div>
 
         <Dialog open={!!selectedCitation} onOpenChange={(o) => !o && setSelectedCitation(null)}>
-          <DialogContent className="max-w-lg rounded-2xl">
+          <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col rounded-2xl overflow-hidden p-6">
             {selectedCitation && (
               <>
                 <DialogHeader>
                   <DialogTitle className="font-title">{selectedCitation.title}</DialogTitle>
                 </DialogHeader>
-                <blockquote className="rounded-xl bg-mark/40 p-4 text-sm leading-relaxed">&ldquo;{selectedCitation.quote}&rdquo;</blockquote>
-                <p className="text-[13px] leading-relaxed text-muted-foreground">{selectedCitation.rationale}</p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex-1 overflow-y-auto pr-1 my-3 space-y-3">
+                  <blockquote className="rounded-xl bg-mark/40 p-4 text-xs sm:text-[13px] leading-relaxed max-h-[48vh] overflow-y-auto break-words whitespace-pre-wrap select-text border border-mark/60 font-mono">
+                    &ldquo;{selectedCitation.quote}&rdquo;
+                  </blockquote>
+                  <p className="text-[13px] leading-relaxed text-muted-foreground">{selectedCitation.rationale}</p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border shrink-0">
                   <span>Confidence</span>
                   <Meter value={selectedCitation.confidence} max={1} className="w-24" />
                   <span className="tabular font-mono">{Math.round(selectedCitation.confidence * 100)}%</span>

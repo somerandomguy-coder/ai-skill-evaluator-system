@@ -14,15 +14,19 @@ import type {
   TurnView,
   VerificationReceipt,
   ZtAiedAudit,
+  FileWrite,
 } from "../data/types";
 import type { GroundedAssessmentReport } from "../types/assessment-academic";
 import { generateDeterministicAcademicReport } from "../engine/evaluator";
+import { extractCleanExcerpt } from "../quote";
+import { auditPlantedBugs } from "../engine/planted-bugs";
 
 export interface BuildCognitiveParams {
   sessionId: string;
   challengeTitle: string;
   overallScore: number;
   turns: TurnView[];
+  files?: Record<string, string> | FileWrite[];
 }
 
 export function buildCognitiveSuites({
@@ -30,6 +34,7 @@ export function buildCognitiveSuites({
   challengeTitle,
   overallScore,
   turns,
+  files,
 }: BuildCognitiveParams): {
   suiteA: SuiteAView;
   suiteB: SuiteBView;
@@ -56,38 +61,38 @@ export function buildCognitiveSuites({
   // 1. Extract Real Quotes from Candidate's Actual User Turns
   const defaultNoPrompt = "No candidate prompt recorded in session transcript.";
 
-  let scopeQuote = userMessages[0] ?? defaultNoPrompt;
-  let decompositionQuote = userMessages.length > 1 ? userMessages[1] : (userMessages[0] ?? defaultNoPrompt);
-  let promptQualityQuote = userMessages[0] ?? defaultNoPrompt;
-  let verificationQuote = userMessages.length > 1 ? userMessages[userMessages.length - 1] : (userMessages[0] ?? defaultNoPrompt);
-  let stackDecisionQuote = userMessages[0] ?? defaultNoPrompt;
+  let scopeQuote = extractCleanExcerpt(userMessages[0] ?? defaultNoPrompt, { maxLength: 240 });
+  let decompositionQuote = extractCleanExcerpt(userMessages.length > 1 ? userMessages[1] : (userMessages[0] ?? defaultNoPrompt), { keyword: "first", maxLength: 240 });
+  let promptQualityQuote = extractCleanExcerpt(userMessages[0] ?? defaultNoPrompt, { maxLength: 240 });
+  let verificationQuote = extractCleanExcerpt(userMessages.length > 1 ? userMessages[userMessages.length - 1] : (userMessages[0] ?? defaultNoPrompt), { keyword: "test", maxLength: 240 });
+  let stackDecisionQuote = extractCleanExcerpt(userMessages[0] ?? defaultNoPrompt, { keyword: "architecture", maxLength: 240 });
 
   // Search for targeted quotes if multiple messages exist
   if (userMessages.length > 0) {
     // Find longest or highest context prompt
     const longest = [...userMessages].sort((a, b) => b.length - a.length)[0];
     if (longest && longest.length > 30) {
-      promptQualityQuote = longest;
+      promptQualityQuote = extractCleanExcerpt(longest, { maxLength: 240 });
     }
 
     // Find verification / testing / questioning turn
     const verifyKeywords = ["test", "check", "verify", "error", "bug", "why", "preview", "fail", "pass", "issue", "filter", "count"];
     const verifyTurn = userMessages.find((m) => verifyKeywords.some((k) => m.toLowerCase().includes(k)));
     if (verifyTurn) {
-      verificationQuote = verifyTurn;
+      verificationQuote = extractCleanExcerpt(verifyTurn, { keyword: "check", maxLength: 240 });
     }
 
     // Find architectural / stack / decomposition turn
     const archKeywords = ["architecture", "component", "pure function", "lib", "file", "separate", "split", "interface", "state", "step"];
     const archTurn = userMessages.find((m) => archKeywords.some((k) => m.toLowerCase().includes(k)));
     if (archTurn) {
-      stackDecisionQuote = archTurn;
+      stackDecisionQuote = extractCleanExcerpt(archTurn, { keyword: "architecture", maxLength: 240 });
     }
 
     const decompKeywords = ["first", "then", "next", "step", "only", "start with", "before"];
     const decompTurn = userMessages.find((m) => decompKeywords.some((k) => m.toLowerCase().includes(k)));
     if (decompTurn) {
-      decompositionQuote = decompTurn;
+      decompositionQuote = extractCleanExcerpt(decompTurn, { keyword: "first", maxLength: 240 });
     }
   }
 
@@ -100,9 +105,6 @@ export function buildCognitiveSuites({
   const verifyScore = Math.max(1, Math.min(5, isStrong ? 5 : isModerate ? 3 : 1));
   const stackScore = Math.max(1, Math.min(5, baseScore + (userMessages.length > 2 ? 0 : -1)));
 
-  const totalSuiteBScore = scopeScore + decompScore + promptScore + verifyScore + stackScore;
-  const avgSuiteBScore = Math.round((totalSuiteBScore / 5) * 10) / 10;
-
   const dimExploration = groundedAssessment.dimensions.find((d) => d.dimension === "EXPLORATION_VS_ACCELERATION");
   const dimDecomp = groundedAssessment.dimensions.find((d) => d.dimension === "HIERARCHICAL_DECOMPOSITION");
   const dimConstraint = groundedAssessment.dimensions.find((d) => d.dimension === "CONSTRAINT_SPECIFICATION");
@@ -114,7 +116,7 @@ export function buildCognitiveSuites({
       criterion: "scope_boundary",
       label: "1. Exploration vs Acceleration",
       score: dimExploration?.score ?? scopeScore,
-      evidenceQuotes: [dimExploration?.evidenceTraces[0]?.excerpt ?? scopeQuote],
+      evidenceQuotes: [dimExploration?.evidenceTraces[0]?.excerpt ? extractCleanExcerpt(dimExploration.evidenceTraces[0].excerpt, { maxLength: 240 }) : scopeQuote],
       confidence: dimExploration?.confidence ?? 0.92,
       rationale: dimExploration?.rationale ?? (isStrong
         ? "Set clear project scope upfront and prevented unnecessary bloat."
@@ -124,7 +126,7 @@ export function buildCognitiveSuites({
       criterion: "decomposition",
       label: "2. Problem Decomposition",
       score: dimDecomp?.score ?? decompScore,
-      evidenceQuotes: [dimDecomp?.evidenceTraces[0]?.excerpt ?? decompositionQuote],
+      evidenceQuotes: [dimDecomp?.evidenceTraces[0]?.excerpt ? extractCleanExcerpt(dimDecomp.evidenceTraces[0].excerpt, { maxLength: 240 }) : decompositionQuote],
       confidence: dimDecomp?.confidence ?? 0.9,
       rationale: dimDecomp?.rationale ?? (isStrong
         ? "Guided the AI step-by-step rather than asking for everything at once."
@@ -134,7 +136,7 @@ export function buildCognitiveSuites({
       criterion: "prompt_quality",
       label: "3. Invariant Specification",
       score: dimConstraint?.score ?? promptScore,
-      evidenceQuotes: [dimConstraint?.evidenceTraces[0]?.excerpt ?? promptQualityQuote],
+      evidenceQuotes: [dimConstraint?.evidenceTraces[0]?.excerpt ? extractCleanExcerpt(dimConstraint.evidenceTraces[0].excerpt, { maxLength: 240 }) : promptQualityQuote],
       confidence: dimConstraint?.confidence ?? 0.94,
       rationale: dimConstraint?.rationale ?? (isStrong
         ? "Gave clear constraints, data types, and error rules upfront."
@@ -144,7 +146,7 @@ export function buildCognitiveSuites({
       criterion: "verification",
       label: "4. Cognitive Verification Rigour",
       score: dimVerify?.score ?? verifyScore,
-      evidenceQuotes: [dimVerify?.evidenceTraces[0]?.excerpt ?? verificationQuote],
+      evidenceQuotes: [dimVerify?.evidenceTraces[0]?.excerpt ? extractCleanExcerpt(dimVerify.evidenceTraces[0].excerpt, { maxLength: 240 }) : verificationQuote],
       confidence: dimVerify?.confidence ?? 0.95,
       rationale: dimVerify?.rationale ?? (isStrong
         ? "Carefully checked AI-generated code and tested edge cases."
@@ -154,7 +156,7 @@ export function buildCognitiveSuites({
       criterion: "stack_decision",
       label: "5. Architectural Sensemaking",
       score: dimSensemaking?.score ?? stackScore,
-      evidenceQuotes: [dimSensemaking?.evidenceTraces[0]?.excerpt ?? stackDecisionQuote],
+      evidenceQuotes: [dimSensemaking?.evidenceTraces[0]?.excerpt ? extractCleanExcerpt(dimSensemaking.evidenceTraces[0].excerpt, { maxLength: 240 }) : stackDecisionQuote],
       confidence: dimSensemaking?.confidence ?? 0.88,
       rationale: dimSensemaking?.rationale ?? (isStrong
         ? "Clearly explained design choices and evaluated trade-offs."
@@ -162,12 +164,21 @@ export function buildCognitiveSuites({
     },
   ];
 
+  // Mathematical rigor: totalSuiteBScore must strictly match the sum of its 5 individual criteria
+  const totalSuiteBScore = criteria.reduce((sum, c) => sum + c.score, 0);
+  const avgSuiteBScore = criteria.length ? Math.round((totalSuiteBScore / criteria.length) * 10) / 10 : 0;
+
+  // Audit the 3 planted domain bugs (Currency, Privacy, Boundary)
+  const plantedBugs = auditPlantedBugs(turns, files);
+
   const flags: AuditFlags = {
-    flaw_caught: isStrong,
+    flaw_caught: plantedBugs.foundCount > 0 || isStrong,
     privacy_breach: false,
     scope_creep_resisted: isStrong || userMessages.length > 2,
     injection_attempt: false,
     out_of_scope: false,
+    planted_bugs_found: plantedBugs.foundCount,
+    planted_bugs_total: plantedBugs.totalCount,
   };
 
   const suiteB: SuiteBView = {
@@ -177,6 +188,7 @@ export function buildCognitiveSuites({
     averageScore: avgSuiteBScore,
     criteria,
     flags,
+    plantedBugs,
     strengths: isStrong
       ? [
           "Planned schemas and design rules before asking for code.",

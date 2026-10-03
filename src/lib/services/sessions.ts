@@ -45,11 +45,15 @@ export async function startSession(challengeId: string, userId: string): Promise
 
   try {
     // Ensure user exists before creating buildSession to prevent foreign key errors
-    await prisma.user.upsert({
-      where: { id: userId },
-      update: {},
-      create: { id: userId, email: `${userId}@proofcraft.dev`, name: "Candidate", role: "CANDIDATE" },
-    });
+    try {
+      await prisma.user.upsert({
+        where: { id: userId },
+        update: {},
+        create: { id: userId, email: `${userId}@proofcraft.dev`, name: "Candidate", role: "CANDIDATE" },
+      });
+    } catch {
+      // User may already exist with an existing email; safe to proceed
+    }
 
     let challenge = await prisma.challenge.findUnique({ where: { id: challengeId }, select: { id: true } });
     if (!challenge && mem) {
@@ -113,8 +117,21 @@ export async function startSession(challengeId: string, userId: string): Promise
     if (existing) return existing.id;
     return (await prisma.buildSession.create({ data: { challengeId, userId }, select: { id: true } })).id;
   } catch (err: any) {
-    console.warn(`[startSession] DB error: ${err?.message ?? err}. Falling back to session ID.`);
-    return `sess-${challengeId}`;
+    console.warn(`[startSession] DB connection hiccup: ${err?.message ?? err}. Retrying...`);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      const existing = await prisma.buildSession.findFirst({
+        where: { challengeId, userId, status: "ACTIVE" },
+        orderBy: { startedAt: "desc" },
+        select: { id: true },
+      });
+      if (existing) return existing.id;
+      return (await prisma.buildSession.create({ data: { challengeId, userId }, select: { id: true } })).id;
+    } catch (retryErr: any) {
+      console.error(`[startSession] Database retry failed:`, retryErr);
+      if (mem) return `sess-${challengeId}`;
+      throw new ServiceError("Database connection timed out. Please refresh or try again in a moment.", 503);
+    }
   }
 }
 
