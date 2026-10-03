@@ -17,7 +17,7 @@ import type { FileMap } from "../files";
 import { isDemoMode } from "../env";
 import { generateStructured, type TraceContext } from "./client";
 import { demoAssistantTurn } from "./demo";
-import { ASSISTANT_SYSTEM } from "./prompts/assistant";
+import { ASSISTANT_SYSTEM, getAssistantSystemPrompt } from "./prompts/assistant";
 import { AssistantTurnSchema, type AssistantTurn } from "./schemas";
 
 export interface ChatMessage {
@@ -54,7 +54,7 @@ export function renderProjectFiles(files: FileMap): string {
 }
 
 export function buildSystemPrompt(challenge: ChallengeContext): string {
-  return `${ASSISTANT_SYSTEM}
+  return `${getAssistantSystemPrompt(challenge)}
 
 <challenge title="${challenge.title}" timebox_minutes="${challenge.timeboxMinutes}">
 ${challenge.domainContext}
