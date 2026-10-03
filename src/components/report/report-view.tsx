@@ -733,6 +733,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
           suiteA={suiteA}
           suiteB={suiteB}
           groundedAssessment={groundedAssessment}
+          plantedBugs={plantedBugs}
         />
       </div>
     </EvidenceProvider>

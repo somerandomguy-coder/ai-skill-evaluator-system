@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
+  Bug,
   CheckCircle2,
   Compass,
   Layers,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { EvaluationView, SuiteAView, SuiteBView } from "@/lib/data/types";
+import { auditPlantedBugs, type PlantedBugsSummary } from "@/lib/engine/planted-bugs";
 import type { GroundedAssessmentReport } from "@/lib/types/assessment-academic";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +28,7 @@ interface ReportJourneyModalProps {
   suiteA: SuiteAView;
   suiteB: SuiteBView;
   groundedAssessment?: GroundedAssessmentReport;
+  plantedBugs?: PlantedBugsSummary | null;
 }
 
 /**
@@ -71,19 +74,24 @@ export function ReportJourneyModal({
   suiteA,
   suiteB,
   groundedAssessment,
+  plantedBugs: plantedBugsProp,
 }: ReportJourneyModalProps) {
   const [step, setStep] = useState(0);
-  const totalSteps = 5;
+  const totalSteps = 6;
+
+  const plantedBugs: PlantedBugsSummary =
+    plantedBugsProp ?? suiteB.plantedBugs ?? auditPlantedBugs(ev.turns, ev.files);
 
   const biasIndex = groundedAssessment?.automationBiasIndex ?? 0.35;
   const biasPct = Math.round(biasIndex * 100);
 
   // Animated values for active step
-  const animOverall = useAnimatedCounter(ev.effective.score, 600, isOpen && step === 0);
-  const animSuiteA = useAnimatedCounter(suiteA.score, 600, isOpen && step === 1);
+  const animBugsFound = useAnimatedCounter(plantedBugs.foundCount, 600, isOpen && step === 0);
+  const animOverall = useAnimatedCounter(ev.effective.score, 600, isOpen && step === 1);
+  const animSuiteA = useAnimatedCounter(suiteA.score, 600, isOpen && step === 2);
   const suiteBScore = suiteB.criteria?.length ? suiteB.criteria.reduce((sum, c) => sum + c.score, 0) : suiteB.score;
-  const animSuiteB = useAnimatedCounter(suiteBScore, 600, isOpen && step === 2);
-  const animBias = useAnimatedCounter(biasPct, 600, isOpen && step === 3);
+  const animSuiteB = useAnimatedCounter(suiteBScore, 600, isOpen && step === 3);
+  const animBias = useAnimatedCounter(biasPct, 600, isOpen && step === 4);
 
   // Keyboard navigation
   useEffect(() => {
@@ -174,8 +182,78 @@ export function ReportJourneyModal({
 
         {/* Dynamic Step Content */}
         <div className="py-6 sm:py-8 min-h-[310px] flex flex-col justify-center">
-          {/* Step 0: Overall Score */}
+          {/* Step 0: Planted AI Traps Audit (Zero-Trust Benchmark) */}
           {step === 0 && (
+            <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Bug className="size-5" aria-hidden />
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Zero-Trust AI Oversight
+                    </span>
+                    <h3 className="text-base sm:text-lg font-bold">Planted AI Traps Audit</h3>
+                  </div>
+                </div>
+
+                <span
+                  className={cn(
+                    "font-mono text-xs font-extrabold px-3 py-1 rounded-full border",
+                    plantedBugs.foundCount === 3
+                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                      : plantedBugs.foundCount >= 1
+                      ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                      : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/30"
+                  )}
+                >
+                  {animBugsFound}/{plantedBugs.totalCount} BUGS FOUND
+                </span>
+              </div>
+
+              <p className="text-xs sm:text-[13px] leading-relaxed text-foreground font-medium bg-muted/30 p-3 rounded-xl border border-border/50">
+                {plantedBugs.summary}
+              </p>
+
+              <div className="grid gap-2.5 sm:grid-cols-3 pt-1">
+                {plantedBugs.bugs.map((b) => {
+                  const isFixed = b.status === "FIXED";
+                  return (
+                    <div
+                      key={b.id}
+                      className={cn(
+                        "rounded-xl p-3 border flex flex-col justify-between space-y-2 text-xs transition-all",
+                        isFixed
+                          ? "bg-emerald-500/5 border-emerald-500/30 text-foreground"
+                          : "bg-amber-500/5 border-amber-500/30 text-foreground"
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-1.5">
+                        <span className="font-bold truncate text-[11px] sm:text-xs">{b.name}</span>
+                        <span
+                          className={cn(
+                            "font-mono text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0",
+                            isFixed
+                              ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                              : "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                          )}
+                        >
+                          {isFixed ? "FIXED" : "MISSED"}
+                        </span>
+                      </div>
+                      <p className="text-[11px] leading-relaxed text-muted-foreground line-clamp-3">
+                        {isFixed ? b.evidence : b.remedy}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Step 1: Overall Score */}
+          {step === 1 && (
             <div className="space-y-5 text-center animate-in fade-in zoom-in-95 duration-200">
               <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <Sparkles className="size-7" />
@@ -209,8 +287,8 @@ export function ReportJourneyModal({
             </div>
           )}
 
-          {/* Step 1: Product 4D Lifecycle */}
-          {step === 1 && (
+          {/* Step 2: Product 4D Lifecycle */}
+          {step === 2 && (
             <div className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
               <div className="flex items-center gap-3">
                 <div className="flex size-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -253,8 +331,8 @@ export function ReportJourneyModal({
             </div>
           )}
 
-          {/* Step 2: AI Steering & Collaboration */}
-          {step === 2 && (
+          {/* Step 3: AI Steering & Collaboration */}
+          {step === 3 && (
             <div className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
               <div className="flex items-center gap-3">
                 <div className="flex size-11 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
@@ -293,8 +371,8 @@ export function ReportJourneyModal({
             </div>
           )}
 
-          {/* Step 3: Cognitive Verification & Automation Bias */}
-          {step === 3 && (
+          {/* Step 4: Cognitive Verification & Automation Bias */}
+          {step === 4 && (
             <div className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
               <div className="flex items-center gap-3">
                 <div
@@ -364,8 +442,8 @@ export function ReportJourneyModal({
             </div>
           )}
 
-          {/* Step 4: Strengths & Next Steps */}
-          {step === 4 && (
+          {/* Step 5: Strengths & Next Steps */}
+          {step === 5 && (
             <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
               <div className="space-y-1">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

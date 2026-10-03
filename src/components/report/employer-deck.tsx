@@ -22,6 +22,7 @@ import {
   Sparkles,
   Terminal,
   AlertCircle,
+  Bug,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -528,6 +529,67 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
                   </span>
                   <h2 className="text-xl font-bold text-primary mt-1">Tamper-Proof Audit & Next Steps</h2>
                 </div>
+
+                {/* Planted AI Traps Audit Card */}
+                {plantedBugs && (
+                  <div className="rounded-xl border border-border bg-surface-container-low p-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <Bug className="size-4 text-primary" aria-hidden />
+                        <span className="font-mono text-xs font-bold uppercase tracking-wider text-primary">
+                          Planted AI Traps Audit
+                        </span>
+                      </div>
+                      <span
+                        className={`font-mono text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${
+                          plantedBugs.foundCount === 3
+                            ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                            : plantedBugs.foundCount >= 1
+                            ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                            : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/30"
+                        }`}
+                      >
+                        {plantedBugs.foundCount}/{plantedBugs.totalCount} BUGS FOUND
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-foreground font-medium">
+                      {plantedBugs.summary}
+                    </p>
+
+                    <div className="grid gap-2 sm:grid-cols-3 pt-1">
+                      {plantedBugs.bugs.map((b) => {
+                        const isFixed = b.status === "FIXED";
+                        return (
+                          <div
+                            key={b.id}
+                            className={`rounded-lg p-2.5 border flex flex-col justify-between space-y-1.5 text-xs ${
+                              isFixed
+                                ? "bg-emerald-500/5 border-emerald-500/30 text-foreground"
+                                : "bg-amber-500/5 border-amber-500/30 text-foreground"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-1.5">
+                              <span className="font-bold truncate text-[11px]">{b.name}</span>
+                              <span
+                                className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                                  isFixed
+                                    ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                                    : "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                                }`}
+                              >
+                                {isFixed ? "FIXED" : "MISSED"}
+                              </span>
+                            </div>
+                            <p className="text-[10px] leading-relaxed text-muted-foreground line-clamp-3">
+                              {isFixed ? b.evidence : b.remedy}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="p-4 rounded bg-surface-container-low border border-border space-y-3 text-xs font-mono">
                   <div className="flex items-center justify-between">
