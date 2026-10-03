@@ -12,6 +12,8 @@ import type { QueueItemView } from "@/lib/data/types";
 import { scoreBand, shortId, timeAgo, TONE_TEXT } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+import { ChallengeAccreditationCard } from "@/components/mentor/challenge-accreditation-card";
+
 export const metadata: Metadata = { title: "Review queue" };
 
 function ScoreSummary({ item }: { item: QueueItemView }) {
@@ -41,24 +43,36 @@ export default async function MentorQueuePage() {
   return (
     <PageShell width="5xl" className="space-y-8">
       <header className="space-y-3">
-        <div className="text-xs font-medium tracking-wider text-primary/80 uppercase">Mentor</div>
-        <h1 className="text-3xl font-semibold tracking-tight">Review queue</h1>
+        <div className="text-xs font-medium tracking-wider text-primary/80 uppercase">Mentor Console</div>
+        <h1 className="text-3xl font-semibold tracking-tight">Accreditation &amp; Review Queue</h1>
         <p className="max-w-2xl text-muted-foreground">
-          Submissions the AI wasn&apos;t sure about, or that a candidate contested. Confirm the score or override it, with a note the candidate will see.
+          Audit and verify authentic work-sample challenges with the 5-point MentorME checklist, or review candidate submissions and disputed scores.
         </p>
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <Badge variant="secondary" className="tabular">
-            {queue.length} waiting
+            {queue.length} submissions waiting
           </Badge>
           <Badge variant="outline" className="tabular">
             {reviewed} reviewed
           </Badge>
           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
             <EyeOff className="size-3.5" aria-hidden />
-            Reviews are blind: you see transcripts and files, never names.
+            Candidate reviews are blind: you see transcripts and files, never names.
           </span>
         </div>
       </header>
+
+      {/* Challenge Accreditation Section (e.g. Total Game Development Studio Audit) */}
+      <section className="space-y-3">
+        <ChallengeAccreditationCard />
+      </section>
+
+      {/* Candidate Submissions Queue Section */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between border-b border-border/70 pb-2">
+          <h2 className="text-lg font-semibold tracking-tight text-foreground">Candidate Submissions Queue</h2>
+          <span className="text-xs text-muted-foreground font-mono">{queue.length} in queue</span>
+        </div>
 
       {queue.length === 0 ? (
         <Card className="border-dashed">
@@ -107,6 +121,7 @@ export default async function MentorQueuePage() {
           })}
         </ul>
       )}
+      </section>
     </PageShell>
   );
 }

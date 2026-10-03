@@ -499,4 +499,187 @@ Recruitment teams review hundreds of technical resumes and increasingly rely on 
       usageCount: 65,
     },
   },
+  {
+    id: "verified-tgd-rts-sim",
+    tier: "TIER_1_VERIFIED",
+    companyName: "Total Game Development",
+    roleTitle: "Junior AI & Simulation Systems Developer (Web / RTS)",
+    sfiaProfile: {
+      level: 2, // Assist / Junior Developer
+      primarySkills: ["PROG", "DESN", "TEST"],
+      attributes: {
+        autonomy: "Works under routine direction with milestone reviews; implements modular simulation algorithms and deterministic state updates.",
+        influence: "Collaborates directly with lead engine architect and gameplay systems engineers.",
+        complexity: "Handles deterministic tick-loop state transitions, grid-based spatial queries, and render-state decoupling.",
+        knowledge: "Understands game simulation architectures, fixed-step accumulators, spatial indexing, and browser performance budgets.",
+        businessSkills: "Communicates algorithmic tradeoffs clearly and maintains zero-trust vigilance over AI-generated code.",
+      },
+    },
+    briefMarkdown: `# Deterministic 2D RTS Unit Simulation Engine
+
+## The Problem
+Total Game Development is an independent Melbourne studio engineering real-time strategy (RTS) and sandbox simulation experiences. In networked or deterministic simulations, variable frame delta times cause desynchronization across client frames. You will build the \`DeterministicUnitSimulationEngine\`—an entity manager that executes a fixed 20Hz (50ms) simulation tick, updates unit positions toward target coordinates on a 2D grid, manages basic state transitions (\`IDLE\`, \`MOVING\`, \`ATTACKING\`), and decouples state updates from rendering.
+
+## Technical Invariants & Simulation Constraints
+1. **Fixed 20Hz Tick Rate (50ms)**: Simulation state updates must execute inside a fixed-step accumulator. Floating-point variable frame delta time (\`x += speed * dt\`) is strictly forbidden for deterministic state progression.
+2. **Spatial Partitioning Budget**: Proximity and attack range queries must not use O(N²) nested entity comparisons. Use a spatial hash grid or bucketed 2D index to maintain a 60 FPS rendering budget with 50+ active entities.
+3. **Double-Buffering & State Isolation**: Direct in-loop coordinate mutations are prohibited. Unit updates must be snapshot-isolated or double-buffered to prevent update-order race conditions.
+4. **Decoupled Rendering**: The animation render loop (\`requestAnimationFrame\`) must interpolate from the latest simulation tick snapshot, never directly mutating simulation state.
+
+## Definition of Done
+- 20Hz simulation tick loop executes with exact 50ms accumulator steps.
+- Proximity queries efficiently retrieve neighbouring targets using spatial indexing.
+- Interactive canvas renders smooth movement decoupled from simulation tick updates.
+- Unit state transitions (\`IDLE\` -> \`MOVING\` -> \`ATTACKING\`) are covered by automated unit tests.`,
+    technicalInvariants: [
+      "Simulation tick loop must be fixed at 20Hz (50ms interval) with accumulator pattern to guarantee determinism across client frames.",
+      "Proximity queries for unit targeting must avoid O(N²) pairwise comparisons using spatial hash partitioning.",
+      "Simulation state updates must be double-buffered or snapshot-isolated to prevent in-loop coordinate mutation races.",
+      "Rendering loops (requestAnimationFrame) must interpolate from the latest fixed simulation tick, never directly mutating simulation state.",
+    ],
+    starterSchemas: {
+      "simulation-types.ts": `export type UnitState = 'IDLE' | 'MOVING' | 'ATTACKING';
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface Unit {
+  id: string;
+  position: Position;
+  targetPosition: Position;
+  speed: number;
+  state: UnitState;
+  attackRange: number;
+  targetUnitId: string | null;
+}
+
+export interface SpatialGridConfig {
+  cellSize: number;
+  width: number;
+  height: number;
+}
+
+export interface SimulationTickState {
+  tick: number;
+  timestampMs: number;
+  units: Unit[];
+}`,
+    },
+    rubric: [
+      {
+        id: "tgd-req-1",
+        category: "PROBLEM_FRAMING",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Scopes entity interfaces, fixed 20Hz tick contracts, and render-loop decoupling prior to generating unit movement logic.",
+        successSignals: [
+          "Candidate confirms the 50ms accumulator pattern with the assistant before implementing movement.",
+          "Candidate clarifies that rendering should interpolate from the tick state rather than running the sim.",
+        ],
+        failureModes: [
+          "Begins generating animation loops without defining simulation contracts or tick boundaries.",
+        ],
+      },
+      {
+        id: "tgd-req-2",
+        category: "TECHNICAL_APPROACH",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Designs modular, strongly typed simulation components cleanly separating pure tick calculation, spatial hashing, and canvas rendering.",
+        successSignals: [
+          "Separates tick updates into pure functions that ingest current state and return next state.",
+          "Uses typed interfaces for spatial cells and unit states.",
+        ],
+        failureModes: [
+          "Tangles canvas DOM rendering code directly inside unit position update loops.",
+        ],
+      },
+      {
+        id: "tgd-req-3",
+        category: "AI_DIRECTION",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Directs the AI co-pilot in staged, iterative prompts (Types -> Spatial Grid -> Unit FSM -> Render Bridge) with explicit 50ms tick constraints.",
+        successSignals: [
+          "Prompts AI step-by-step with explicit constraints on tick rate (50ms) and cell dimensions.",
+          "Rejects sprawling all-in-one generation prompts.",
+        ],
+        failureModes: [
+          "Submits single prompt asking for 'entire RTS game' and blindly accepts the output.",
+        ],
+      },
+      {
+        id: "tgd-req-4",
+        category: "CRITICAL_JUDGMENT",
+        weight: 20,
+        sfiaLevel: 2,
+        statement: "Detects and rejects deliberate AI traps: floating-point variable dt drift, O(N²) pairwise proximity queries, and in-loop state mutations.",
+        injectedTrap: "AI implements variable frame dt math (x += speed * dt), nested O(N²) distance comparisons, and direct in-loop position mutation.",
+        successSignals: [
+          "Catches floating-point delta_time math and directs AI to implement a fixed-time accumulator.",
+          "Identifies O(N²) proximity loop and instructs AI to use spatial hash partitioning.",
+          "Catches in-loop state mutation and enforces double-buffering or snapshot isolation.",
+        ],
+        failureModes: [
+          "Permits variable delta_time and O(N²) nested loops to reach production simulation code.",
+        ],
+      },
+      {
+        id: "tgd-req-5",
+        category: "TRADEOFF_AWARENESS",
+        weight: 10,
+        sfiaLevel: 2,
+        statement: "Articulates algorithmic tradeoffs between spatial hash grids versus quadtrees for browser runtime memory and CPU overhead.",
+        successSignals: [
+          "Explains why flat spatial hash grids have lower allocation overhead in JavaScript engines than recursive quadtrees.",
+        ],
+        failureModes: [
+          "Claims naive O(N²) loops are fast enough or ignores garbage collection pauses in browser runtimes.",
+        ],
+      },
+      {
+        id: "tgd-req-6",
+        category: "DOMAIN_FIT",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Adheres strictly to real-time strategy (RTS) simulation conventions (deterministic ticks, target acquisition, unit state machines).",
+        successSignals: [
+          "Uses standard simulation state identifiers (IDLE, MOVING, ATTACKING) and discrete grid coordinates.",
+        ],
+        failureModes: [
+          "Treats units as generic UI elements without game entity state machines.",
+        ],
+      },
+      {
+        id: "tgd-req-7",
+        category: "COMMUNICATION",
+        weight: 10,
+        sfiaLevel: 2,
+        statement: "Maintains clear commit history, clean component naming, and documents simulation architecture for peer review.",
+        successSignals: [
+          "Writes descriptive commit messages outlining specific fixed-tick accumulator and spatial partitioning fixes.",
+          "Cleans up generic comments and boilerplate.",
+        ],
+        failureModes: [
+          "Commits messy, undocumented code with unused variables and dead comments.",
+        ],
+      },
+    ],
+    verification: {
+      status: "APPROVED",
+      badge: {
+        mentorId: "mentor-total-game-dev",
+        mentorName: "Lead Simulation Architect, Total Game Development",
+        verifiedAt: "2026-03-25T10:00:00Z",
+        auditScore: 19,
+        notes: "Exemplary RTS simulation architecture. Injected floating-point tick drift and O(N²) spatial canary traps measure authentic systems engineering discernment.",
+      },
+    },
+    metadata: {
+      createdAt: "2026-03-25T10:00:00Z",
+      usageCount: 52,
+    },
+  },
 ];

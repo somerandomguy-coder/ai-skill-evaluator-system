@@ -16,6 +16,7 @@ import { SEED_RESEARCH } from "../fixtures/seed-research";
 import { STRONG_SESSION, WEAK_SESSION, finalFilesOf, type SeedSession } from "../fixtures/seed-sessions";
 import { effectiveScore } from "../services/effective-score";
 import { DEMO_USERS } from "./demo-users";
+import { TGD_CHALLENGE_VIEW, TGD_EVALUATION_VIEW } from "../fixtures/tgd-simulation-eval";
 import type {
   ChallengeView,
   DataSource,
@@ -528,6 +529,9 @@ export const mockDataSource: DataSource = {
   },
 
   async getChallenge(id) {
+    if (id === "verified-tgd-rts-sim") {
+      return TGD_CHALLENGE_VIEW;
+    }
     const mem = inMemoryChallenges.get(id);
     if (mem) return mem;
     if (id === "seed-challenge" || id.startsWith("seed-") || id.startsWith("demo-") || id === MOCK_CHALLENGE_ID) {
@@ -592,6 +596,9 @@ export const mockDataSource: DataSource = {
   },
 
   async getEvaluation(id) {
+    if (id === "tgd-rts-sim-eval") {
+      return TGD_EVALUATION_VIEW;
+    }
     const s = sessions.find((x) => x.evaluation?.id === id);
     return s ? buildEvaluation(s) : buildEvaluation(sessions[0]);
   },

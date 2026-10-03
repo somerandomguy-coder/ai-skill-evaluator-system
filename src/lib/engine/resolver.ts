@@ -56,7 +56,7 @@ export function registerChallengeInRepository(challenge: ChallengeV2): void {
  * Retrieves a challenge by ID from the repository.
  */
 export function getChallengeFromRepository(id: string): ChallengeV2 | null {
-  return challengeRepository.get(id) ?? null;
+  return challengeRepository.get(id) ?? VERIFIED_CHALLENGE_BANK.find((x) => x.id === id) ?? null;
 }
 
 /**
@@ -129,7 +129,27 @@ export async function resolveChallenge(
 
   const jdEmbedding = await generateEmbedding(rawJd);
 
-  // 1. Tier 1 Check: Pre-audited, Mentor-Verified Bank (Threshold: >= 0.88)
+  // 1a. Priority Check: Direct Accredited Studio Match in Verified Bank
+  const cleanComp = companyName?.toLowerCase().trim() || "";
+  if (cleanComp && cleanComp !== "unknown" && cleanComp !== "enterprise tech") {
+    for (const item of challengeRepository.values()) {
+      const itemComp = item.companyName.toLowerCase();
+      if (
+        item.verification.status === "APPROVED" &&
+        (itemComp.includes(cleanComp) || cleanComp.includes(itemComp) || rawJd.toLowerCase().includes(itemComp))
+      ) {
+        await incrementChallengeUsage(item.id);
+        return {
+          challenge: item,
+          tierResolved: "TIER_1_VERIFIED",
+          similarityScore: 0.98,
+          latencyMs: Date.now() - startTime,
+        };
+      }
+    }
+  }
+
+  // 1b. Tier 1 Check: Pre-audited, Mentor-Verified Bank (Threshold: >= 0.88)
   const tier1Match = await queryVectorStore({
     vector: jdEmbedding,
     filter: { "verification.status": "APPROVED" },
@@ -172,7 +192,7 @@ export async function resolveChallenge(
     "employment hero", "macquarie", "rippling", "xero", "myob", "zip co", "airwallex",
     "block", "aws", "amazon", "anduril", "cloudflare", "fastly", "qantas",
     "stake", "fetch", "luxury escapes", "linear", "tiktok", "finder", "wise", "vercel",
-    "propeller", "nine"
+    "propeller", "nine", "total game development", "total game", "tgd"
   ];
 
   let searchComp = companyName?.toLowerCase().trim() || "";

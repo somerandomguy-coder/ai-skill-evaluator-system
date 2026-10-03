@@ -17,6 +17,18 @@ export function isBackendChallenge(challenge: {
   return /\b(backend|database|sqlite|sql|relational|postgresql|postgres|express|node\.js|nodejs|server-side|cdr gateway)\b/i.test(text);
 }
 
+/**
+ * Detects whether a challenge brief or title represents a game simulation or RTS task.
+ */
+export function isGameSimulationChallenge(challenge: {
+  title: string;
+  brief: string;
+  technicalInvariants?: string[];
+}): boolean {
+  const text = `${challenge.title} ${challenge.brief} ${challenge.technicalInvariants?.join(" ") || ""}`.toLowerCase();
+  return /\b(game|simulation|rts|unit|spatial|accumulator|tick|2d grid|gameplay|total game)\b/i.test(text);
+}
+
 export const makeStarterFiles = buildRoleStarterTemplate;
 
 export function buildRoleStarterTemplate(challenge: {
@@ -182,8 +194,201 @@ export interface AuditRecord {
   }
 
 
-  // Planted Bug 1: Currency & Float Precision (Floating-point division drift & USD default)
-  files["src/utils/currency.ts"] = `/**
+  const isGameSim = isGameSimulationChallenge(challenge);
+
+  if (isGameSim) {
+    // Canary Trap 1: Floating-Point Tick Drift (Naive variable dt vs fixed accumulator)
+    files["src/engine/accumulator.ts"] = `/**
+ * Simulation Clock & Fixed-Step Accumulator Utility
+ * Note: Deterministic RTS simulations require fixed 20Hz (50ms) simulation intervals.
+ */
+export class SimulationClock {
+  public accumulator: number = 0;
+  public readonly tickRateMs: number = 50; // 20Hz target tick rate
+  public tickCount: number = 0;
+
+  /**
+   * CANARY BUG 1: In variable delta update, frame dt is added directly to coordinates
+   * using floating-point math without advancing a fixed-step accumulator,
+   * causing IEEE-754 drift and desynchronization across client frames.
+   */
+  public updateNaive(dtSeconds: number, onTick: () => void): void {
+    // BUG: Direct variable delta-time execution without fixed 50ms accumulator clamping
+    onTick(); // BUG: Variable execution causes simulation desynchronization
+  }
+}
+`;
+
+    // Canary Trap 2: O(N^2) Entity Proximity Check (Nested loops vs Spatial Hash Grid)
+    files["src/engine/spatial-grid.ts"] = `/**
+ * Spatial Partitioning & Query Utility
+ * Note: Proximity queries must maintain 60 FPS budgets and avoid O(N^2) loops.
+ */
+export interface UnitEntity {
+  id: string;
+  x: number;
+  y: number;
+  range: number;
+}
+
+export function findUnitsInRange(units: UnitEntity[], center: { x: number; y: number }, maxDistance: number): UnitEntity[] {
+  // CANARY BUG 2: O(N^2) pairwise distance comparison across all entities
+  const results: UnitEntity[] = [];
+  for (let i = 0; i < units.length; i++) {
+    const u = units[i];
+    const dx = u.x - center.x;
+    const dy = u.y - center.y;
+    const distSq = dx * dx + dy * dy;
+    if (distSq <= maxDistance * maxDistance) {
+      results.push(u); // BUG: O(N^2) nested scan instead of spatial hash grid indexing
+    }
+  }
+  return results;
+}
+`;
+
+    // Canary Trap 3: In-Loop State Mutation (Order-dependent race conditions vs Double-Buffering)
+    files["src/engine/unit-manager.ts"] = `/**
+ * Unit State Machine & Entity Manager
+ */
+export type UnitState = "IDLE" | "MOVING" | "ATTACKING";
+
+export interface Unit {
+  id: string;
+  x: number;
+  y: number;
+  targetX: number;
+  targetY: number;
+  state: UnitState;
+}
+
+export function updateUnits(units: Unit[]): void {
+  // CANARY BUG 3: Direct in-loop coordinate mutation creates order-dependent race conditions
+  for (const unit of units) {
+    if (unit.state === "MOVING") {
+      unit.x += (unit.targetX - unit.x) * 0.1; // BUG: Direct mutation during active iteration
+      unit.y += (unit.targetY - unit.y) * 0.1;
+    }
+  }
+}
+`;
+
+    // Interactive RTS 2D Canvas Starter for Game Developers
+    files["src/App.jsx"] = `import React, { useState, useEffect, useRef } from "react";
+
+export default function App() {
+  const canvasRef = useRef(null);
+  const [unitCount, setUnitCount] = useState(12);
+  const [ticks, setTicks] = useState(0);
+  const [isRunning, setIsRunning] = useState(true);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let animationId;
+    let tickCounter = 0;
+
+    // Initialize units
+    const units = Array.from({ length: unitCount }, (_, i) => ({
+      id: "u_" + i,
+      x: 50 + (i % 6) * 60,
+      y: 50 + Math.floor(i / 6) * 60,
+      targetX: 200 + Math.random() * 150,
+      targetY: 150 + Math.random() * 100,
+      color: i % 2 === 0 ? "#3b82f6" : "#10b981",
+    }));
+
+    const render = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Grid
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Draw Units
+      for (const u of units) {
+        if (isRunning) {
+          u.x += (u.targetX - u.x) * 0.04;
+          u.y += (u.targetY - u.y) * 0.04;
+          if (Math.hypot(u.targetX - u.x, u.targetY - u.y) < 5) {
+            u.targetX = 40 + Math.random() * 320;
+            u.targetY = 40 + Math.random() * 220;
+          }
+        }
+
+        ctx.fillStyle = u.color;
+        ctx.beginPath();
+        ctx.arc(u.x, u.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.font = "9px monospace";
+        ctx.fillText(u.id, u.x - 8, u.y - 12);
+      }
+
+      tickCounter++;
+      if (tickCounter % 3 === 0) {
+        setTicks((t) => t + 1);
+      }
+
+      animationId = requestAnimationFrame(render);
+    };
+
+    animationId = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(animationId);
+  }, [unitCount, isRunning]);
+
+  return (
+    <main style={{ padding: "1.5rem", fontFamily: "sans-serif", color: "#f8fafc", background: "#0f172a", minHeight: "100vh" }}>
+      <header style={{ marginBottom: "1rem" }}>
+        <h1 style={{ fontSize: "1.25rem", fontWeight: 700, margin: 0 }}>DeterministicUnitSimulationEngine</h1>
+        <p style={{ fontSize: "0.85rem", color: "#94a3b8", marginTop: "0.25rem" }}>
+          Total Game Development · 20Hz Fixed Simulation Tick · Spatial Hash Index
+        </p>
+      </header>
+
+      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem", alignItems: "center" }}>
+        <button
+          onClick={() => setIsRunning(!isRunning)}
+          style={{ padding: "0.4rem 0.8rem", borderRadius: "6px", background: isRunning ? "#ef4444" : "#10b981", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
+        >
+          {isRunning ? "Pause Sim" : "Resume Sim"}
+        </button>
+        <span style={{ fontSize: "0.85rem", fontFamily: "monospace", background: "#1e293b", padding: "0.3rem 0.6rem", borderRadius: "4px" }}>
+          Tick: {ticks} (20Hz)
+        </span>
+        <span style={{ fontSize: "0.85rem", fontFamily: "monospace", background: "#1e293b", padding: "0.3rem 0.6rem", borderRadius: "4px" }}>
+          Active Units: {unitCount}
+        </span>
+      </div>
+
+      <div style={{ border: "1px solid #334155", borderRadius: "8px", overflow: "hidden", display: "inline-block", background: "#020617" }}>
+        <canvas ref={canvasRef} width={400} height={280} style={{ display: "block" }} />
+      </div>
+
+      <p style={{ fontSize: "0.8rem", color: "#64748b", marginTop: "1rem" }}>
+        Inspect <code>src/engine/accumulator.ts</code>, <code>src/engine/spatial-grid.ts</code>, and <code>src/engine/unit-manager.ts</code> to address simulation invariants.
+      </p>
+    </main>
+  );
+}
+`;
+  } else {
+    // Planted Bug 1: Currency & Float Precision (Floating-point division drift & USD default)
+    files["src/utils/currency.ts"] = `/**
  * Financial & Currency Calculation Utilities
  * Note: Enterprise Australian compliance requires strict precision.
  */
@@ -206,8 +411,8 @@ export function formatCurrency(cents: number, currency = "USD"): string {
 }
 `;
 
-  // Planted Bug 2: Data Privacy & Identity Leak (Unmasked userId in logger)
-  files["src/utils/audit.ts"] = `/**
+    // Planted Bug 2: Data Privacy & Identity Leak (Unmasked userId in logger)
+    files["src/utils/audit.ts"] = `/**
  * Audit Logging & Diagnostics Utility
  * Note: Enterprise compliance requires rigorous PII sanitization in all system logs.
  */
@@ -237,8 +442,8 @@ export function logAudit(context: AuditContext): void {
 }
 `;
 
-  // Planted Bug 3: Boundary & Capacity Invariant (Missing negative / underflow check)
-  files["src/utils/capacity.ts"] = `/**
+    // Planted Bug 3: Boundary & Capacity Invariant (Missing negative / underflow check)
+    files["src/utils/capacity.ts"] = `/**
  * Capacity & Boundary Verification Utility
  * Note: Robust systems must validate capacity limits and avoid underflow conditions.
  */
@@ -256,8 +461,8 @@ export function hasAvailableCapacity(limit: CapacityLimit): boolean {
 }
 `;
 
-  // Provide a clean, welcoming starter component tailored to the challenge
-  files["src/App.jsx"] = `export default function App() {
+    // Provide a clean, welcoming starter component tailored to the challenge
+    files["src/App.jsx"] = `export default function App() {
   return (
     <main className="shell">
       <h1>${challenge.title.replace(/"/g, '&quot;')}</h1>
@@ -268,6 +473,7 @@ export function hasAvailableCapacity(limit: CapacityLimit): boolean {
   );
 }
 `;
+  }
 
   return mergeStarter(files);
 }

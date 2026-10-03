@@ -147,7 +147,7 @@ export interface AuditFlags {
 }
 
 export interface PlantedBugAuditItem {
-  id: "currency" | "privacy" | "boundary";
+  id: string;
   name: string;
   category: string;
   description: string;
