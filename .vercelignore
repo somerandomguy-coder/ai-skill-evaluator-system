@@ -11,7 +11,7 @@ benchmarks/
 scripts/
 
 # Large offline dataset archives not required at runtime
-data/
+/data/
 data-export/requirements-dataset-all-700.csv
 data-export/requirements-dataset-all-700.json
 data-export/challenges-dataset-100.json
