@@ -11,15 +11,15 @@
 | :-: | :--- | :--- | :--- | :-: |
 | **0** | `verified-tgd-rts-sim` | **Total Game Development** | 20Hz deterministic tick loop, spatial hash grid, double-buffering | ✅ Implemented |
 | **1** | `verified-aegis-lending-risk` | **Aegis Risk Analytics** | WAD/RAY fixed-point math, oracle staleness threshold, atomic liquidation rollback | ✅ Implemented |
-| **2** | *(Pending Persona #2)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **3** | *(Pending Persona #3)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **4** | *(Pending Persona #4)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **5** | *(Pending Persona #5)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **6** | *(Pending Persona #6)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **7** | *(Pending Persona #7)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **8** | *(Pending Persona #8)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **9** | *(Pending Persona #9)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **10** | *(Pending Persona #10)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
+| **2** | `verified-apex-subscription-billing` | **Apex Marketplace Infrastructure** | Idempotency guard on retries, integer cent GST math, resilient state machine & SRE metrics | ✅ Implemented |
+| **3** | *(Pending Persona #4)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
+| **4** | *(Pending Persona #5)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
+| **5** | *(Pending Persona #6)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
+| **6** | *(Pending Persona #7)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
+| **7** | *(Pending Persona #8)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
+| **8** | *(Pending Persona #9)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
+| **9** | *(Pending Persona #10)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
+| **10** | *(Pending Persona #11)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
 
 ---
 
@@ -61,6 +61,27 @@ In networked/deterministic simulations, variable frame delta times cause desynch
 3. **Double-Buffering & State Isolation**: In-loop coordinate mutations forbidden; state updates are double-buffered.
 4. **Decoupled Rendering**: Animation loop (`requestAnimationFrame`) interpolates from the latest tick snapshot.
 
+### Challenge #2: Apex Marketplace Infrastructure — `SubscriptionWebhookReconciler`
+- **Company**: Apex Marketplace Infrastructure (Sydney, NSW)
+- **Role**: Junior Full-Stack Integration & Billing Engineer
+- **SFIA 9 Level**: Level 2 (Assist) / Level 3 (Apply) — `PROG`, `DESN`, `TEST`
+- **Target Persona**: David Nguyen (Marketplace platforms, subscription billing systems, cloud-native reliability, SRE)
+
+#### Problem Statement
+Apex Marketplace Infrastructure powers core listing monetization, subscription billing, and merchant reconciliation for high-volume Australian digital marketplace platforms. In high-concurrency distributed systems, payment gateways retry failed or delayed webhooks, often delivering payloads out-of-order or multiple times. Candidates build the `SubscriptionWebhookReconciler` and an interactive status dashboard to ingest external payment webhook events (`SUBSCRIPTION_CREATED`, `PAYMENT_PROCESSED`, `PAYMENT_FAILED`, `PLAN_UPGRADED`), enforce strict idempotency, calculate GST and prorations in exact integer cents, manage subscription state transitions, and emit SRE observability telemetry.
+
+#### Non-Negotiable Technical Invariants
+1. **Idempotency Guard & Deduplication**: Webhook event processing must check `eventId` / `idempotency_key` within a persistent or transactionally safe store before executing state transitions or billing deductions. Re-delivered webhooks must return the cached processing receipt without re-billing or re-extending plan durations.
+2. **Integer Cent Financial Arithmetic & 10% Australian GST**: All monetary calculations, upgrade proration deltas, and 10% Australian GST must be computed in integer cents (`Math.round()` on cents). Raw IEEE-754 floating-point operations (e.g., `price * 0.1`) that produce floating precision drift are strictly forbidden.
+3. **Resilient State Machine Transitions**: Enforces valid lifecycle transitions: `PENDING` $\rightarrow$ `ACTIVE` $\rightarrow$ `PAST_DUE` $\rightarrow$ `CANCELLED`. Out-of-order events (e.g. `PAYMENT_PROCESSED` arriving before `SUBSCRIPTION_CREATED`) must be handled gracefully without corrupting account balances.
+4. **SRE Observability & Telemetry**: Differentiates transient errors (returning HTTP `500` to trigger gateway retry) from deterministic payload validation errors (`400`). Instruments structured logging with correlation IDs and emits real-time SLI/SLO metrics (`successRatePercent`, `duplicateDropCount`, `p95LatencyMs`).
+5. **Interactive Operational Dashboard**: An interactive visual interface in React displaying the live incoming event stream, subscription status badges, and SRE metric gauges for real-time evaluator inspection.
+
+#### Injected Canary Traps (What Discerning Engineers Catch)
+- **Canary Trap 1: Non-Idempotent Webhook Processing (Double-Billing on Retries)**: AI implementations process webhook payloads immediately without checking an `idempotency_key` or `eventId`. When network retries fire, the AI logic increments billing counters or extends plan durations twice. Discerning candidates catch this and enforce an Idempotency Guard.
+- **Canary Trap 2: Floating-Point Math on Proration & Australian GST**: AI calculates proration and 10% GST with raw JavaScript floating-point numbers (`price * 0.1`), causing precision drift (e.g., `$19.990000000000002`). Discerning candidates enforce integer cent arithmetic.
+- **Canary Trap 3: Silent Failure & Missing SRE Observability (Swallowed Exceptions)**: AI wraps webhook ingestion in a generic `try/catch` block that logs a vague `console.error` and returns HTTP `200 OK`, hiding transient database deadlocks from gateway retries and telemetry pipelines. Discerning candidates refactor error handling to return `500` on transient errors and emit correlation IDs.
+
 ---
 
-*(Slots #2 through #10 will be documented here immediately as you paste each profile/brainstorm).*
+*(Slots #3 through #10 will be documented here immediately as you paste each profile/brainstorm).*

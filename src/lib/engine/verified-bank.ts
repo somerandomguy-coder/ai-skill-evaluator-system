@@ -870,4 +870,229 @@ export interface SimulationResult {
       usageCount: 41,
     },
   },
+  {
+    id: "verified-apex-subscription-billing",
+    tier: "TIER_1_VERIFIED",
+    companyName: "Apex Marketplace Infrastructure",
+    roleTitle: "Junior Full-Stack Integration & Billing Engineer",
+    sfiaProfile: {
+      level: 2, // Assist / Apply Level 2-3
+      primarySkills: ["PROG", "DESN", "TEST", "ITOP"],
+      attributes: {
+        autonomy: "Works under routine direction with milestone checkpoints; exercises discretion in diagnosing webhook retries and financial discrepancies.",
+        influence: "Interacts with merchant integration teams, platform reliability squad, and finance reconciliation systems.",
+        complexity: "Resolves non-trivial asynchronous race conditions, at-least-once webhook delivery semantics, and multi-tier proration arithmetic.",
+        knowledge: "Applies sound principles of distributed systems idempotency, integer cent currency modeling, and SRE observability standards.",
+        businessSkills: "Communicates technical system behavior, failure recovery runbooks, and metric thresholds with discipline and clarity.",
+      },
+    },
+    briefMarkdown: `# Apex Marketplace Infrastructure: Idempotent Subscription Webhook Reconciler
+
+## The Problem
+Apex Marketplace Infrastructure powers core listing monetization, subscription billing, and merchant reconciliation for high-volume Australian digital marketplace platforms. In high-concurrency cloud environments, external payment gateways (Stripe/Zuora style) deliver webhook events asynchronously with at-least-once delivery guarantees. Network delays, connection timeouts, and automated gateway retries frequently result in duplicate or out-of-order webhook delivery.
+
+You will build the \`SubscriptionWebhookReconciler\` module and an interactive operational dashboard to ingest subscription lifecycle webhook events, enforce strict idempotency, execute integer-cent financial arithmetic with 10% Australian GST, maintain a deterministic subscription state machine, and expose real-time SRE observability telemetry.
+
+## System Invariants & Core Requirements
+1. **Idempotency Guard & Deduplication**:
+   - Every webhook payload contains a unique \`eventId\` and \`merchantId\`.
+   - The reconciler must track processed event IDs. If an \`eventId\` has already been processed, the system must immediately return the previously recorded result (HTTP 200/receipt) without re-executing plan extensions, balance adjustments, or duplicate billing.
+2. **Integer Cent Financial Precision & Australian GST (10%)**:
+   - All balances, plan fees, proration deltas, and Australian Goods & Services Tax (GST) must be modeled and calculated in integer cents (e.g. $19.99 = \`1999\` cents).
+   - Raw IEEE-754 floating-point operations (\`price * 0.1\`) are strictly forbidden to eliminate precision drift (such as \`19.990000000000002\`).
+3. **Resilient State Machine Transitions**:
+   - Subscriptions transition strictly between validated states: \`PENDING\` -> \`ACTIVE\` -> \`PAST_DUE\` -> \`CANCELLED\`.
+   - Out-of-order webhooks (e.g. \`PAYMENT_PROCESSED\` arriving before \`SUBSCRIPTION_CREATED\`) must either be queued or reconciled without corrupting state.
+4. **SRE Telemetry & Observability**:
+   - Differentiate transient infrastructure failures (return HTTP 500 to trigger gateway retry) from deterministic validation errors (return HTTP 400 with no retry).
+   - Emit structured logs with correlation IDs (\`traceId\`) and track SLIs: Ingestion Success Rate (%), Duplicate Dropped Count, and p95 Latency (ms).
+5. **Interactive Operational Dashboard**:
+   - Provide a React visual panel showing real-time webhook event feeds, active subscription statuses with colored state badges, and SRE health metric cards.
+
+## Definition of Done
+- Idempotency unit test verifies that sending 5 identical \`PAYMENT_PROCESSED\` events produces exactly 1 balance deduction.
+- Financial test suite confirms proration and 10% GST calculations pass with 0 floating-point rounding errors.
+- Visual dashboard simulates incoming event bursts, highlighting duplicate event rejections and state transitions live.`,
+    technicalInvariants: [
+      "Webhook processing must enforce idempotency via unique eventId lookup before state mutation.",
+      "All monetary figures (prorations, balances, 10% Australian GST) must be computed in integer cents (Math.round() on integer cents).",
+      "Subscription lifecycle must strictly adhere to the state machine: PENDING -> ACTIVE -> PAST_DUE -> CANCELLED.",
+      "Webhook responses must distinguish deterministic errors (400) from transient retryable failures (500).",
+      "Operational dashboard must render interactive event stream, subscription status badges, and real-time SRE metrics.",
+    ],
+    starterSchemas: {
+      "subscription-types.ts": `export type SubscriptionStatus = "PENDING" | "ACTIVE" | "PAST_DUE" | "CANCELLED";
+
+export type WebhookEventType = 
+  | "SUBSCRIPTION_CREATED" 
+  | "PAYMENT_PROCESSED" 
+  | "PAYMENT_FAILED" 
+  | "PLAN_UPGRADED";
+
+export interface WebhookEventPayload {
+  eventId: string;
+  eventType: WebhookEventType;
+  timestampIso: string;
+  merchantId: string;
+  traceId: string;
+  data: {
+    subscriptionId: string;
+    planId?: string;
+    amountCents?: number;
+    gstCents?: number;
+    currency?: "AUD";
+    failureReason?: string;
+    newPlanId?: string;
+    prorationCents?: number;
+  };
+}
+
+export interface SubscriptionRecord {
+  subscriptionId: string;
+  merchantId: string;
+  planId: string;
+  status: SubscriptionStatus;
+  currentPeriodEndIso: string;
+  balanceCents: number;
+  processedEventIds: string[];
+  lastUpdatedIso: string;
+}
+
+export interface ReconcilerResult {
+  status: "PROCESSED" | "DUPLICATE_IGNORED" | "FAILED";
+  statusCode: 200 | 400 | 409 | 500;
+  eventId: string;
+  traceId: string;
+  subscription?: SubscriptionRecord;
+  errorMessage?: string;
+  latencyMs: number;
+}
+
+export interface SreMetricsSnapshot {
+  totalEventsProcessed: number;
+  duplicateEventsDropped: number;
+  successRatePercent: number;
+  p95LatencyMs: number;
+  activeSubscriptionsCount: number;
+}`,
+    },
+    rubric: [
+      {
+        id: "apex-req-1",
+        category: "PROBLEM_FRAMING",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Scopes idempotency guarantees, out-of-order webhook delivery, and integer cent representations before requesting implementation code.",
+        successSignals: [
+          "Candidate confirms idempotency key storage and verifies that currency calculations will be in integer AUD cents.",
+          "Candidate queries the AI assistant regarding out-of-order webhook delivery handling and subscription state boundaries.",
+        ],
+        failureModes: [
+          "Accepts standard float math without questioning financial rounding drift.",
+          "Asks AI to generate an unvalidated monolithic webhook handler in a single prompt.",
+        ],
+      },
+      {
+        id: "apex-req-2",
+        category: "TECHNICAL_APPROACH",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Designs decoupled webhook intake, subscription state machine, integer GST math, and SRE telemetry collectors.",
+        successSignals: [
+          "Separates webhook transport parsing, state transition logic, and metrics collectors into distinct modular components.",
+          "Builds pure helper functions for proration and 10% Australian GST calculation.",
+        ],
+        failureModes: [
+          "Couples HTTP request handling, database mutations, and UI state into an untestable monolithic function.",
+        ],
+      },
+      {
+        id: "apex-req-3",
+        category: "AI_DIRECTION",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Directs the AI assistant in staged phases (Schema -> Idempotency Store -> GST Math -> State Transitions -> SRE Dashboard) with explicit edge-case assertions.",
+        successSignals: [
+          "Directs the assistant step-by-step: first establishing schemas and unit tests for duplicate event delivery, then writing state machine handlers.",
+          "Instructs the AI to differentiate transient 500 errors from deterministic 400 errors.",
+        ],
+        failureModes: [
+          "Issues a generic prompt like 'write a subscription billing webhook service' and blindly accepts unverified code.",
+        ],
+      },
+      {
+        id: "apex-req-4",
+        category: "CRITICAL_JUDGMENT",
+        weight: 20,
+        sfiaLevel: 2,
+        statement: "Identifies and refactors planted AI traps: non-idempotent webhook retries (double-billing), floating-point proration/GST calculations, and swallowed exceptions.",
+        injectedTrap: "AI implements webhook handler without checking eventId (causing double-billing on retries), uses price * 0.1 float arithmetic for GST, and wraps logic in try/catch returning 200 OK while swallowing exceptions.",
+        successSignals: [
+          "Catches missing idempotency check and enforces eventId deduplication guard before applying state changes.",
+          "Catches raw float math (0.1) and enforces integer cent arithmetic for Australian GST and proration.",
+          "Catches swallowed exceptions and refactors to return HTTP 500 on transient failures while emitting structured logs with traceId.",
+        ],
+        failureModes: [
+          "Allows duplicate webhook delivery to double-bill merchants or extend subscriptions twice.",
+          "Leaves IEEE-754 float drift in financial balances or swallows database errors with silent 200 OK responses.",
+        ],
+      },
+      {
+        id: "apex-req-5",
+        category: "TRADEOFF_AWARENESS",
+        weight: 10,
+        sfiaLevel: 2,
+        statement: "Articulates operational SRE tradeoffs between synchronous webhook acknowledgment versus asynchronous job queues and at-least-once delivery semantics.",
+        successSignals: [
+          "Explains why idempotency keys are mandatory under at-least-once network delivery models.",
+          "Compares in-memory deduplication cache TTL versus transactional database persistence under high webhook throughput.",
+        ],
+        failureModes: [
+          "Assumes webhooks are delivered strictly in order and exactly once without retry headers.",
+        ],
+      },
+      {
+        id: "apex-req-6",
+        category: "DOMAIN_FIT",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Conforms to Australian marketplace billing patterns (AUD integer cents, 10% GST reporting, merchant subscription lifecycle states).",
+        successSignals: [
+          "Enforces valid state machine transitions (PENDING -> ACTIVE -> PAST_DUE -> CANCELLED).",
+          "Calculates 10% GST on taxable merchant plan amounts in integer cents with correct half-cent rounding.",
+        ],
+        failureModes: [
+          "Uses US tax terminology or permits invalid subscription state transitions (e.g. CANCELLED -> ACTIVE without reactivation event).",
+        ],
+      },
+      {
+        id: "apex-req-7",
+        category: "COMMUNICATION",
+        weight: 10,
+        sfiaLevel: 2,
+        statement: "Documents webhook API contracts, error recovery runbooks, and SRE telemetry metrics clearly for engineering and support teams.",
+        successSignals: [
+          "Provides clear docstrings explaining webhook retry semantics, HTTP status code contracts (200, 400, 409, 500), and SLI calculations.",
+        ],
+        failureModes: [
+          "Leaves webhook integration undocumented with unexplained status codes and silent failure behaviors.",
+        ],
+      },
+    ],
+    verification: {
+      status: "APPROVED",
+      badge: {
+        mentorId: "mentor-apex-sre",
+        mentorName: "David Nguyen, Lead Systems & Reliability Engineer",
+        verifiedAt: "2026-03-29T10:00:00Z",
+        auditScore: 20,
+        notes: "Exemplary marketplace billing & SRE benchmark. Deeply tests idempotency invariants, integer cent GST arithmetic, and operational resilience against blind AI code generation.",
+      },
+    },
+    metadata: {
+      createdAt: "2026-03-29T10:00:00Z",
+      usageCount: 38,
+    },
+  },
 ];
+
