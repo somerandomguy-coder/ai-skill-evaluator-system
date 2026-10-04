@@ -13,6 +13,7 @@ import { scoreBand, shortId, timeAgo, TONE_TEXT } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { ChallengeAccreditationCard } from "@/components/mentor/challenge-accreditation-card";
+import { RequirementBountyHub } from "@/components/mentor/requirement-bounty-hub";
 
 export const metadata: Metadata = { title: "Review queue" };
 
@@ -37,23 +38,23 @@ function ScoreSummary({ item }: { item: QueueItemView }) {
 }
 
 export default async function MentorQueuePage() {
-  await requireUser("/mentor", "MENTOR");
+  const user = await requireUser("/mentor", "MENTOR");
   const [queue, reviewed] = await Promise.all([data.getQueue(), data.countReviewed()]);
 
   return (
-    <PageShell width="5xl" className="space-y-8">
+    <PageShell width="5xl" className="space-y-10">
       <header className="space-y-3">
         <div className="text-xs font-medium tracking-wider text-primary/80 uppercase">Mentor Console</div>
         <h1 className="text-3xl font-semibold tracking-tight">Accreditation &amp; Review Queue</h1>
         <p className="max-w-2xl text-muted-foreground">
-          Audit and verify authentic work-sample challenges with the 5-point MentorME checklist, or review candidate submissions and disputed scores.
+          Audit and verify authentic work-sample challenges with the 5-point MentorME checklist, claim requirement verification bounties, or review candidate submissions.
         </p>
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <Badge variant="secondary" className="tabular">
-            {queue.length} submissions waiting
+            {queue.length} candidate submissions waiting
           </Badge>
           <Badge variant="outline" className="tabular">
-            {reviewed} reviewed
+            {reviewed} candidate reviews completed
           </Badge>
           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
             <EyeOff className="size-3.5" aria-hidden />
@@ -62,15 +63,29 @@ export default async function MentorQueuePage() {
         </div>
       </header>
 
+      {/* Community Requirement Verification Bounty Hub */}
+      <section className="space-y-4">
+        <RequirementBountyHub initialMentorId={user.id} initialMentorName={user.name} />
+      </section>
+
       {/* Challenge Accreditation Section (e.g. Total Game Development Studio Audit) */}
-      <section className="space-y-3">
+      <section className="space-y-4 pt-4 border-t border-border/60">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">Studio Challenge Accreditation</h2>
+            <p className="text-xs text-muted-foreground">5-Point quality gate promoting challenges to Tier 1 Mentor Verified status.</p>
+          </div>
+        </div>
         <ChallengeAccreditationCard />
       </section>
 
       {/* Candidate Submissions Queue Section */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between border-b border-border/70 pb-2">
-          <h2 className="text-lg font-semibold tracking-tight text-foreground">Candidate Submissions Queue</h2>
+      <section className="space-y-4 pt-4 border-t border-border/60">
+        <div className="flex items-center justify-between pb-2">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">Candidate Submissions Queue</h2>
+            <p className="text-xs text-muted-foreground">Human-in-the-loop review for edge cases, low-confidence scores, or contested results.</p>
+          </div>
           <span className="text-xs text-muted-foreground font-mono">{queue.length} in queue</span>
         </div>
 
