@@ -682,4 +682,192 @@ export interface SimulationTickState {
       usageCount: 52,
     },
   },
+  {
+    id: "verified-aegis-lending-risk",
+    tier: "TIER_1_VERIFIED",
+    companyName: "Aegis Risk Analytics",
+    roleTitle: "Junior Protocol Risk & Verifiable Telemetry Engineer",
+    sfiaProfile: {
+      level: 2, // Assist / Junior Developer
+      primarySkills: ["PROG", "DESN", "TEST"],
+      attributes: {
+        autonomy: "Works under routine supervision with code review checkpoints; implements deterministic numerical calculation libraries and state hashing.",
+        influence: "Collaborates with protocol risk researchers and smart contract integration leads.",
+        complexity: "Handles fixed-point integer mathematics (Wad/Ray precision), liquidation boundary conditions, and cryptographic state hashing.",
+        knowledge: "Understands collateralized debt mechanisms, oracle latency boundaries, basis-point math, and safe rollback semantics.",
+        businessSkills: "Communicates precision risks rigorously and verifies AI-generated financial algorithms with zero automation bias.",
+      },
+    },
+    briefMarkdown: `# P2P Lending Protocol Risk Engine & Telemetry Chain
+
+## The Problem
+Aegis Risk Analytics builds real-time monitoring infrastructure, simulation engines, and verifiable state proofs for decentralized peer-to-peer lending protocols. In volatile market events, naive liquidation engines fail catastrophically due to floating-point rounding errors, stale oracle prices, and partial state corruption during liquidation cascades. You will build the \`P2PLendingRiskEngine\`—a deterministic module that ingests oracle price ticks, calculates the real-time **Health Factor ($HF$)** for active loan positions, detects liquidation eligibility, executes atomic batch liquidations, and commits an updated state root hash to an audit log.
+
+## Technical Invariants & Protocol Constraints
+1. **Fixed-Point Arithmetic (Wad/Ray / BPS)**: All collateral ratios, debt accruals, and health factors must be calculated using 18-decimal fixed-point (\`WAD = 10^18\`) or integer basis points (\`1 BPS = 0.01%\`). Floating-point (\`number\`) division is strictly forbidden.
+2. **Oracle Staleness & Grace-Period Guard**: Oracle feeds must be timestamp-checked. If \`currentTime - updatedAt > HEARTBEAT_THRESHOLD\`, the feed is stale; the engine must throw \`StalePriceFeedException\` and freeze liquidation execution.
+3. **Atomic Liquidation Cascades**: In batch liquidations, account state mutations and protocol collateral reserves must follow transactional semantics (copy-on-write snapshot). If an intermediate liquidation fails or invalidates pool solvency, the entire batch must rollback.
+4. **Verifiable Telemetry Hash Chain**: Every processed block/tick must emit a deterministic SHA-256 state commitment over all updated loan positions and reserves.
+
+## Definition of Done
+- Health factor calculations strictly use Wad/Ray fixed-point integer arithmetic.
+- Stale price ticks (> heartbeat limit) throw \`StalePriceFeedException\` and halt liquidations.
+- Batch liquidations execute atomically without leaving partial balances on error.
+- Deterministic telemetry state hash is emitted and verifiable across sequential simulation steps.`,
+    technicalInvariants: [
+      "Health factors and collateral ratios must be calculated using integer Wad fixed-point arithmetic (10^18 precision) or basis points (BPS); native floating-point division is forbidden.",
+      "Oracle price updates must validate timestamp freshness against HEARTBEAT_THRESHOLD, throwing StalePriceFeedException on stale feeds.",
+      "Batch liquidation processing must be atomic with copy-on-write or rollback semantics, preventing corrupted protocol reserve balances.",
+      "Every simulation tick must compute and append a deterministic SHA-256 state root hash to the telemetry audit log.",
+    ],
+    starterSchemas: {
+      "risk-types.ts": `export const WAD = 10n ** 18n; // 18-decimal fixed point
+export const LIQUIDATION_THRESHOLD_BPS = 8000n; // 80.00%
+export const HEARTBEAT_THRESHOLD_SECONDS = 300; // 5 minutes
+
+export interface PriceTick {
+  asset: string;
+  priceWad: bigint; // in USD Wad
+  updatedAt: number; // unix timestamp seconds
+}
+
+export interface LoanPosition {
+  borrowerId: string;
+  collateralAsset: string;
+  collateralAmountWad: bigint;
+  debtAmountWad: bigint;
+  healthFactorWad: bigint;
+  isLiquidatable: boolean;
+}
+
+export interface ProtocolReserve {
+  asset: string;
+  totalCollateralWad: bigint;
+  totalDebtWad: bigint;
+}
+
+export interface SimulationResult {
+  tickNumber: number;
+  timestamp: number;
+  positions: LoanPosition[];
+  liquidatedCount: number;
+  stateRootHash: string;
+}`,
+    },
+    rubric: [
+      {
+        id: "aegis-req-1",
+        category: "PROBLEM_FRAMING",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Scopes fixed-point data types (Wad/Ray, BPS), oracle heartbeat limits, and liquidation invariants before requesting implementation code.",
+        successSignals: [
+          "Candidate confirms bigint / Wad 18-decimal representations for collateral and debt with the AI assistant.",
+          "Candidate explicitly establishes the oracle staleness boundary condition before implementing pricing logic.",
+        ],
+        failureModes: [
+          "Accepts standard JavaScript floating-point numbers without questioning financial rounding precision.",
+        ],
+      },
+      {
+        id: "aegis-req-2",
+        category: "TECHNICAL_APPROACH",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Implements decoupled, modular fixed-point calculation utilities, stale oracle guards, and atomic liquidation handlers.",
+        successSignals: [
+          "Creates dedicated pure helper functions for Wad multiplication and division (mulWad, divWad).",
+          "Separates oracle validation logic from account position state mutation.",
+        ],
+        failureModes: [
+          "Blends pricing math, validation, and in-place array mutation into an untestable monolithic function.",
+        ],
+      },
+      {
+        id: "aegis-req-3",
+        category: "AI_DIRECTION",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Directs the AI assistant in staged phases (Schema -> Fixed-Point Math Lib -> Oracle Freshness -> Liquidation Loop -> Hash Chain) with precise numerical constraints.",
+        successSignals: [
+          "Prompts the assistant with specific constraints on integer division order (multiply before divide) to prevent precision truncation.",
+          "Instructs AI to handle edge cases like zero debt or zero collateral safely.",
+        ],
+        failureModes: [
+          "Issues a generic prompt like 'build the DeFi lending risk engine' and commits uninspected output.",
+        ],
+      },
+      {
+        id: "aegis-req-4",
+        category: "CRITICAL_JUDGMENT",
+        weight: 20,
+        sfiaLevel: 2,
+        statement: "Catches and rejects planted AI traps: floating-point IEEE-754 division, unvalidated oracle staleness, and non-atomic cascade mutations.",
+        injectedTrap: "AI implements health factor using (collateral * price) / debt floats, ignores updatedAt staleness, and mutates protocol reserves in-place during batch loops.",
+        successSignals: [
+          "Catches floating-point division and directs AI to use fixed-point BigInt Wad math.",
+          "Catches missing staleness check and enforces StalePriceFeedException when elapsed time exceeds heartbeat.",
+          "Catches in-place mutation and enforces atomic snapshot rollback if a liquidation fails.",
+        ],
+        failureModes: [
+          "Allows floating-point rounding errors and unvalidated oracle feeds to reach production risk code.",
+        ],
+      },
+      {
+        id: "aegis-req-5",
+        category: "TRADEOFF_AWARENESS",
+        weight: 10,
+        sfiaLevel: 2,
+        statement: "Articulates computational tradeoffs of fixed-point integer math and gas/compute costs of cryptographic state verification.",
+        successSignals: [
+          "Explains why integer basis points prevent financial arbitrage and truncation vulnerabilities.",
+          "Compares sequential SHA-256 hash chains versus sparse Merkle tree generation for telemetry logging.",
+        ],
+        failureModes: [
+          "Dismisses floating point drift as negligible or claims precision loss does not affect protocol solvency.",
+        ],
+      },
+      {
+        id: "aegis-req-6",
+        category: "DOMAIN_FIT",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Adheres to peer-to-peer lending and decentralized protocol risk conventions (Health Factor thresholds, oracle heartbeats, bad debt prevention).",
+        successSignals: [
+          "Properly defines liquidation criteria (HF < 1.0) and correctly applies liquidation discount bonuses.",
+          "Guarantees that protocol reserves never drop below zero under cascade liquidations.",
+        ],
+        failureModes: [
+          "Treats liquidations as simple balance deductions without calculating bad-debt socialisation or collateral ratios.",
+        ],
+      },
+      {
+        id: "aegis-req-7",
+        category: "COMMUNICATION",
+        weight: 10,
+        sfiaLevel: 2,
+        statement: "Documents risk parameters, arithmetic assumptions, and audit invariants clearly for protocol governance and peer review.",
+        successSignals: [
+          "Provides clear inline documentation of Wad scaling factors, basis point math, and liquidation threshold formulas.",
+        ],
+        failureModes: [
+          "Leaves code undocumented with magic numbers and obscure arithmetic shifts.",
+        ],
+      },
+    ],
+    verification: {
+      status: "APPROVED",
+      badge: {
+        mentorId: "mentor-aegis-risk",
+        mentorName: "Lead Protocol Risk Architect, Aegis Risk Analytics",
+        verifiedAt: "2026-03-28T10:00:00Z",
+        auditScore: 20,
+        notes: "Outstanding DeFi protocol risk screening benchmark. Tests mathematical precision invariants, oracle latency validation, and atomic state rollback.",
+      },
+    },
+    metadata: {
+      createdAt: "2026-03-28T10:00:00Z",
+      usageCount: 41,
+    },
+  },
 ];
