@@ -187,3 +187,117 @@ describe("Integration: buildCognitiveSuites() with Planted Bugs", () => {
     expect(res.suiteB.flags.flaw_caught).toBe(true);
   });
 });
+
+describe("Domain-Aware Bug Archetypes", () => {
+  it("audits marketplace & subscription billing flaws correctly", () => {
+    const turns: TurnView[] = [
+      {
+        seq: 1,
+        role: "USER",
+        content: "We must ensure webhook idempotency with eventId deduplication so retries don't cause double-billing.",
+        filesWritten: [],
+        reasoning: null,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        seq: 2,
+        role: "USER",
+        content: "Calculate 10% Australian GST and proration in integer cents with Math.round to avoid float drift.",
+        filesWritten: [],
+        reasoning: null,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        seq: 3,
+        role: "USER",
+        content: "Return HTTP 500 on transient failures to trigger gateway retries, and emit traceId in SRE metrics.",
+        filesWritten: [],
+        reasoning: null,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+
+    const result = auditPlantedBugs(turns, {
+      "src/reconciler.ts": "export class SubscriptionWebhookReconciler { processedEventIds = new Set(); traceId = 'tr_1'; }",
+    });
+
+    expect(result.foundCount).toBe(3);
+    expect(result.summary).toContain("3/3 bugs found");
+    expect(result.summary).toContain("webhook idempotency, integer cent GST, and SRE error status semantics");
+  });
+
+  it("audits zero trust agent security gate flaws correctly", () => {
+    const turns: TurnView[] = [
+      {
+        seq: 1,
+        role: "USER",
+        content: "Enforce fail-closed default-deny: any unknown tool must throw SecurityPolicyViolationException.",
+        filesWritten: [],
+        reasoning: null,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        seq: 2,
+        role: "USER",
+        content: "Use path.resolve() to canonicalize the path and verify it stays inside the sandbox root jail to prevent traversal.",
+        filesWritten: [],
+        reasoning: null,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        seq: 3,
+        role: "USER",
+        content: "Build an append-only audit log with SHA-256 hash chain linking prevHash to entryHash.",
+        filesWritten: [],
+        reasoning: null,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+
+    const result = auditPlantedBugs(turns, {
+      "src/security-gate.ts": "export class AgentSecurityExecutionGate { defaultAction = 'DENY'; prevHash = '0'; }",
+    });
+
+    expect(result.foundCount).toBe(3);
+    expect(result.summary).toContain("3/3 bugs found");
+    expect(result.summary).toContain("fail-closed default-deny, canonical root jail, and tamper-evident hash chaining");
+  });
+
+  it("audits frontend canvas & graphics flaws correctly", () => {
+    const turns: TurnView[] = [
+      {
+        seq: 1,
+        role: "USER",
+        content: "Scale canvas dimensions with window.devicePixelRatio so Retina screens render crisp without blur.",
+        filesWritten: [],
+        reasoning: null,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        seq: 2,
+        role: "USER",
+        content: "Make sure to clean up the resize and mousemove listeners with removeEventListener in useEffect unmount.",
+        filesWritten: [],
+        reasoning: null,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        seq: 3,
+        role: "USER",
+        content: "Clamp dimensions with Math.max(0, width) to prevent bounding box underflow and NaN coordinates.",
+        filesWritten: [],
+        reasoning: null,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+
+    const result = auditPlantedBugs(turns, {
+      "src/canvas.ts": "export class CanvasRenderer { devicePixelRatio = 2; }",
+    });
+
+    expect(result.foundCount).toBe(3);
+    expect(result.summary).toContain("3/3 bugs found");
+    expect(result.summary).toContain("Retina DPR scaling, listener cleanup, and bounding box underflow");
+  });
+});
+

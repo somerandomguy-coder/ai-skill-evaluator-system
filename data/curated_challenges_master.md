@@ -1,109 +1,165 @@
-# Curated Benchmark Challenges & Dataset Master Plan (10 Exemplar Deep Challenges)
+# Curated Benchmark Challenges & Dataset Master Plan (100 Finest Challenges)
 
 > **Core Philosophy**: 100 gritty, highly authentic engineering briefs with real-world invariants beat 600 generic boilerplate JDs every day of the week.
-> Modeled after real industry mentors, judges, and real systems engineering problems.
+> Modeled after real industry mentors, judges, and real systems engineering problems across Australia and global tech leaders.
 
 ---
 
-## Progress Overview (Target: 10 Verified Exemplar Challenges)
+## 1. Dataset Overview
 
-| # | Challenge ID | Company / Entity | Domain & Core Invariant | Status |
-| :-: | :--- | :--- | :--- | :-: |
-| **0** | `verified-tgd-rts-sim` | **Total Game Development** | 20Hz deterministic tick loop, spatial hash grid, double-buffering | ✅ Implemented |
-| **1** | `verified-aegis-lending-risk` | **Aegis Risk Analytics** | WAD/RAY fixed-point math, oracle staleness threshold, atomic liquidation rollback | ✅ Implemented |
-| **2** | `verified-apex-subscription-billing` | **Apex Marketplace Infrastructure** | Idempotency guard on retries, integer cent GST math, resilient state machine & SRE metrics | ✅ Implemented |
-| **3** | `verified-aegis-agent-security-gate` | **Aegis Cloud Defense** | Fail-closed default-deny proxy, path traversal canonicalization, tamper-evident hash-chain audit log | ✅ Implemented |
-| **4** | *(Pending Persona #5)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **5** | *(Pending Persona #6)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **6** | *(Pending Persona #7)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **7** | *(Pending Persona #8)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **8** | *(Pending Persona #9)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **9** | *(Pending Persona #10)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-| **10** | *(Pending Persona #11)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
-
----
-
-## Detailed Specifications
-
-### Challenge #1: Aegis Risk Analytics — `P2PLendingRiskEngine`
-- **Company**: Aegis Risk Analytics (Sydney, NSW)
-- **Role**: Junior Protocol Risk & Verifiable Telemetry Engineer
-- **SFIA 9 Level**: Level 2 (Assist) / Level 3 (Apply) — `PROG`, `DESN`, `TEST`
-- **Target Persona**: Joseph (DeFi protocol risk, lending markets, verifiable cryptographic state)
-
-#### Problem Statement
-Aegis Risk Analytics builds real-time monitoring infrastructure and simulation engines for decentralized peer-to-peer lending markets. In volatile market conditions, naive liquidation engines fail catastrophically due to floating-point rounding errors, stale oracle prices, and partial state corruption during liquidation cascades. Candidates build the `P2PLendingRiskEngine` to compute real-time Loan Health Factors ($HF$), detect liquidation insolvency, enforce atomic batch liquidations, and compute verifiable telemetry hashes.
-
-#### Non-Negotiable Technical Invariants
-1. **Fixed-Point Arithmetic (Wad/Ray / BPS)**: All collateral ratios, debt accruals, and health factors must be calculated using 18-decimal fixed-point (`WAD = 10^18`) or integer basis points (`1 BPS = 0.01%`). Floating-point (`number`) division is strictly forbidden.
-2. **Oracle Staleness & Grace-Period Guard**: Oracle feeds must be timestamp-checked. If `currentTime - updatedAt > HEARTBEAT_THRESHOLD`, the feed is stale; the engine must throw `StalePriceFeedException` and freeze liquidation execution.
-3. **Atomic Liquidation Cascades**: In batch liquidations, account state mutations and protocol collateral reserves must follow transactional semantics (copy-on-write snapshot). If an intermediate liquidation fails or invalidates pool solvency, the entire batch must rollback.
-4. **Verifiable Telemetry Hash Chain**: Every processed block/tick must emit a deterministic SHA-256 state commitment over all updated loan positions and reserves.
-
-#### Injected Canary Traps (What Discerning Engineers Catch)
-- **Canary Trap 1: Floating-Point Division Precision Loss**: AI completions will generate naive JavaScript arithmetic: `const healthFactor = (collateralAmount * price) / debtAmount`. Discerning candidates reject this and refactor to fixed-point integer math (`mulWad` / `divWad`).
-- **Canary Trap 2: Missing Oracle Staleness Validation**: AI will consume `{ asset, price, updatedAt }` without validating elapsed time against `HEARTBEAT_THRESHOLD`. Discerning candidates enforce timestamp validation.
-- **Canary Trap 3: In-Place Mutation During Cascade**: AI batch liquidations mutate array balances in-place. If borrower #3 fails, balances are corrupted. Discerning candidates enforce atomicity / snapshot rollback.
+- **Total Curated Challenges**: **100** distinct production-grade engineering challenges.
+- **Total Requirements**: **700** SFIA 9 & Evidence-Centered Design (ECD) calibrated criteria.
+- **Requirements per Challenge**: Exactly **7** categories per challenge:
+  1. `PROBLEM_FRAMING` (weight: 15)
+  2. `TECHNICAL_APPROACH` (weight: 15)
+  3. `AI_DIRECTION` (weight: 15)
+  4. `CRITICAL_JUDGMENT` (weight: 20, containing an authentic `injectedTrap`)
+  5. `TRADEOFF_AWARENESS` (weight: 10)
+  6. `DOMAIN_FIT` (weight: 15)
+  7. `COMMUNICATION` (weight: 10)
+- **Data Export Files**:
+  - [`data-export/requirements-dataset.json`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/requirements-dataset.json)
+  - [`data-export/requirements-dataset.csv`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/requirements-dataset.csv)
+- **Quality Standard**:
+  - 100% of challenges have realistic, non-generic problem briefs.
+  - 100% of CRITICAL_JUDGMENT criteria have non-empty, domain-authentic `injectedTrap` definitions.
+  - 100% of requirements have >= 2 concrete `successSignals` and >= 1 concrete `failureModes`.
+  - Zero empty strings or generic placeholder boilerplate.
 
 ---
 
-### Challenge #0: Total Game Development — `DeterministicUnitSimulationEngine`
-- **Company**: Total Game Development (Melbourne, VIC)
-- **Role**: Junior AI & Simulation Systems Developer (Web / RTS)
-- **SFIA 9 Level**: Level 2 (Assist) — `PROG`, `DESN`, `TEST`
+## 2. Creative Real-World Bug Archetypes Matrix
 
-#### Problem Statement
-In networked/deterministic simulations, variable frame delta times cause desynchronization across client frames. Candidates build an entity manager executing a fixed 20Hz (50ms) simulation tick, updating unit positions on a 2D grid, managing state transitions (`IDLE`, `MOVING`, `ATTACKING`), and decoupling state updates from rendering.
+Implemented dynamically in [`src/lib/engine/planted-bugs.ts`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/src/lib/engine/planted-bugs.ts):
 
-#### Non-Negotiable Technical Invariants
-1. **Fixed 20Hz Tick Rate (50ms)**: Inside a fixed-step accumulator (`accumulator += dt; while (accumulator >= 50ms)`).
-2. **Spatial Partitioning Grid**: Proximity and range queries must not use $O(N^2)$ all-pairs comparisons; must use a spatial hash grid.
-3. **Double-Buffering & State Isolation**: In-loop coordinate mutations forbidden; state updates are double-buffered.
-4. **Decoupled Rendering**: Animation loop (`requestAnimationFrame`) interpolates from the latest tick snapshot.
-
-### Challenge #2: Apex Marketplace Infrastructure — `SubscriptionWebhookReconciler`
-- **Company**: Apex Marketplace Infrastructure (Sydney, NSW)
-- **Role**: Junior Full-Stack Integration & Billing Engineer
-- **SFIA 9 Level**: Level 2 (Assist) / Level 3 (Apply) — `PROG`, `DESN`, `TEST`
-- **Target Persona**: David Nguyen (Marketplace platforms, subscription billing systems, cloud-native reliability, SRE)
-
-#### Problem Statement
-Apex Marketplace Infrastructure powers core listing monetization, subscription billing, and merchant reconciliation for high-volume Australian digital marketplace platforms. In high-concurrency distributed systems, payment gateways retry failed or delayed webhooks, often delivering payloads out-of-order or multiple times. Candidates build the `SubscriptionWebhookReconciler` and an interactive status dashboard to ingest external payment webhook events (`SUBSCRIPTION_CREATED`, `PAYMENT_PROCESSED`, `PAYMENT_FAILED`, `PLAN_UPGRADED`), enforce strict idempotency, calculate GST and prorations in exact integer cents, manage subscription state transitions, and emit SRE observability telemetry.
-
-#### Non-Negotiable Technical Invariants
-1. **Idempotency Guard & Deduplication**: Webhook event processing must check `eventId` / `idempotency_key` within a persistent or transactionally safe store before executing state transitions or billing deductions. Re-delivered webhooks must return the cached processing receipt without re-billing or re-extending plan durations.
-2. **Integer Cent Financial Arithmetic & 10% Australian GST**: All monetary calculations, upgrade proration deltas, and 10% Australian GST must be computed in integer cents (`Math.round()` on cents). Raw IEEE-754 floating-point operations (e.g., `price * 0.1`) that produce floating precision drift are strictly forbidden.
-3. **Resilient State Machine Transitions**: Enforces valid lifecycle transitions: `PENDING` $\rightarrow$ `ACTIVE` $\rightarrow$ `PAST_DUE` $\rightarrow$ `CANCELLED`. Out-of-order events (e.g. `PAYMENT_PROCESSED` arriving before `SUBSCRIPTION_CREATED`) must be handled gracefully without corrupting account balances.
-4. **SRE Observability & Telemetry**: Differentiates transient errors (returning HTTP `500` to trigger gateway retry) from deterministic payload validation errors (`400`). Instruments structured logging with correlation IDs and emits real-time SLI/SLO metrics (`successRatePercent`, `duplicateDropCount`, `p95LatencyMs`).
-5. **Interactive Operational Dashboard**: An interactive visual interface in React displaying the live incoming event stream, subscription status badges, and SRE metric gauges for real-time evaluator inspection.
-
-#### Injected Canary Traps (What Discerning Engineers Catch)
-- **Canary Trap 1: Non-Idempotent Webhook Processing (Double-Billing on Retries)**: AI implementations process webhook payloads immediately without checking an `idempotency_key` or `eventId`. When network retries fire, the AI logic increments billing counters or extends plan durations twice. Discerning candidates catch this and enforce an Idempotency Guard.
-- **Canary Trap 2: Floating-Point Math on Proration & Australian GST**: AI calculates proration and 10% GST with raw JavaScript floating-point numbers (`price * 0.1`), causing precision drift (e.g., `$19.990000000000002`). Discerning candidates enforce integer cent arithmetic.
-- **Canary Trap 3: Silent Failure & Missing SRE Observability (Swallowed Exceptions)**: AI wraps webhook ingestion in a generic `try/catch` block that logs a vague `console.error` and returns HTTP `200 OK`, hiding transient database deadlocks from gateway retries and telemetry pipelines. Discerning candidates refactor error handling to return `500` on transient errors and emit correlation IDs.
-
-### Challenge #3: Aegis Cloud Defense — `AgentSecurityExecutionGate`
-- **Company**: Aegis Cloud Defense (Sydney / Hybrid)
-- **Role**: Junior Cloud Security & Agent Governance Engineer
-- **SFIA 9 Level**: Level 2 (Assist) / Level 3 (Apply) — `PROG`, `DESN`, `TEST`, `ITOP`
-- **Target Persona**: Peter Nguyen (Former Microsoft Cloud Security Architect, CISSP, U.S. Navy cyber intelligence leader, MentorME Project Aegis)
-
-#### Problem Statement
-Aegis Cloud Defense engineers enterprise Zero Trust control planes and runtime guardrails for autonomous AI systems. Uncontrolled agentic tools can lead to accidental or malicious remote code execution, file boundary escapes, and data exfiltration. Candidates build the `AgentSecurityExecutionGate` to sit between an AI coding agent and local OS/cloud tools (`readFile`, `writeFile`, `executeCommand`, `networkEgress`). The proxy validates payloads against an immutable policy manifest, enforces strict root-jail containment, escalates destructive actions for human approval, and commits every decision into an append-only, tamper-evident SHA-256 hash-chain audit log.
-
-#### Non-Negotiable Technical Invariants
-1. **Strict Fail-Closed (Default-Deny) Architecture**: Any unknown tool invocation, schema validation failure, missing policy rule, or parsing error must immediately throw `SecurityPolicyViolationException` and block execution. Fail-open fallback (`allowed: true`) is strictly forbidden.
-2. **Canonical Root-Jail Containment**: All file operations (`readFile`, `writeFile`) must resolve paths via `path.resolve()` and verify containment within the sandbox directory (`resolvedPath.startsWith(canonicalRoot + path.sep)`). Basic string prefix checks vulnerable to traversal (`../../etc/passwd`) are strictly forbidden.
-3. **Human-in-the-Loop Approval Escalation**: Destructive operations (`writeFile` overwrite, shell commands with mutation flags, `networkEgress`) must be intercepted with an `AWAITING_HUMAN_APPROVAL` state, requiring an explicit cryptographically verified approval token before execution.
-4. **Append-Only Tamper-Evident Audit Hash Chain**: Every intercepted action (allowed, blocked, or pending approval) must be logged with a UUID, ISO-8601 timestamp, actor hash, policy decision, and a SHA-256 hash chaining to the previous entry (`prevHash`), ensuring log integrity.
-5. **Interactive Security Console Monitor**: An interactive visual interface in React displaying the live tool interception feed, policy rule inspector, approval review modal, and real-time hash-chain integrity verification badge.
-
-#### Injected Canary Traps (What Discerning Engineers Catch)
-- **Canary Trap 1: Fail-Open Exception Handling (Default-Allow Vulnerability)**: AI defaults to `return { allowed: true }` inside a loose `catch` block or permits execution when an unknown tool is invoked. Discerning candidates spot the flaw and enforce a strict fail-closed (default-deny) policy.
-- **Canary Trap 2: Path Traversal & Unsanitized File Boundary Escapes**: AI validates file paths with basic string prefix checks (`path.startsWith("/workspace")`), failing to canonicalize and allowing relative `../../` traversal escapes. Discerning candidates enforce `path.resolve()` with canonical boundary assertions.
-- **Canary Trap 3: Mutable, Unverified Audit Telemetry (Log Tampering)**: AI records decisions into a plain mutable array or unformatted stdout via `console.log()` without timestamps, UUIDs, or integrity hashing. Discerning candidates demand an immutable, append-only audit trail with SHA-256 hash chaining.
+| Domain Archetype | Trap 1: Precision / Mathematical Drift | Trap 2: Security, Traversal & Privacy | Trap 3: State Mutation / Resilience |
+| :--- | :--- | :--- | :--- |
+| **FinTech & Statutory Systems** | **Float Currency Drift**: IEEE-754 floating-point division (`cents / 100`) causing rounding drift.<br>*(Fix: Wad/Ray 18-decimal or integer cents).* | **PII & TFN Data Leak**: Plaintext Tax File Numbers, account numbers, or user IDs in logs.<br>*(Fix: Identity masking / redaction).* | **Negative Underflow**: Missing validation for negative numbers `< 0`.<br>*(Fix: Defensive bounds clamp).* |
+| **Game & Simulation Engines** | **Floating-Point Tick Drift**: Frame-variable `dt` (`x += speed * dt`) causing desync.<br>*(Fix: 20Hz / 50ms fixed accumulator).* | **$O(N^2)$ Pairwise Distance**: Nested all-pairs distance comparison.<br>*(Fix: Spatial hash grid partitioning).* | **In-Loop State Mutation**: Mutating coordinates during active iteration.<br>*(Fix: Double-buffering / snapshots).* |
+| **Marketplace & Subscription Billing** | **Floating GST / Proration Drift**: Float multiplication (`price * 0.1`) causing currency drift.<br>*(Fix: Math.round integer cents).* | **Swallowed SRE Exceptions**: Catch block returning HTTP 200 OK without correlation ID.<br>*(Fix: Differentiate 500 retryable vs 400).* | **Non-Idempotent Retries**: Missing eventId deduplication causing double-billing.<br>*(Fix: Idempotency Key Guard).* |
+| **Zero Trust Security & Governance** | **Fail-Open Default-Allow**: Unhandled tools or schema parse errors default to allowed.<br>*(Fix: Strict fail-closed default-deny).* | **Path Traversal Escape**: Naive `path.startsWith()` allowing `../../etc/passwd`.<br>*(Fix: `path.resolve()` root-jail containment).* | **Mutable / Unhashed Audit Logs**: Plain `console.log()` without cryptographic chaining.<br>*(Fix: Append-only SHA-256 hash chain).* |
+| **High-Frequency Trading & Systems** | **Non-Deterministic Tie-Breakers**: Equal limit prices sorted with unstable sort.<br>*(Fix: Strict FIFO arrival time order).* | **Nanosecond Timestamp Rollover**: 32-bit truncation or non-monotonic clock steps.<br>*(Fix: 64-bit BigInt monotonic clock).* | **Concurrent Matching Race**: Unprotected shared order book memory access.<br>*(Fix: Atomic ring buffers / mutexes).* |
+| **Frontend Canvas & Interactive Graphics** | **High-DPI / Retina Blur**: Missing `window.devicePixelRatio` scaling causing blurry rendering.<br>*(Fix: DPR scaling & mouse offset math).* | **Uncleaned Window Listeners**: Event listeners attached without cleanup in `useEffect`.<br>*(Fix: Proper cleanup in return).* | **Bounding Box Underflow**: Layout dimensions `<= 0` causing `NaN` bounding boxes.<br>*(Fix: Defensive bounds clamp).* |
+| **Cloud SRE & Observability** | **Unbounded Metric Cardinality**: Raw dynamic user IDs in Prometheus metric labels.<br>*(Fix: Static enum label whitelist).* | **Trace Context Loss**: Trace headers (`traceparent`) dropped across async tasks.<br>*(Fix: W3C trace context propagation).* | **Unbounded Buffer Overflow**: Ingestion workers lacking backpressure under load.<br>*(Fix: Bounded ring buffer & drop policy).* |
 
 ---
 
-*(Slots #4 through #10 will be documented here immediately as you paste each profile/brainstorm).*
+## 3. Directory of 100 Curated Challenges
 
+### Cluster A: Mentor & Judge Verified Benchmarks (7)
+1. **Employment Hero** — Single Touch Payroll (STP) Phase 2 Disaggregation (`verified-stp2-engine`)
+2. **Macquarie / Up Bank** — Consumer Data Right (CDR) Consent Gateway (`verified-cdr-gateway`)
+3. **TalentAI** — Fair Hiring AI Resume Screener & Bias Filter (`verified-talentai-screener`)
+4. **Total Game Development** — Deterministic 20Hz RTS Simulation Engine (`verified-tgd-rts-sim`)
+5. **Aegis Risk Analytics** — P2P Lending Protocol Risk Engine & Telemetry Chain (`verified-aegis-lending-risk`)
+6. **Apex Marketplace Infrastructure** — Idempotent Subscription Webhook Reconciler (`verified-apex-subscription-billing`)
+7. **Aegis Cloud Defense** — Zero Trust Agent Execution Boundary Proxy (`verified-aegis-agent-security-gate`)
+
+### Cluster B: Real-World Industry Imported Challenges (50)
+8. **Canva** — Staff Frontend Engineer — Core Canvas (`challenge-imported-canva-01`)
+9. **Stripe** — Senior Backend Payments Engineer (`challenge-imported-stripe-02`)
+10. **Employment Hero** — Senior Full-Stack Engineer — Payroll Engine (`challenge-imported-employment-hero-03`)
+11. **Datadog** — Senior Cloud Infrastructure Engineer (`challenge-imported-datadog-04`)
+12. **Atlassian** — Senior Real-Time Collaborative Engineer (`challenge-imported-atlassian-05`)
+13. **Culture Amp** — Senior Applied AI & Privacy Engineer (`challenge-imported-culture-amp-06`)
+14. **SafetyCulture** — Senior Mobile Sync & Offline Systems Architect (`challenge-imported-safetyculture-07`)
+15. **Vercel** — Senior Edge Runtime & Serverless Architect (`challenge-imported-vercel-08`)
+16. **Finder** — Senior Open Banking & CDR Gateway Engineer (`challenge-imported-finder-09`)
+17. **Wise** — Senior FX Liquidity & Cross-Border Ledger Engineer (`challenge-imported-wise-10`)
+18. **Stake** — Front End Engineer (`challenge-imported-stake-11`)
+19. **Qantas** — Front-End Developer — Product Innovation Centre (`challenge-imported-qantas-12`)
+20. **Fetch** — Front-end Engineer (Craft & UI) (`challenge-imported-fetch-13`)
+21. **Luxury Escapes** — Frontend Engineer — Booking Platform (`challenge-imported-luxury-escapes-14`)
+22. **Fetch** — Senior Front-end Engineer (React) (`challenge-imported-fetch-15`)
+23. **Canva** — Senior Frontend Software Engineer — CMS Team (`challenge-imported-canva-16`)
+24. **Atlassian** — Senior Frontend Software Engineer — Cloud R&D (`challenge-imported-atlassian-17`)
+25. **Linear** — Design Engineer — Magic Team (`challenge-imported-linear-18`)
+26. **Mitti by SafetyCulture** — Frontend Platform Engineer / Architect (`challenge-imported-mitti-by-safetyculture-19`)
+27. **TikTok** — Frontend Engineer — TikTok LIVE Ecosystem (`challenge-imported-tiktok-20`)
+28. **Stealth FinTech** — Principal Backend Engineer — Payments Infrastructure (`challenge-imported-stealth-fintech-payments-infrastructure-21`)
+29. **Mitti by SafetyCulture** — Software Engineer II — Distributed Backend (`challenge-imported-mitti-by-safetyculture-22`)
+30. **Mitti by SafetyCulture** — Software Engineer II — Customer Identity (CIAM) (`challenge-imported-mitti-by-safetyculture-23`)
+31. **Propeller** — Backend Processing Pipeline Engineer (`challenge-imported-propeller-24`)
+32. **Global FinTech** — Senior Software Engineer — Backend FinTech (`challenge-imported-global-fintech-sydney-25`)
+33. **Stripe** — Senior Software Engineer — Financial Data Platform (`challenge-imported-stripe-26`)
+34. **Wise** — Senior Software Engineer — Business Onboarding (`challenge-imported-wise-27`)
+35. **Airwallex** — Senior Backend Engineer — Liquidity Platform (`challenge-imported-airwallex-28`)
+36. **Block** — Senior Software Engineer — Tax Engine (Cash App) (`challenge-imported-block-29`)
+37. **Macquarie Group** — Senior Software Engineer — Cybersecurity (`challenge-imported-macquarie-group-30`)
+38. **Rippling** — Senior Software Engineer — Global Payroll (`challenge-imported-rippling-31`)
+39. **Macquarie Group** — Senior Software Engineer — Payments Platform (`challenge-imported-macquarie-group-32`)
+40. **Employment Hero** — Intermediate Backend Engineer — Payroll OS (`challenge-imported-employment-hero-33`)
+41. **Xero** — Associate Engineer — Backend & Accounting Systems (`challenge-imported-xero-34`)
+42. **MYOB** — Senior Developer — Full-Stack (`challenge-imported-myob-35`)
+43. **MYOB** — Machine Learning Engineer — Financial AI (`challenge-imported-myob-36`)
+44. **Zip Co** — Director, Engineering — Merchant & Payments (`challenge-imported-zip-co-37`)
+45. **Stake** — Software Engineer — Core Investing Platform (`challenge-imported-stake-38`)
+46. **AWS** — Software Development Engineer — Internet Edge Service (`challenge-imported-amazon-web-services-aws-39`)
+47. **Anduril Industries** — Software Engineer — Autonomous Systems (`challenge-imported-anduril-industries-40`)
+48. **CFS** — Senior Azure Cloud & DevOps Engineer (`challenge-imported-investment-wealth-cloud-operations-41`)
+49. **CFS** — DevOps & Reliability Engineer — FirstChoice Platform (`challenge-imported-colonial-first-state-cfs-42`)
+50. **Macquarie Group** — Cloud Platform Engineer — Distributed Kubernetes (`challenge-imported-macquarie-group-43`)
+51. **AWS** — Systems Development Engineer — Sovereign Cloud & DNS (`challenge-imported-amazon-web-services-aws-44`)
+52. **Ericsson Australia** — Senior Cloud Infrastructure Integrator (`challenge-imported-ericsson-australia-45`)
+53. **Datadog** — Senior Software Engineer — Cloud Networks (`challenge-imported-datadog-46`)
+54. **Cloudflare** — Systems Software Engineer — Cloudflare Network Interconnect (`challenge-imported-cloudflare-47`)
+55. **Fastly** — Senior Cloud & Edge Solutions Engineer (`challenge-imported-fastly-48`)
+56. **AWS** — Dedicated Cloud Engineer — Region Reliability (`challenge-imported-amazon-web-services-aws-49`)
+57. **Nine Entertainment** — Senior Platform Engineer — Cloud Operations (`challenge-imported-nine-entertainment-technology-50`)
+
+### Cluster C: Premier Industry Systems & Architecture Challenges (43)
+58. **Supabase** — Postgres Realtime CDC & WebSocket Streamer (`challenge-supabase-realtime-cdc`)
+59. **Grafana Labs** — High-Throughput PromQL Range Query Stream Aggregator (`challenge-grafana-promql-streamer`)
+60. **HashiCorp** — Dynamic Secrets Lease Manager & Revocation Pipeline (`challenge-hashicorp-vault-lease`)
+61. **Tyro Payments** — Merchant EFTPOS Terminal Protocol & Settlement Switch (`challenge-tyro-pos-terminal`)
+62. **Afterpay** — Real-Time BNPL Fraud Velocity & Installment Risk Engine (`challenge-afterpay-fraud-velocity`)
+63. **Cochlear** — Low-Latency Polyphonic Filter Bank & Acoustic Processor (`challenge-cochlear-audio-dsp`)
+64. **ResMed** — CPAP Device Telemetry Ingestion & Compliance Analyzer (`challenge-resmed-apnea-telemetry`)
+65. **Jump Trading** — Nanosecond L2 Limit Order Book Matching Engine (`challenge-jump-trading-orderbook`)
+66. **Optiver** — Real-Time Volatility Surface Cubic Spline Interpolator (`challenge-optiver-volatility-spline`)
+67. **IMC Trading** — Statistical Arbitrage Execution Gateway & Tick Synchronizer (`challenge-imc-trading-etf-arb`)
+68. **Citadel Securities** — High-Throughput FIX Protocol Drop-Copy Streamer (`challenge-citadel-fix-gateway`)
+69. **Honeycomb.io** — High-Cardinality Distributed Trace Collector & Sampler (`challenge-honeycomb-tracer`)
+70. **Vercel** — Incremental Static Regeneration (ISR) Cache Revalidator (`challenge-vercel-isr-cache`)
+71. **Retool** — Sandboxed Iframe PostMessage Security Bridge (`challenge-retool-sandboxed-bridge`)
+72. **GitHub** — Reliable Webhook Delivery & Fanout Queue (`challenge-github-webhook-queue`)
+73. **GitLab** — Ephemeral Containerized Job Execution Orchestrator (`challenge-gitlab-ci-runner`)
+74. **Docker** — Container Cgroup Memory & OOM Event Watcher (`challenge-docker-cgroup-watcher`)
+75. **Elastic** — Distributed Inverted Index Sharding & Query Router (`challenge-elastic-index-sharder`)
+76. **Snowflake** — High-Throughput Columnar Parquet File Decoder (`challenge-snowflake-parquet-reader`)
+77. **Twilio** — WebRTC Adaptive Audio Jitter Buffer & Packet Reorderer (`challenge-twilio-webrtc-jitter`)
+78. **OpenAI** — Distributed Token Bucket Rate Limiter & Concurrency Gate (`challenge-openai-token-bucket`)
+79. **Anthropic** — KV-Cache Replay & Prompt Deduplication Proxy (`challenge-anthropic-prompt-cache`)
+80. **Stan** — 4K HLS Segment Transmuxer & Audio-Video Synchronizer (`challenge-stan-hls-transmuxer`)
+81. **Woolworths Digital** — Cold-Chain Grocery Delivery Vehicle Routing Solver (`challenge-woolworths-route-solver`)
+82. **Coles Technology** — Cold-Chain Refrigerator Sensor Ingestion & Alert Engine (`challenge-coles-iot-coldchain`)
+83. **Telstra Purple** — High-Concurrency MQTT Fleet Telemetry Broker (`challenge-telstra-mqtt-broker`)
+84. **Commonwealth Bank** — Real-Time PayID Resolution & ISO 20022 Message Router (`challenge-cba-payid-resolver`)
+85. **National Australia Bank** — CDR Consent Lifecycle & Data Access Revocation Switch (`challenge-nab-consent-revocation`)
+86. **Westpac Group** — High-Availability Card Authorization & Payment Switch (`challenge-westpac-payment-switch`)
+87. **Judo Bank** — SME Commercial Loan Cash Flow & Stress Test Simulator (`challenge-judo-bank-sme-risk`)
+88. **Canva** — Generative Vector Path Optimizer & SVG Sanitizer (`challenge-canva-magic-svg`)
+89. **Culture Amp** — Differential Privacy Noise Generator for Employee Surveys (`challenge-cultureamp-diff-privacy`)
+90. **Envato** — Dynamic Watermarking & Digital Asset Protection Engine (`challenge-envato-watermark-stamper`)
+91. **SafetyCulture** — Offline-First Inspection Audit State Synchronizer (`challenge-safetyculture-checklist-sync`)
+92. **Whispir** — Multi-Carrier Emergency SMS Notification Dispatcher (`challenge-whispir-emergency-relay`)
+93. **RedBalloon** — Experience Voucher Escrow & Fraud-Resistant Code Generator (`challenge-redballoon-voucher-escrow`)
+94. **Airtasker** — Peer-to-Peer Task Milestone Escrow Settlement Engine (`challenge-airtasker-milestone-escrow`)
+95. **Atlassian** — Real-Time Collaborative Document CRDT Vector Clock Engine (`challenge-atlassian-confluence-crdt`)
+96. **Miro** — Infinite Canvas QuadTree Spatial Indexer & Culling Engine (`challenge-miro-whiteboard-quadtree`)
+97. **Figma** — 2D Vector Path Boolean Union & Difference Clipper (`challenge-figma-boolean-clipper`)
+98. **Procreate** — WebGL Dual-Source Color Blending & Brush Shader (`challenge-procreate-webgl-shader`)
+99. **Ableton / RØDE** — Low-Latency Polyphonic Synthesizer Voice Allocator (`challenge-webaudio-polyphony`)
+100. **Linear** — Offline-First Distributed Sync Engine & Tombstone Manager (`challenge-linear-git-sync`)
+
+---
+
+## 4. Integrity Verification
+
+Every time `python3 scripts/build_curated_100.py` executes, it verifies:
+- Exactly 100 unique challenges.
+- Exactly 700 requirements across the 7 SFIA categories.
+- 100% non-empty `injectedTrap` strings for all CRITICAL_JUDGMENT criteria.
+- 100% of requirements have at least 2 distinct `successSignals`.
+- 100% of requirements have at least 1 distinct `failureModes`.
+- Zero empty strings or generic boilerplate copies.

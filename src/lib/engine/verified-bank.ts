@@ -849,6 +849,7 @@ export interface SimulationResult {
         statement: "Documents risk parameters, arithmetic assumptions, and audit invariants clearly for protocol governance and peer review.",
         successSignals: [
           "Provides clear inline documentation of Wad scaling factors, basis point math, and liquidation threshold formulas.",
+          "Structures risk engine audit logs and state commit events for telemetry verification.",
         ],
         failureModes: [
           "Leaves code undocumented with magic numbers and obscure arithmetic shifts.",
@@ -1073,6 +1074,7 @@ export interface SreMetricsSnapshot {
         statement: "Documents webhook API contracts, error recovery runbooks, and SRE telemetry metrics clearly for engineering and support teams.",
         successSignals: [
           "Provides clear docstrings explaining webhook retry semantics, HTTP status code contracts (200, 400, 409, 500), and SLI calculations.",
+          "Documents error recovery runbooks and subscription state transition invariants clearly for engineering handoff.",
         ],
         failureModes: [
           "Leaves webhook integration undocumented with unexplained status codes and silent failure behaviors.",
@@ -1294,6 +1296,7 @@ export interface ExecutionGateResult {
         statement: "Documents security policy syntax, error response codes, and audit verification procedures clearly for security operations (SecOps) and compliance auditors.",
         successSignals: [
           "Provides clear docstrings detailing policy evaluation logic, human approval escalation protocol, and cryptographic hash verification.",
+          "Writes structured error recovery runbooks for security operations and audit log verification.",
         ],
         failureModes: [
           "Leaves security policies undocumented or omits recovery steps for blocked requests.",
