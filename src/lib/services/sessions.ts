@@ -242,7 +242,8 @@ export async function sendMessage(input: {
         userId: session.userId,
         tags: ["workspace_chat"],
         metadata: { challengeTitle: session.challenge.title, turnSeq: userTurn.seq },
-      }
+      },
+      tier
     );
 
     // Whatever the model returned is checked before it is persisted: what we store is exactly what runs.
@@ -370,7 +371,8 @@ export async function sendMessageStream(
         userId: session.userId,
         tags: ["workspace_chat"],
         metadata: { challengeTitle: session.challenge.title, turnSeq: userTurn.seq },
-      }
+      },
+      tier
     );
 
     const { valid, rejected } = sanitizeWrites(reply.files, files);

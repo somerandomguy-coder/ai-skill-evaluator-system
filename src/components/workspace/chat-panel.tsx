@@ -430,67 +430,6 @@ export function ChatPanel({
           </div>
         ) : null}
 
-        {/* Peak Cool Interactive Mode Toggle: ASK vs BUILD (CODE) */}
-        <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
-          <div className="inline-flex items-center p-0.5 rounded-xl border border-border/80 bg-surface-container-low shadow-xs">
-            <button
-              type="button"
-              onClick={() => setUserMode("ASK")}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all select-none cursor-pointer",
-                userMode === "ASK"
-                  ? "bg-card text-sky-600 dark:text-sky-400 shadow-sm border border-border/70 font-semibold ring-1 ring-sky-500/20"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              )}
-              title="Ask Mode: Conceptual inquiries, explanations, clarifications. No file writes (30 max)."
-            >
-              <MessageSquare className="size-3.5 text-sky-500" />
-              <span>Ask Mode</span>
-              <span className={cn(
-                "tabular font-mono text-[10.5px] px-1.5 py-0.5 rounded-full",
-                userMode === "ASK" ? "bg-sky-500/15 text-sky-600 dark:text-sky-400 font-bold" : "bg-muted text-muted-foreground"
-              )}>
-                {Math.max(0, MAX_ASK_MESSAGES - askCount)} left
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setUserMode("CODE")}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all select-none cursor-pointer",
-                userMode === "CODE"
-                  ? "bg-signal text-white shadow-sm font-semibold ring-1 ring-signal/30"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              )}
-              title="Build Mode: Directly writes and modifies files in your codebase (20 max)."
-            >
-              <Code2 className="size-3.5 text-white" />
-              <span>Build Mode</span>
-              <span className={cn(
-                "tabular font-mono text-[10.5px] px-1.5 py-0.5 rounded-full",
-                userMode === "CODE" ? "bg-white/20 text-white font-bold" : "bg-muted text-muted-foreground"
-              )}>
-                {Math.max(0, MAX_CODE_MESSAGES - codeCount)} left
-              </span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {userMode === "ASK" ? (
-              <span className="text-[11px] font-mono text-muted-foreground hidden sm:flex items-center gap-1.5">
-                <span className="size-1.5 rounded-full bg-sky-500" />
-                Safe Q&amp;A · Files protected
-              </span>
-            ) : (
-              <span className="text-[11px] font-mono text-signal hidden sm:flex items-center gap-1.5 font-medium">
-                <span className="size-1.5 rounded-full bg-signal animate-pulse" />
-                Live Code Writes Active
-              </span>
-            )}
-          </div>
-        </div>
-
         <div className="scrollbar-none -mx-3 flex gap-1.5 overflow-x-auto px-3" role="group" aria-label="Prompt ideas">
           {PROMPT_SUGGESTIONS.map((suggestion) => (
             <button
@@ -510,9 +449,7 @@ export function ChatPanel({
             "group/composer rounded-2xl border bg-background transition-[border-color,box-shadow]",
             isCurrentTierCapReached
               ? "border-amber-500/30 bg-muted/30 opacity-80"
-              : userMode === "CODE"
-                ? "border-signal/30 focus-within:border-signal focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal)_18%,transparent)]"
-                : "border-input focus-within:border-sky-500/60 focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,rgb(14_165_233)_18%,transparent)]"
+              : "border-border/80 focus-within:border-foreground/30 focus-within:shadow-xs"
           )}
           onSubmit={(e) => {
             e.preventDefault();
@@ -554,37 +491,6 @@ export function ChatPanel({
             </div>
           )}
 
-          {draft.trim().length > 0 && (
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground px-3.5 pt-2">
-              <div className="flex items-center gap-1.5">
-                <span className="font-medium text-foreground/80">Mode:</span>
-                {userMode === "CODE" && autoDemoted ? (
-                  <span className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 font-semibold bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20 text-[10.5px]">
-                    <Sparkles className="size-3 text-sky-400" />
-                    Inquiry detected in Build mode · Auto-routed to <strong>Ask Mode</strong> (preserves your Build quota · {Math.max(0, MAX_ASK_MESSAGES - askCount)} Qs left)
-                  </span>
-                ) : userMode === "ASK" && detectedRawTier === "CODE" ? (
-                  <button
-                    type="button"
-                    onClick={() => setUserMode("CODE")}
-                    className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30 text-[10.5px] transition-colors cursor-pointer"
-                  >
-                    <Zap className="size-3 text-amber-500" />
-                    Coding intent detected · In Ask mode files are safe. <strong>Click to switch to ⚡ Build Mode</strong>
-                  </button>
-                ) : effectiveTier === "ASK" ? (
-                  <span className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 font-semibold bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20 text-[10.5px]">
-                    💬 Clarification / Q&amp;A (concise answer · {Math.max(0, MAX_ASK_MESSAGES - askCount)} left)
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-signal font-semibold bg-signal-soft px-1.5 py-0.5 rounded border border-signal/20 text-[10.5px]">
-                    ⚡ Coding &amp; Implementation (modifies files · {Math.max(0, MAX_CODE_MESSAGES - codeCount)} left)
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -598,7 +504,7 @@ export function ChatPanel({
             }}
             placeholder={
               isCurrentTierCapReached
-                ? `Limit reached for ${effectiveTier === "ASK" ? "questions (30/30)" : "coding (20/20)"} — switch to ${effectiveTier === "ASK" ? "coding tasks" : "questions"} or submit.`
+                ? `Limit reached for ${userMode === "ASK" ? "questions (30/30)" : "coding (20/20)"} — switch modes or submit.`
                 : userMode === "CODE"
                   ? "Describe what to code, fix, or build (AI will write and modify files)…"
                   : "Ask a question, clarify brief requirements, or explore design trade-offs…"
@@ -626,22 +532,66 @@ export function ChatPanel({
               </span>
             </div>
             <div className="flex items-center gap-2">
+              {/* Base44-style compact Plan/Build segmented pill toggle */}
+              <div
+                className="inline-flex items-center p-0.5 rounded-lg bg-muted/70 border border-border/50 text-[11.5px]"
+                role="tablist"
+                aria-label="Mode selector"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={userMode === "ASK"}
+                  onClick={() => setUserMode("ASK")}
+                  disabled={blocked}
+                  className={cn(
+                    "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all select-none cursor-pointer",
+                    userMode === "ASK"
+                      ? "bg-background text-foreground shadow-xs font-semibold border border-border/50"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  )}
+                  title={`Ask Mode: Conceptual inquiries, explanations, clarifications. No file writes (${Math.max(0, MAX_ASK_MESSAGES - askCount)} left).`}
+                >
+                  <MessageSquare className="size-3 text-sky-500" />
+                  <span>Ask</span>
+                </button>
+
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={userMode === "CODE"}
+                  onClick={() => setUserMode("CODE")}
+                  disabled={blocked}
+                  className={cn(
+                    "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all select-none cursor-pointer",
+                    userMode === "CODE"
+                      ? "bg-background text-foreground shadow-xs font-semibold border border-border/50"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  )}
+                  title={`Build Mode: Directly writes, updates, and implements code files in your workspace (${Math.max(0, MAX_CODE_MESSAGES - codeCount)} left).`}
+                >
+                  <Zap className={cn("size-3", userMode === "CODE" ? "text-amber-500 fill-amber-500/20" : "text-muted-foreground")} />
+                  <span>Build</span>
+                </button>
+              </div>
+
               <span className={cn("tabular font-mono text-[11px]", draft.length > MAX_CHARS ? "text-bad" : "text-muted-foreground", draft.length < MAX_CHARS * 0.8 && "invisible")}>
                 {draft.length}/{MAX_CHARS}
               </span>
+
               <Button
                 type="submit"
-                variant={effectiveTier === "CODE" ? "signal" : "outline"}
+                variant={userMode === "CODE" ? "signal" : "outline"}
                 size="sm"
                 disabled={!canSend}
                 className={cn(
-                  "rounded-lg gap-1.5 text-xs font-semibold px-3 transition-all",
-                  effectiveTier === "ASK" && "text-sky-600 dark:text-sky-400 border-sky-500/30 hover:bg-sky-500/10"
+                  "rounded-lg gap-1.5 text-xs font-semibold px-3 h-8 shadow-xs transition-all",
+                  userMode === "ASK" && "text-muted-foreground hover:text-foreground border-border hover:bg-muted/60"
                 )}
-                aria-label={effectiveTier === "CODE" ? "Build code" : "Send question"}
-                title={effectiveTier === "CODE" ? "Execute build (modifies files)" : "Ask question (files safe)"}
+                aria-label={userMode === "CODE" ? "Build code" : "Ask question"}
+                title={userMode === "CODE" ? "Build mode: Writes and modifies files" : "Ask mode: Conceptual Q&A, files are safe"}
               >
-                <span>{effectiveTier === "CODE" ? "Build" : "Ask"}</span>
+                <span>{userMode === "CODE" ? "Build" : "Ask"}</span>
                 <ArrowUp className="size-3.5" aria-hidden />
               </Button>
             </div>

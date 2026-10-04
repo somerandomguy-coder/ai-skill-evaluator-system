@@ -84,20 +84,25 @@ export async function buildAssistant(
   history: ChatMessage[],
   files: FileMap,
   challenge: ChallengeContext,
-  traceContext?: TraceContext
+  traceContext?: TraceContext,
+  tierOverride?: MessageTier
 ): Promise<AssistantTurn> {
   const last = history[history.length - 1];
   if (!last || last.role !== "user") throw new Error("buildAssistant needs a final user message to answer.");
 
+  const tier = tierOverride ?? routeMessageTier(last.content);
+
   if (isDemoMode()) {
-    return demoAssistantTurn(history.filter((m) => m.role === "assistant").length);
+    const turn = demoAssistantTurn(history.filter((m) => m.role === "assistant").length);
+    if (tier === "ASK") {
+      turn.files = [];
+    }
+    return turn;
   }
 
   // Earlier turns stay as-is (stable, cache-friendly); the current file state rides on the last user message.
   const messages = history.slice(0, -1).map((m) => ({ role: m.role, content: m.content }));
   messages.push({ role: "user", content: `${renderProjectFiles(files)}\n\n${last.content}` });
-
-  const tier = routeMessageTier(last.content);
 
   const { data } = await generateStructured({
     stage: "assistant",
@@ -154,12 +159,13 @@ export async function buildAssistantStream(
   files: FileMap,
   challenge: ChallengeContext,
   onEvent: (event: AssistantStreamEvent) => void,
-  traceContext?: TraceContext
+  traceContext?: TraceContext,
+  tierOverride?: MessageTier
 ): Promise<AssistantTurn> {
   const last = history[history.length - 1];
   if (!last || last.role !== "user") throw new Error("buildAssistant needs a final user message to answer.");
 
-  const tier = routeMessageTier(last.content);
+  const tier = tierOverride ?? routeMessageTier(last.content);
 
   if (isDemoMode()) {
     const turn = demoAssistantTurn(history.filter((m) => m.role === "assistant").length);

@@ -20,7 +20,7 @@ export function routeMessageTier(message: string): MessageTier {
 
   // Explicit coding intent patterns (code generation / modification):
   const codePatterns = [
-    /\b(write|create|code|implement|fix|refactor|generate|scaffold|build|patch|update|rewrite|modify|solve|debug)\b.*?\b(code|files?|functions?|class(es)?|methods?|components?|scripts?|tests?|endpoints?|apis?|bugs?|errors?|handlers?|logic|routes?|interfaces?|types?)\b/i,
+    /\b(write|create|code|implement|fix|refactor|generate|scaffold|build|patch|update|rewrite|modify|solve|debug)\b.*?\b(code|files?|functions?|class(es)?|methods?|components?|scripts?|tests?|endpoints?|apis?|bugs?|errors?|handlers?|logic|routes?|interfaces?|types?|everything|all|it|this|now|things|app|project|solution|system)\b/i,
     /\b(can you|please|help me)\s+(write|create|code|implement|fix|refactor|generate|scaffold|build|patch|add|update)\b/i,
     /\b(fix|solve|debug)\s+(the|this|my|that)?\s*(bug|issue|error|failure|test|typo)\b/i,
     /```[\s\S]*?```/, // candidate pasted code to work on
@@ -28,6 +28,9 @@ export function routeMessageTier(message: string): MessageTier {
     /\b(here is the code|here's my code|change this to|replace with)\b/i,
     /\b(commit|save to|write to)\b/i,
     /\b(make it pass|pass the tests|make the tests green)\b/i,
+    /\b(code\s+everything|build\s+everything|implement\s+things|write\s+the\s+files|write\s+files|write\s+code)\b/i,
+    /\b(start|proceed|ready|go ahead)\s+(to\s+)?(code|build|implement)\b/i,
+    /^(code|build|implement|write|fix|create|refactor)\b/i,
   ];
 
   for (const pattern of codePatterns) {
@@ -43,7 +46,6 @@ export function routeMessageTier(message: string): MessageTier {
     /\b(explain|clarify|elaborate|describe|tell me about|what is|how does|what do you think)\b/i,
     /\b(does this|is there|are there|should I|can I|do we need)\b/i,
     /\b(trade-off|tradeoff|pros and cons|difference between|versus|vs)\b/i,
-    /\b(boundary|invariant|statutory|requirement|sfia|rubric|brief)\b/i,
   ];
 
   for (const pattern of askPatterns) {
@@ -52,9 +54,13 @@ export function routeMessageTier(message: string): MessageTier {
     }
   }
 
-  // Ambiguity heuristic:
-  // Short questions or messages without imperative programming verbs default to ASK.
-  if (text.includes("?") || text.length < 120) {
+  // Pure questions with question marks default to ASK
+  if (text.includes("?") && !/\b(code|build|write|implement|fix|refactor)\b/i.test(text)) {
+    return "ASK";
+  }
+
+  // Casual short conversational greetings
+  if (/^(hi|hello|hey|thanks|thank you|cool|ok|okay|got it|understood)\b/i.test(text)) {
     return "ASK";
   }
 
@@ -64,17 +70,16 @@ export function routeMessageTier(message: string): MessageTier {
 /**
  * Resolves the effective message tier considering both the user's explicit mode toggle
  * and the intent router:
- * 1. If user is in "ASK" mode: stays strictly in "ASK" mode (user must explicitly click Build to generate code).
- * 2. If user is in "CODE" (Build) mode: if the message is detected as a question / inquiry,
- *    it auto-routes back to "ASK" to save the user's code quota! Otherwise remains "CODE".
+ * 1. If user is in "ASK" mode: stays strictly in "ASK" mode (safe mode, file writes disabled).
+ * 2. If user is in "CODE" (Build) mode: honors "CODE" mode so the user can build.
+ *    Only auto-demotes if the user types a pure conceptual question with no coding keywords.
  * 3. If no user mode is provided, defaults to routeMessageTier(message).
  */
 export function resolveEffectiveTier(
   message: string,
   userMode?: MessageTier
 ): { effectiveTier: MessageTier; reason: string; autoDemoted: boolean } {
-  const detected = routeMessageTier(message);
-
+  // 1. User explicitly selected Ask mode
   if (userMode === "ASK") {
     return {
       effectiveTier: "ASK",
@@ -83,14 +88,23 @@ export function resolveEffectiveTier(
     };
   }
 
+  // 2. User explicitly selected Build mode
   if (userMode === "CODE") {
-    if (detected === "ASK") {
+    // Only auto-demote if the candidate typed a pure informational question with zero build intent
+    // e.g., "What are the 5 ATO categories?" vs "Code everything, implement things please"
+    const trimmed = message.trim();
+    const isPureQuestion =
+      /^(what|why|how|who|where|when|which|can you explain|explain|clarify)\b/i.test(trimmed) &&
+      !/\b(code|build|write|implement|fix|refactor|create|make|generate)\b/i.test(trimmed);
+
+    if (isPureQuestion) {
       return {
         effectiveTier: "ASK",
         reason: "Inquiry detected in Build mode — auto-routed to Ask to preserve your Build quota",
         autoDemoted: true,
       };
     }
+
     return {
       effectiveTier: "CODE",
       reason: "Build mode active — code implementation enabled",
@@ -98,7 +112,8 @@ export function resolveEffectiveTier(
     };
   }
 
-  // Fallback if userMode not specified
+  // 3. Fallback if userMode not specified
+  const detected = routeMessageTier(message);
   return {
     effectiveTier: detected,
     reason: `Auto-routed by intent classifier to ${detected}`,

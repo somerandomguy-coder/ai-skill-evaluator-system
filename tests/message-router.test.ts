@@ -95,5 +95,21 @@ describe("Two-Tier Message Router & Quota System", () => {
       expect(res.autoDemoted).toBe(false);
       expect(res.reason).toContain("Build mode active");
     });
+
+    it("strictly preserves CODE mode for short imperative directives without auto-demotion", () => {
+      const commands = [
+        "code everything no mistake",
+        "code everything, implement things please. build",
+        "write the files",
+        "build",
+        "code everything",
+        "implement things",
+      ];
+      for (const cmd of commands) {
+        const res = resolveEffectiveTier(cmd, "CODE");
+        expect(res.effectiveTier).toBe("CODE");
+        expect(res.autoDemoted).toBe(false);
+      }
+    });
   });
 });
