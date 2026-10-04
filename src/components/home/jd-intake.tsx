@@ -185,81 +185,34 @@ Tips:
               className="block min-h-60 w-full resize-y sm:min-h-[19rem] bg-transparent px-5 py-4 font-mono text-[13px] leading-6 text-foreground outline-none placeholder:text-muted-foreground/70 sm:px-6"
             />
 
-            {/* AI Security & Quality Inspection Readout */}
-            {(inspecting || inspection) && (
+            {/* AI Security & Quality Notice — only displayed if an issue is detected */}
+            {inspection && (inspection.cheatingAttempt === "yes" || inspection.type === "not a job ad" || inspection.type === "too vague") && (
               <div
                 data-testid="jd-inspection-readout"
                 className={cn(
-                  "border-t px-5 py-3 transition-all text-xs font-mono select-text",
-                  inspection?.cheatingAttempt === "yes"
+                  "flex items-start gap-2.5 border-t px-5 py-3 text-xs transition-all",
+                  inspection.cheatingAttempt === "yes"
                     ? "border-red-500/40 bg-red-500/10 text-red-400"
-                    : inspection?.type === "not a job ad"
+                    : inspection.type === "not a job ad"
                     ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
-                    : inspection?.type === "too vague"
-                    ? "border-yellow-500/40 bg-yellow-500/10 text-yellow-300"
-                    : "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                    : "border-yellow-500/40 bg-yellow-500/10 text-yellow-300"
                 )}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    {inspecting ? (
-                      <LoaderCircle className="size-3.5 animate-spin text-muted-foreground" />
-                    ) : inspection?.cheatingAttempt === "yes" ? (
-                      <ShieldAlert className="size-4 text-red-500" />
-                    ) : inspection?.type === "good job ad" ? (
-                      <ShieldCheck className="size-4 text-emerald-400" />
-                    ) : (
-                      <TriangleAlert className="size-4 text-amber-400" />
-                    )}
-
-                    <span className="font-semibold uppercase tracking-wider text-[11px]">
-                      {inspecting
-                        ? "Auditing JD Quality & Security..."
-                        : inspection?.cheatingAttempt === "yes"
-                        ? "Security Alert · Prompt Injection / Cheating Detected"
-                        : inspection?.type === "good job ad"
-                        ? "Verified Job Description"
-                        : inspection?.type === "too vague"
-                        ? "Quality Notice · Too Vague"
-                        : "Invalid Submission · Not A Job Ad"}
-                    </span>
-                  </div>
-
-                  {inspection && !inspecting && (
-                    <div
-                      data-testid="jd-inspection-fixed-format"
-                      className="rounded bg-background/70 px-2 py-0.5 text-[11px] font-mono text-muted-foreground border border-border/50"
-                      title="Fixed format inspection result"
-                    >
-                      {inspection.formatted}
-                    </div>
-                  )}
-                </div>
-
-                {inspection && !inspecting && (
-                  <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4 font-mono text-[11px]">
-                    <div className="rounded bg-background/50 border border-border/40 p-2">
-                      <span className="block text-muted-foreground text-[10px] uppercase font-sans">type</span>
-                      <span className="font-semibold text-foreground">{inspection.type}</span>
-                    </div>
-                    <div className="rounded bg-background/50 border border-border/40 p-2">
-                      <span className="block text-muted-foreground text-[10px] uppercase font-sans">how sure</span>
-                      <span className="font-semibold text-foreground">{inspection.howSure}</span>
-                    </div>
-                    <div className="rounded bg-background/50 border border-border/40 p-2">
-                      <span className="block text-muted-foreground text-[10px] uppercase font-sans">cheating attempt</span>
-                      <span className={cn("font-semibold", inspection.cheatingAttempt === "yes" ? "text-red-400 font-bold" : "text-emerald-400")}>
-                        {inspection.cheatingAttempt}
-                      </span>
-                    </div>
-                    <div className="rounded bg-background/50 border border-border/40 p-2 col-span-2 sm:col-span-1">
-                      <span className="block text-muted-foreground text-[10px] uppercase font-sans">reason</span>
-                      <span className="truncate block text-foreground" title={inspection.reason}>
-                        {inspection.reason}
-                      </span>
-                    </div>
-                  </div>
+                {inspection.cheatingAttempt === "yes" ? (
+                  <ShieldAlert className="size-4 shrink-0 text-red-400 mt-0.5" />
+                ) : (
+                  <TriangleAlert className="size-4 shrink-0 text-amber-400 mt-0.5" />
                 )}
+                <div className="flex-1 min-w-0">
+                  <span className="font-semibold block text-[12px]">
+                    {inspection.cheatingAttempt === "yes"
+                      ? "Security Alert · Prompt Injection Detected"
+                      : inspection.type === "too vague"
+                      ? "Quality Notice · Job Description is Too Vague"
+                      : "Invalid Submission · Not A Tech Job Description"}
+                  </span>
+                  <p className="text-[11.5px] opacity-90 mt-0.5">{inspection.reason}</p>
+                </div>
               </div>
             )}
 
@@ -284,7 +237,16 @@ Tips:
                       ? "Prompt injection detected — submission blocked"
                       : "Please provide a valid tech job description"
                     : valid
-                    ? "Ready to generate"
+                    ? (
+                      <span>
+                        {inspection?.type === "good job ad" && (
+                          <span className="text-emerald-500 font-medium inline-flex items-center gap-1 mr-1">
+                            <ShieldCheck className="size-3.5 inline" /> Verified JD ·
+                          </span>
+                        )}
+                        Ready to generate
+                      </span>
+                    )
                     : text.length === 0
                     ? "Paste a job description to get started"
                     : needed > 0
