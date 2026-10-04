@@ -5,6 +5,7 @@ import type { TurnView } from "@/lib/data/types";
 import { formatMinutes } from "@/lib/format";
 import { highlightSegments } from "@/lib/quote";
 import { cn } from "@/lib/utils";
+import { AiMessageMarkdown } from "@/components/common/ai-message-markdown";
 import { useEvidence } from "./evidence-context";
 
 function Marked({ text, quote }: { text: string; quote?: string }) {
@@ -56,9 +57,13 @@ export function Transcript({ turns, className }: { turns: TurnView[]; className?
               <span className="tabular font-mono">#{t.seq}</span>
               <span className="tabular ml-auto font-mono">{offset < 1 ? "start" : `+${formatMinutes(offset)}`}</span>
             </div>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
-              <Marked text={t.content} quote={active ? target?.quote : undefined} />
-            </p>
+            {isUser || (active && target?.quote) ? (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                <Marked text={t.content} quote={active ? target?.quote : undefined} />
+              </p>
+            ) : (
+              <AiMessageMarkdown content={t.content} />
+            )}
             {t.filesWritten.length > 0 && (
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                 <span className="text-xs text-muted-foreground">wrote</span>

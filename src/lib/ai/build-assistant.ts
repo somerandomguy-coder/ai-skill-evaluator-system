@@ -20,6 +20,8 @@ import { demoAssistantTurn } from "./demo";
 import { ASSISTANT_SYSTEM, getAssistantSystemPrompt } from "./prompts/assistant";
 import { AssistantTurnSchema, type AssistantTurn } from "./schemas";
 
+import { routeMessageTier, type MessageTier } from "./message-router";
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -53,8 +55,23 @@ export function renderProjectFiles(files: FileMap): string {
   return `<project_files>\n${blocks.join("\n\n")}\n</project_files>`;
 }
 
-export function buildSystemPrompt(challenge: ChallengeContext): string {
-  return `${getAssistantSystemPrompt(challenge)}
+export function buildSystemPrompt(challenge: ChallengeContext, tier: MessageTier = "CODE"): string {
+  const tierPrompt =
+    tier === "ASK"
+      ? `\n\n<execution_mode tier="ASK">
+CRITICAL INSTRUCTION - CLARIFICATION MODE (CONVERSATIONAL / ASK TIER):
+- The candidate is asking a clarifying, conceptual, domain, or architectural question.
+- Your answer must be VERY SHORT, concise, and directly targeted to their specific question (around 2 to 4 sentences or concise bullet points).
+- Do NOT generate code implementations or write to files: the "files" array in your JSON response MUST be empty ([]).
+- Answer only what was asked without volunteering unsolicited full implementations.
+</execution_mode>`
+      : `\n\n<execution_mode tier="CODE">
+CRITICAL INSTRUCTION - CODING MODE (IMPLEMENTATION TIER):
+- The candidate wants code written, debugged, refactored, or implemented.
+- Explain your approach and architectural decisions, then output complete whole-file implementations in the "files" array.
+</execution_mode>`;
+
+  return `${getAssistantSystemPrompt(challenge)}${tierPrompt}
 
 <challenge title="${challenge.title}" timebox_minutes="${challenge.timeboxMinutes}">
 ${challenge.domainContext}
@@ -80,15 +97,20 @@ export async function buildAssistant(
   const messages = history.slice(0, -1).map((m) => ({ role: m.role, content: m.content }));
   messages.push({ role: "user", content: `${renderProjectFiles(files)}\n\n${last.content}` });
 
+  const tier = routeMessageTier(last.content);
+
   const { data } = await generateStructured({
     stage: "assistant",
-    system: buildSystemPrompt(challenge),
+    system: buildSystemPrompt(challenge, tier),
     messages,
     schema: AssistantTurnSchema,
-    maxTokens: 32_000,
+    maxTokens: tier === "ASK" ? 4_000 : 32_000,
     effort: "medium",
     traceContext,
   });
+  if (tier === "ASK") {
+    data.files = [];
+  }
   return data;
 }
 
@@ -137,8 +159,13 @@ export async function buildAssistantStream(
   const last = history[history.length - 1];
   if (!last || last.role !== "user") throw new Error("buildAssistant needs a final user message to answer.");
 
+  const tier = routeMessageTier(last.content);
+
   if (isDemoMode()) {
     const turn = demoAssistantTurn(history.filter((m) => m.role === "assistant").length);
+    if (tier === "ASK") {
+      turn.files = [];
+    }
     const words = turn.message.split(" ");
     for (let i = 0; i < words.length; i++) {
       onEvent({ type: "token", delta: (i === 0 ? "" : " ") + words[i] });
@@ -159,10 +186,10 @@ export async function buildAssistantStream(
 
   const { data } = await generateStructured({
     stage: "assistant",
-    system: buildSystemPrompt(challenge),
+    system: buildSystemPrompt(challenge, tier),
     messages,
     schema: AssistantTurnSchema,
-    maxTokens: 32_000,
+    maxTokens: tier === "ASK" ? 4_000 : 32_000,
     effort: "medium",
     traceContext,
     onReasoning: (chunk) => {
@@ -176,12 +203,16 @@ export async function buildAssistantStream(
         lastEmittedLength = currentMessage.length;
         onEvent({ type: "token", delta });
       }
-      if (!statusEmitted && accumulatedJson.includes('"files"')) {
+      if (!statusEmitted && accumulatedJson.includes('"files"') && tier === "CODE") {
         statusEmitted = true;
         onEvent({ type: "status", message: "Generating project files..." });
       }
     },
   });
+
+  if (tier === "ASK") {
+    data.files = [];
+  }
 
   return data;
 }

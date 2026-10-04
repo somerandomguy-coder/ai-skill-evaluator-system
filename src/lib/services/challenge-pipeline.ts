@@ -10,6 +10,7 @@ import { DemoFixtureMissingError, isSeedJd } from "../ai/demo";
 import { generateChallenge } from "../ai/generate-challenge";
 import { generateRequirementBank } from "../ai/generate-requirements";
 import { InvalidJdError, parseJobDescription, validateJdText } from "../ai/parse-jd";
+import { inspectJobDescription } from "../ai/inspect-jd";
 import { RUBRIC_VERSION } from "../constants";
 import { prisma } from "../db";
 import { isDemoMode, isFastPipeline } from "../env";
@@ -200,6 +201,30 @@ export async function runChallengePipeline(
       emit({ type: "step", step: "read", status: "done" });
     }
     text = validateJdText(text);
+
+    // Security & quality inspection (detects prompt injections, vague JDs, and non-JD junk)
+    const inspection = await inspectJobDescription(text);
+    if (inspection.cheatingAttempt === "yes") {
+      emit({
+        type: "error",
+        message: `Security validation rejected: Prompt injection or cheating attempt detected (${inspection.reason}).`,
+      });
+      return;
+    }
+    if (inspection.type === "not a job ad") {
+      emit({
+        type: "error",
+        message: `Invalid input (${inspection.howSure} sure): ${inspection.reason}. Please paste a genuine software engineering job ad.`,
+      });
+      return;
+    }
+    if (inspection.type === "too vague") {
+      emit({
+        type: "error",
+        message: `Job description is too vague (${inspection.howSure} sure): ${inspection.reason}. Please provide more role details or skills.`,
+      });
+      return;
+    }
 
     trackEvent("jd_submitted", {
       userId: input.userId,

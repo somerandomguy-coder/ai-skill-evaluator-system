@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { resolveChallenge } from "@/lib/engine/resolver";
+import { inspectJobDescription } from "@/lib/ai/inspect-jd";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -30,6 +31,37 @@ export async function POST(request: Request) {
     }
 
     const { rawJd, companyName } = parsed.data;
+
+    // Security & quality check
+    const inspection = await inspectJobDescription(rawJd);
+    if (inspection.cheatingAttempt === "yes") {
+      return NextResponse.json(
+        {
+          error: `Security rejected: Prompt injection or cheating attempt detected (${inspection.reason}).`,
+          inspection,
+        },
+        { status: 400 }
+      );
+    }
+    if (inspection.type === "not a job ad") {
+      return NextResponse.json(
+        {
+          error: `Invalid input (${inspection.howSure} sure): ${inspection.reason}. Please paste a genuine tech job ad.`,
+          inspection,
+        },
+        { status: 400 }
+      );
+    }
+    if (inspection.type === "too vague") {
+      return NextResponse.json(
+        {
+          error: `Job description is too vague (${inspection.howSure} sure): ${inspection.reason}.`,
+          inspection,
+        },
+        { status: 400 }
+      );
+    }
+
     const result = await resolveChallenge(rawJd, companyName);
 
     return NextResponse.json(result, {

@@ -1,15 +1,21 @@
 "use client";
 
 import { ArrowUp, BookOpenText, ChevronRight, FileCode, ImageIcon, RotateCcw, Sparkles, TriangleAlert, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AiMessageMarkdown } from "@/components/common/ai-message-markdown";
 import type { TurnView } from "@/lib/data/types";
 import { useNowSeconds } from "@/lib/hooks/use-now";
 import { cn } from "@/lib/utils";
+import {
+  routeMessageTier,
+  countTurnsByTier,
+  MAX_ASK_MESSAGES,
+  MAX_CODE_MESSAGES,
+} from "@/lib/ai/message-router";
 
 const MAX_CHARS = 8000;
-const MAX_MESSAGES = 25;
 
 const PROMPT_SUGGESTIONS = [
   "Check edge case: respondents without comment text",
@@ -92,12 +98,9 @@ function StreamingAssistantMessage({
           </div>
         )}
 
-        {message ? (
+        {message && message.trim().length > 0 ? (
           <div className="rounded-2xl rounded-tl-md bg-surface-container px-3.5 py-2.5 text-[13.5px] leading-relaxed">
-            <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">
-              {message}
-              <span className="inline-block w-1.5 h-3.5 ml-0.5 bg-signal animate-pulse align-middle" />
-            </p>
+            <AiMessageMarkdown content={message} isStreaming />
           </div>
         ) : (
           <div className="flex items-center gap-2.5 rounded-2xl rounded-tl-md bg-surface-container px-3.5 py-2.5 text-[13px] text-muted-foreground">
@@ -139,7 +142,7 @@ function AssistantMessage({ turn, notes, onOpenFile }: { turn: TurnView; notes?:
       <AssistantAvatar />
       <div className="min-w-0 flex-1 space-y-2.5">
         <div className="rounded-2xl rounded-tl-md bg-surface-container px-3.5 py-2.5 text-[13.5px] leading-relaxed">
-          <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{turn.content}</p>
+          <AiMessageMarkdown content={turn.content} />
         </div>
 
         {turn.filesWritten.length > 0 && (
@@ -248,10 +251,21 @@ export function ChatPanel({
     reader.readAsDataURL(file);
   };
 
-  const sent = turns.filter((t) => t.role === "USER").length;
-  const isCapReached = sent >= MAX_MESSAGES;
-  const blocked = pending || (error?.retryable ?? false) || isCapReached;
-  const canSend = !isCapReached && (draft.trim().length > 0 || attachedImage !== null) && draft.length <= MAX_CHARS && !blocked;
+  const { askCount, codeCount, isAskCapReached, isCodeCapReached } = useMemo(
+    () => countTurnsByTier(turns),
+    [turns]
+  );
+
+  const detectedTier = useMemo(
+    () => (draft.trim() ? routeMessageTier(draft) : "ASK"),
+    [draft]
+  );
+
+  const isCurrentTierCapReached =
+    detectedTier === "ASK" ? isAskCapReached : isCodeCapReached;
+
+  const blocked = pending || (error?.retryable ?? false) || isCurrentTierCapReached;
+  const canSend = !isCurrentTierCapReached && (draft.trim().length > 0 || attachedImage !== null) && draft.length <= MAX_CHARS && !blocked;
 
   const isSendingRef = useRef(false);
 
@@ -274,7 +288,7 @@ export function ChatPanel({
     }
   }
 
-  const showStreamingBubble = pending && (Boolean(streamingMessage) || Boolean(streamingReasoning));
+  const showStreamingBubble = pending && (Boolean(streamingMessage && streamingMessage.trim().length > 0) || Boolean(streamingReasoning));
 
   return (
     <section id={id} className={cn("flex min-h-0 flex-col bg-card", className)} aria-label="Chat with the assistant">
@@ -284,37 +298,57 @@ export function ChatPanel({
           AI assistant
         </div>
         <div className="flex items-center gap-2">
+          {/* Ask Tier Pill (30 max) */}
           <span
             className={cn(
-              "tabular font-mono text-[11px] font-medium px-2 py-0.5 rounded-full border transition-colors",
-              isCapReached
+              "tabular font-mono text-[10.5px] font-medium px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1",
+              isAskCapReached
                 ? "bg-bad-soft text-bad border-bad/30"
-                : sent >= 20
+                : askCount >= 25
                   ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
                   : "bg-muted text-muted-foreground border-border"
             )}
-            title={isCapReached ? "Message limit reached" : `${MAX_MESSAGES - sent} messages remaining`}
+            title="Questions & Conceptual Clarification Quota (concise answers, 30 max)"
           >
-            {sent} / {MAX_MESSAGES} messages
+            <span>💬 Ask:</span>
+            <span className="font-bold">{askCount}</span>/{MAX_ASK_MESSAGES}
+          </span>
+
+          {/* Code Tier Pill (20 max) */}
+          <span
+            className={cn(
+              "tabular font-mono text-[10.5px] font-medium px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1",
+              isCodeCapReached
+                ? "bg-bad-soft text-bad border-bad/30"
+                : codeCount >= 15
+                  ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                  : "bg-muted text-muted-foreground border-border"
+            )}
+            title="Coding Implementation & File Modification Quota (20 max)"
+          >
+            <span>⚡ Code:</span>
+            <span className="font-bold">{codeCount}</span>/{MAX_CODE_MESSAGES}
           </span>
         </div>
       </div>
 
-      {/* Thin message budget progress bar */}
-      <div
-        className="h-1 w-full bg-muted/80 overflow-hidden shrink-0"
-        role="progressbar"
-        aria-valuenow={sent}
-        aria-valuemin={0}
-        aria-valuemax={MAX_MESSAGES}
-        aria-label="Message budget"
-      >
+      {/* Dual message budget progress bar */}
+      <div className="grid grid-cols-2 h-1 w-full bg-muted/80 overflow-hidden shrink-0 gap-px">
         <div
           className={cn(
             "h-full transition-all duration-300 ease-out",
-            isCapReached ? "bg-bad" : sent >= 20 ? "bg-amber-500" : "bg-signal"
+            isAskCapReached ? "bg-bad" : askCount >= 25 ? "bg-amber-500" : "bg-sky-500"
           )}
-          style={{ width: `${Math.min(100, (sent / MAX_MESSAGES) * 100)}%` }}
+          style={{ width: `${Math.min(100, (askCount / MAX_ASK_MESSAGES) * 100)}%` }}
+          title={`Ask budget: ${askCount}/${MAX_ASK_MESSAGES}`}
+        />
+        <div
+          className={cn(
+            "h-full transition-all duration-300 ease-out",
+            isCodeCapReached ? "bg-bad" : codeCount >= 15 ? "bg-amber-500" : "bg-signal"
+          )}
+          style={{ width: `${Math.min(100, (codeCount / MAX_CODE_MESSAGES) * 100)}%` }}
+          title={`Code budget: ${codeCount}/${MAX_CODE_MESSAGES}`}
         />
       </div>
 
@@ -370,15 +404,22 @@ export function ChatPanel({
       </div>
 
       <div className="shrink-0 space-y-2 border-t border-border p-3">
-        {/* Cap warning banner if 25 messages reached */}
-        {isCapReached && (
+        {/* Cap warning banner if quotas reached */}
+        {isAskCapReached && isCodeCapReached ? (
           <div className="flex items-center gap-2 rounded-xl border border-bad/30 bg-bad-soft px-3 py-2 text-xs text-bad">
             <TriangleAlert className="size-4 shrink-0" />
             <span>
-              <strong>Message limit reached (25/25):</strong> You have used all available assistant messages. Review your codebase in Preview / Files and submit your project when ready.
+              <strong>All message quotas reached ({MAX_ASK_MESSAGES} Qs, {MAX_CODE_MESSAGES} Code):</strong> You have used all available assistant messages. Review your codebase in Preview / Files and submit your project when ready.
             </span>
           </div>
-        )}
+        ) : isCurrentTierCapReached ? (
+          <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+            <TriangleAlert className="size-4 shrink-0" />
+            <span>
+              <strong>{detectedTier === "ASK" ? `Questions limit reached (${MAX_ASK_MESSAGES}/${MAX_ASK_MESSAGES})` : `Coding limit reached (${MAX_CODE_MESSAGES}/${MAX_CODE_MESSAGES})`}:</strong> Switch to {detectedTier === "ASK" ? `coding tasks (${MAX_CODE_MESSAGES - codeCount} left)` : `clarification questions (${MAX_ASK_MESSAGES - askCount} left)`}.
+            </span>
+          </div>
+        ) : null}
 
         <div className="scrollbar-none -mx-3 flex gap-1.5 overflow-x-auto px-3" role="group" aria-label="Prompt ideas">
           {PROMPT_SUGGESTIONS.map((suggestion) => (
@@ -397,8 +438,8 @@ export function ChatPanel({
         <form
           className={cn(
             "group/composer rounded-2xl border bg-background transition-[border-color,box-shadow]",
-            isCapReached
-              ? "border-bad/30 bg-muted/30 opacity-75"
+            isCurrentTierCapReached
+              ? "border-amber-500/30 bg-muted/30 opacity-80"
               : "border-input focus-within:border-signal focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal)_18%,transparent)]"
           )}
           onSubmit={(e) => {
@@ -441,6 +482,23 @@ export function ChatPanel({
             </div>
           )}
 
+          {draft.trim().length > 0 && (
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground px-3.5 pt-2">
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium text-foreground/80">Routing:</span>
+                {detectedTier === "ASK" ? (
+                  <span className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 font-semibold bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20 text-[10.5px]">
+                    💬 Clarification / Q&amp;A (concise answer · {Math.max(0, MAX_ASK_MESSAGES - askCount)} left)
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 text-[10.5px]">
+                    ⚡ Coding &amp; Implementation (modifies files · {Math.max(0, MAX_CODE_MESSAGES - codeCount)} left)
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -453,9 +511,9 @@ export function ChatPanel({
               }
             }}
             placeholder={
-              isCapReached
-                ? "Message limit reached (25/25) — please submit your project."
-                : "Ask for a plan, a check, an edge case…"
+              isCurrentTierCapReached
+                ? `Limit reached for ${detectedTier === "ASK" ? "questions (30/30)" : "coding (20/20)"} — switch to ${detectedTier === "ASK" ? "coding tasks" : "questions"} or submit.`
+                : "Ask for a plan, clarify requirements, or direct code implementation…"
             }
             aria-label="Message the assistant"
             disabled={blocked}

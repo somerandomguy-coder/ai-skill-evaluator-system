@@ -93,4 +93,37 @@ describe("Mentor Requirement Bounty System", () => {
     expect(result.reward.credits).toBe(35);
     expect(result.reward.badge).toBe("Quality Vigilance Award");
   });
+
+  it("strictly rejects duplicate verification attempts and prevents farming credits", () => {
+    const all = getBountyRequirements();
+    const candidateReq = all.items[3] || all.items[0];
+
+    const mentorId = "single_claim_mentor";
+    submitRequirementReview({
+      requirementId: candidateReq.id,
+      mentorId,
+      mentorName: "One Time Mentor",
+      action: "VERIFY",
+    });
+
+    // Second attempt by same mentor must throw
+    expect(() => {
+      submitRequirementReview({
+        requirementId: candidateReq.id,
+        mentorId,
+        mentorName: "One Time Mentor",
+        action: "VERIFY",
+      });
+    }).toThrow(/already submitted an audit/);
+
+    // Second attempt by another mentor after verification must throw
+    expect(() => {
+      submitRequirementReview({
+        requirementId: candidateReq.id,
+        mentorId: "second_mentor",
+        mentorName: "Second Mentor",
+        action: "VERIFY",
+      });
+    }).toThrow(/already been verified/);
+  });
 });

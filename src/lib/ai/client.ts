@@ -63,6 +63,7 @@ export interface StructuredRequest<T> {
   schema: z.ZodType<T>;
   maxTokens: number;
   effort?: Effort;
+  maxRetries?: number;
   traceContext?: TraceContext;
   onToken?: (chunk: string) => void;
   onReasoning?: (chunk: string) => void;
@@ -89,24 +90,106 @@ export function isJsonSchemaSupported(model: string): boolean {
   return true;
 }
 
-/** Safely extract a JSON substring from raw text or markdown fences. */
+/** Safely extract a JSON substring from raw text or markdown fences, stripping reasoning blocks. */
 export function extractJsonFromText(text: string): string {
-  const trimmed = text.trim();
-  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-  if (fenceMatch) {
-    return fenceMatch[1].trim();
+  let cleaned = text.trim();
+
+  // Strip reasoning / thinking tags (e.g. DeepSeek <think>...</think> or <reasoning>...</reasoning>)
+  cleaned = cleaned.replace(/<(?:think|reasoning)>[\s\S]*?<\/(?:think|reasoning)>/gi, "").trim();
+  // Strip unclosed <think> or <reasoning> tags (happens if output was cut off or mid-stream)
+  cleaned = cleaned.replace(/<(?:think|reasoning)>[\s\S]*$/gi, "").trim();
+
+  const fenceRegex = /```(?:json)?\s*([\s\S]*?)\s*```/gi;
+  const fenceMatches = Array.from(cleaned.matchAll(fenceRegex));
+  if (fenceMatches.length > 0) {
+    // Check from last to first for valid JSON block
+    for (let i = fenceMatches.length - 1; i >= 0; i--) {
+      const candidate = fenceMatches[i][1].trim();
+      if (
+        (candidate.startsWith("{") && candidate.endsWith("}")) ||
+        (candidate.startsWith("[") && candidate.endsWith("]"))
+      ) {
+        return candidate;
+      }
+    }
+    return fenceMatches[0][1].trim();
   }
-  const firstBrace = trimmed.indexOf("{");
-  const lastBrace = trimmed.lastIndexOf("}");
-  const firstBracket = trimmed.indexOf("[");
-  const lastBracket = trimmed.lastIndexOf("]");
+
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  const firstBracket = cleaned.indexOf("[");
+  const lastBracket = cleaned.lastIndexOf("]");
 
   if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
-    if (lastBrace > firstBrace) return trimmed.slice(firstBrace, lastBrace + 1);
+    if (lastBrace > firstBrace) return cleaned.slice(firstBrace, lastBrace + 1);
   } else if (firstBracket !== -1 && lastBracket > firstBracket) {
-    return trimmed.slice(firstBracket, lastBracket + 1);
+    return cleaned.slice(firstBracket, lastBracket + 1);
   }
-  return trimmed;
+  return cleaned;
+}
+
+/** Safely repair and parse a JSON string, handling trailing commas, smart quotes, etc. */
+export function safeParseJson(raw: string): unknown {
+  const extracted = extractJsonFromText(raw);
+  try {
+    return JSON.parse(extracted);
+  } catch (err1) {
+    // Attempt common LLM JSON repairs:
+    const repaired = extracted
+      // Replace smart quotes
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2018\u2019]/g, "'")
+      // Remove trailing commas before closing braces/brackets
+      .replace(/,\s*([}\]])/g, "$1")
+      // Remove trailing ellipsis or incomplete markers
+      .replace(/\.\.\.\s*$/, "");
+
+    try {
+      return JSON.parse(repaired);
+    } catch {
+      throw new SyntaxError(
+        `The output was not valid JSON: ${err1 instanceof Error ? err1.message : String(err1)}`
+      );
+    }
+  }
+}
+
+/**
+ * Validates parsed JSON against the target schema, with resilience for models that
+ * wrap valid responses inside common wrapper keys like "result", "data", "response", etc.
+ */
+export function parseWithSchema<T>(schema: z.ZodType<T>, rawJson: unknown): T {
+  const directResult = schema.safeParse(rawJson);
+  if (directResult.success) {
+    return directResult.data;
+  }
+
+  // If rawJson is an object, check if the expected payload is wrapped inside a container key
+  if (rawJson && typeof rawJson === "object" && !Array.isArray(rawJson)) {
+    const obj = rawJson as Record<string, unknown>;
+    const wrapperKeys = ["result", "data", "response", "output", "challenge", "evaluation", "report", "payload"];
+
+    for (const key of wrapperKeys) {
+      if (key in obj && obj[key] !== undefined) {
+        const unwrapped = schema.safeParse(obj[key]);
+        if (unwrapped.success) {
+          return unwrapped.data;
+        }
+      }
+    }
+
+    // Single-key wrapper check
+    const keys = Object.keys(obj);
+    if (keys.length === 1) {
+      const singleUnwrapped = schema.safeParse(obj[keys[0]]);
+      if (singleUnwrapped.success) {
+        return singleUnwrapped.data;
+      }
+    }
+  }
+
+  // If unwrapping didn't resolve it, throw the original direct error
+  throw directResult.error;
 }
 
 function getJsonSchemaPrompt(schema: z.ZodType<unknown>, name: string): string {
@@ -186,7 +269,7 @@ function validationIssue(err: unknown): string | null {
 function withFeedback(messages: ChatMessage[], issue: string): ChatMessage[] {
   const note =
     `\n\n[Your previous attempt failed schema validation:\n${issue}\n` +
-    `Return the complete response again, fixing exactly those problems.]`;
+    `Return the complete response again, fixing exactly those problems. Output raw JSON only with no markdown wrapping or trailing commas, and do not wrap in an outer container like "result" or "data".]`;
   const copy = messages.slice();
   const last = copy[copy.length - 1];
   if (last?.role === "user") copy[copy.length - 1] = { ...last, content: last.content + note };
@@ -218,9 +301,10 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
 
   let messages = req.messages;
   let lastIssue = "";
+  const maxAttempts = req.maxRetries != null ? Math.max(1, req.maxRetries + 1) : 2;
 
   try {
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         let parsedData: T;
         let completionModel: string;
@@ -246,9 +330,22 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
             throw new TruncatedOutputError(`The AI's answer was cut off at ${req.maxTokens} tokens (stage: ${req.stage}).`, "truncated");
           }
           if (choice.message.parsed == null) {
-            throw new InvalidOutputError(`The AI returned no structured output (stage: ${req.stage}).`, "no_output");
+            const rawContent = choice.message.content;
+            if (rawContent && rawContent.trim()) {
+              try {
+                parsedData = parseWithSchema(req.schema, safeParseJson(rawContent));
+              } catch (e) {
+                if (e instanceof Error && (e.name === "ZodError" || e instanceof SyntaxError)) {
+                  throw e;
+                }
+                throw new InvalidOutputError(`The AI returned no structured output (stage: ${req.stage}).`, "no_output");
+              }
+            } else {
+              throw new InvalidOutputError(`The AI returned no structured output (stage: ${req.stage}).`, "no_output");
+            }
+          } else {
+            parsedData = parseWithSchema(req.schema, choice.message.parsed);
           }
-          parsedData = choice.message.parsed as T;
           completionModel = completion.model;
           usage = {
             inputTokens: completion.usage?.prompt_tokens ?? 0,
@@ -324,12 +421,12 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
 
             let jsonParsed: unknown;
             try {
-              jsonParsed = JSON.parse(extractJsonFromText(rawContent));
+              jsonParsed = safeParseJson(rawContent);
             } catch (e) {
               throw new SyntaxError(`The output was not valid JSON: ${e instanceof Error ? e.message : String(e)}`);
             }
 
-            parsedData = req.schema.parse(jsonParsed);
+            parsedData = parseWithSchema(req.schema, jsonParsed);
             completionModel = model;
             const estimatedPromptTokens = Math.ceil(
               (req.system.length + messages.reduce((acc, m) => acc + (m.content?.length || 0), 0)) / 4
@@ -357,12 +454,12 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
 
             let jsonParsed: unknown;
             try {
-              jsonParsed = JSON.parse(extractJsonFromText(rawContent));
+              jsonParsed = safeParseJson(rawContent);
             } catch (e) {
               throw new SyntaxError(`The output was not valid JSON: ${e instanceof Error ? e.message : String(e)}`);
             }
 
-            parsedData = req.schema.parse(jsonParsed);
+            parsedData = parseWithSchema(req.schema, jsonParsed);
             completionModel = completion.model;
             usage = {
               inputTokens: completion.usage?.prompt_tokens ?? 0,
@@ -405,14 +502,14 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
           throw new ModelRefusalError("The AI declined this request. Try rewording the input, or reduce sensitive content.", "refusal");
         }
         const issue = validationIssue(err);
-        if (issue && attempt === 0) {
+        if (issue && attempt < maxAttempts - 1) {
           lastIssue = issue;
           messages = withFeedback(req.messages, issue);
           continue;
         }
         if (issue) {
           throw new InvalidOutputError(
-            `The AI's answer did not match the expected structure after a retry (stage: ${req.stage}). ${lastIssue}`,
+            `The AI's answer did not match the expected structure after ${attempt === 1 ? "a retry" : `${attempt} retries`} (stage: ${req.stage}). ${lastIssue}`,
             "invalid_output"
           );
         }

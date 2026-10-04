@@ -368,6 +368,14 @@ export function submitRequirementReview(params: {
     throw new Error(`Requirement ${params.requirementId} not found`);
   }
 
+  const existing = reviewsStore.get(req.id) || [];
+  if (existing.some((r) => r.mentorId === params.mentorId)) {
+    throw new Error(`You have already submitted an audit for requirement ${params.requirementId}.`);
+  }
+  if (existing.some((r) => r.action === "VERIFY")) {
+    throw new Error(`Requirement ${params.requirementId} has already been verified and credited.`);
+  }
+
   // Credit reward rules:
   // - Verify: 100% of bountyCredits (35 - 75 credits)
   // - Flag Bad: 35 credits (Defect curation bounty)
@@ -394,7 +402,6 @@ export function submitRequirementReview(params: {
     creditsEarned,
   };
 
-  const existing = reviewsStore.get(req.id) || [];
   existing.push(review);
   reviewsStore.set(req.id, existing);
   savePersistedReviews();

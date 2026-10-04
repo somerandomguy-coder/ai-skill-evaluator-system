@@ -1,11 +1,11 @@
 "use client";
 
-import { ArrowRight, CircleAlert, ClipboardPaste, FileText, LoaderCircle, Upload, X, Zap } from "lucide-react";
+import { ArrowRight, CircleAlert, ClipboardPaste, FileText, LoaderCircle, ShieldAlert, ShieldCheck, TriangleAlert, Upload, X, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { runPipeline } from "@/lib/client/api";
+import { runPipeline, inspectJobAd, type JdInspectionClientResult } from "@/lib/client/api";
 import { cn } from "@/lib/utils";
 import type { PipelineEvent } from "@/lib/pipeline-events";
 import { PIPELINE_STEPS, PipelineProgress, type ProgressStep } from "./pipeline-progress";
@@ -28,14 +28,41 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
   const [text, setText] = useState("");
   const [run, setRun] = useState<Run>({ status: "idle" });
   const [fastMode, setFastMode] = useState(false);
+  const [inspection, setInspection] = useState<JdInspectionClientResult | null>(null);
+  const [inspecting, setInspecting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const steps = useRef<ProgressStep[]>([]);
 
-  const valid = text.trim().length >= MIN_CHARS && text.length <= MAX_CHARS;
+  const isBlockedBySecurity = inspection?.cheatingAttempt === "yes" || inspection?.type === "not a job ad";
+  const valid = text.trim().length >= MIN_CHARS && text.length <= MAX_CHARS && !isBlockedBySecurity;
   const busy = run.status === "running";
+
+  useEffect(() => {
+    const trimmed = text.trim();
+    if (trimmed.length < 25) {
+      setInspection(null);
+      setInspecting(false);
+      return;
+    }
+
+    setInspecting(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await inspectJobAd(trimmed);
+        setInspection(res);
+      } catch (err) {
+        console.warn("Failed to inspect job ad:", err);
+      } finally {
+        setInspecting(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [text]);
 
   function handleClear() {
     setText("");
+    setInspection(null);
   }
 
   function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -158,23 +185,111 @@ Tips:
               className="block min-h-60 w-full resize-y sm:min-h-[19rem] bg-transparent px-5 py-4 font-mono text-[13px] leading-6 text-foreground outline-none placeholder:text-muted-foreground/70 sm:px-6"
             />
 
+            {/* AI Security & Quality Inspection Readout */}
+            {(inspecting || inspection) && (
+              <div
+                data-testid="jd-inspection-readout"
+                className={cn(
+                  "border-t px-5 py-3 transition-all text-xs font-mono select-text",
+                  inspection?.cheatingAttempt === "yes"
+                    ? "border-red-500/40 bg-red-500/10 text-red-400"
+                    : inspection?.type === "not a job ad"
+                    ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                    : inspection?.type === "too vague"
+                    ? "border-yellow-500/40 bg-yellow-500/10 text-yellow-300"
+                    : "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                )}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    {inspecting ? (
+                      <LoaderCircle className="size-3.5 animate-spin text-muted-foreground" />
+                    ) : inspection?.cheatingAttempt === "yes" ? (
+                      <ShieldAlert className="size-4 text-red-500" />
+                    ) : inspection?.type === "good job ad" ? (
+                      <ShieldCheck className="size-4 text-emerald-400" />
+                    ) : (
+                      <TriangleAlert className="size-4 text-amber-400" />
+                    )}
+
+                    <span className="font-semibold uppercase tracking-wider text-[11px]">
+                      {inspecting
+                        ? "Auditing JD Quality & Security..."
+                        : inspection?.cheatingAttempt === "yes"
+                        ? "Security Alert · Prompt Injection / Cheating Detected"
+                        : inspection?.type === "good job ad"
+                        ? "Verified Job Description"
+                        : inspection?.type === "too vague"
+                        ? "Quality Notice · Too Vague"
+                        : "Invalid Submission · Not A Job Ad"}
+                    </span>
+                  </div>
+
+                  {inspection && !inspecting && (
+                    <div
+                      data-testid="jd-inspection-fixed-format"
+                      className="rounded bg-background/70 px-2 py-0.5 text-[11px] font-mono text-muted-foreground border border-border/50"
+                      title="Fixed format inspection result"
+                    >
+                      {inspection.formatted}
+                    </div>
+                  )}
+                </div>
+
+                {inspection && !inspecting && (
+                  <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4 font-mono text-[11px]">
+                    <div className="rounded bg-background/50 border border-border/40 p-2">
+                      <span className="block text-muted-foreground text-[10px] uppercase font-sans">type</span>
+                      <span className="font-semibold text-foreground">{inspection.type}</span>
+                    </div>
+                    <div className="rounded bg-background/50 border border-border/40 p-2">
+                      <span className="block text-muted-foreground text-[10px] uppercase font-sans">how sure</span>
+                      <span className="font-semibold text-foreground">{inspection.howSure}</span>
+                    </div>
+                    <div className="rounded bg-background/50 border border-border/40 p-2">
+                      <span className="block text-muted-foreground text-[10px] uppercase font-sans">cheating attempt</span>
+                      <span className={cn("font-semibold", inspection.cheatingAttempt === "yes" ? "text-red-400 font-bold" : "text-emerald-400")}>
+                        {inspection.cheatingAttempt}
+                      </span>
+                    </div>
+                    <div className="rounded bg-background/50 border border-border/40 p-2 col-span-2 sm:col-span-1">
+                      <span className="block text-muted-foreground text-[10px] uppercase font-sans">reason</span>
+                      <span className="truncate block text-foreground" title={inspection.reason}>
+                        {inspection.reason}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-col gap-3 border-t border-border bg-surface-container-low px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:pl-5">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5" aria-live="polite">
                   <span
                     className={cn(
                       "size-1.5 rounded-full",
-                      valid ? "bg-ok" : text.length === 0 ? "bg-muted-foreground/40" : "bg-warn"
+                      isBlockedBySecurity
+                        ? "bg-bad"
+                        : valid
+                        ? "bg-ok"
+                        : text.length === 0
+                        ? "bg-muted-foreground/40"
+                        : "bg-warn"
                     )}
                     aria-hidden
                   />
-                  {valid
+                  {isBlockedBySecurity
+                    ? inspection?.cheatingAttempt === "yes"
+                      ? "Prompt injection detected — submission blocked"
+                      : "Please provide a valid tech job description"
+                    : valid
                     ? "Ready to generate"
                     : text.length === 0
-                      ? "Paste a job description to get started"
-                      : needed > 0
-                        ? `${needed} more characters (min ${MIN_CHARS})`
-                        : "Too long"}
+                    ? "Paste a job description to get started"
+                    : needed > 0
+                    ? `${needed} more characters (min ${MIN_CHARS})`
+                    : "Too long"}
                 </span>
                 <span className="tabular font-mono">
                   {text.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}
@@ -194,7 +309,7 @@ Tips:
 
               <Button
                 type="submit"
-                variant="signal"
+                variant={isBlockedBySecurity ? "destructive" : "signal"}
                 size="xl"
                 className="w-full sm:w-auto"
                 disabled={busy || !valid || (signedIn && !isCandidate)}
@@ -203,6 +318,11 @@ Tips:
                   <>
                     <LoaderCircle className="animate-spin" aria-hidden />
                     Generating…
+                  </>
+                ) : isBlockedBySecurity ? (
+                  <>
+                    <ShieldAlert className="size-4" aria-hidden />
+                    {inspection?.cheatingAttempt === "yes" ? "Security Blocked" : "Invalid Job Ad"}
                   </>
                 ) : (
                   <>

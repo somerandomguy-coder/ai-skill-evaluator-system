@@ -25,10 +25,12 @@ import { trackEvent, trackUserTurn } from "../ai/langfuse";
 import { getInMemoryChallenge } from "../data/mock";
 import { buildRoleStarterTemplate } from "../engine/starter-template";
 import { SEED_CHALLENGE } from "../fixtures/seed-challenge";
+import { routeMessageTier, countTurnsByTier, MAX_ASK_MESSAGES, MAX_CODE_MESSAGES } from "../ai/message-router";
 
 export const MAX_MESSAGE_CHARS = 8_000;
 export const MAX_TURNS = 200;
 export const MAX_USER_MESSAGES = 25;
+export { MAX_ASK_MESSAGES, MAX_CODE_MESSAGES };
 
 /** Starter template plus every turn's writes, in order. The same function rebuilds the final snapshot. */
 export function reconstructFiles(starter: FileMap, turns: Pick<ChatTurn, "filesWritten">[]): FileMap {
@@ -172,9 +174,23 @@ export async function sendMessage(input: {
   if (session.status !== "ACTIVE") throw new ServiceError("This session has already been submitted.", 409);
   if (session.turns.length >= MAX_TURNS) throw new ServiceError("This session has reached its message limit. Please submit.", 409);
 
-  const userTurnsCount = session.turns.filter((t) => t.role === "USER").length;
-  if (userTurnsCount >= MAX_USER_MESSAGES && !input.retry) {
-    throw new ServiceError(`You have reached the maximum limit of ${MAX_USER_MESSAGES} messages for this session. Please submit your work.`, 409);
+  const text = input.message.trim();
+  const tier = routeMessageTier(text);
+  const { askCount, codeCount } = countTurnsByTier(session.turns);
+
+  if (!input.retry) {
+    if (tier === "ASK" && askCount >= MAX_ASK_MESSAGES) {
+      throw new ServiceError(
+        `You have reached the limit of ${MAX_ASK_MESSAGES} questions/clarification messages for this session. You can still use your remaining coding messages (${codeCount}/${MAX_CODE_MESSAGES} used).`,
+        409
+      );
+    }
+    if (tier === "CODE" && codeCount >= MAX_CODE_MESSAGES) {
+      throw new ServiceError(
+        `You have reached the limit of ${MAX_CODE_MESSAGES} coding implementation messages for this session. You can still ask questions (${askCount}/${MAX_ASK_MESSAGES} used).`,
+        409
+      );
+    }
   }
 
   let turns = session.turns;
@@ -278,9 +294,23 @@ export async function sendMessageStream(
   if (session.status !== "ACTIVE") throw new ServiceError("This session has already been submitted.", 409);
   if (session.turns.length >= MAX_TURNS) throw new ServiceError("This session has reached its message limit. Please submit.", 409);
 
-  const userTurnsCount = session.turns.filter((t) => t.role === "USER").length;
-  if (userTurnsCount >= MAX_USER_MESSAGES && !input.retry) {
-    throw new ServiceError(`You have reached the maximum limit of ${MAX_USER_MESSAGES} messages for this session. Please submit your work.`, 409);
+  const text = input.message.trim();
+  const tier = routeMessageTier(text);
+  const { askCount, codeCount } = countTurnsByTier(session.turns);
+
+  if (!input.retry) {
+    if (tier === "ASK" && askCount >= MAX_ASK_MESSAGES) {
+      throw new ServiceError(
+        `You have reached the limit of ${MAX_ASK_MESSAGES} questions/clarification messages for this session. You can still use your remaining coding messages (${codeCount}/${MAX_CODE_MESSAGES} used).`,
+        409
+      );
+    }
+    if (tier === "CODE" && codeCount >= MAX_CODE_MESSAGES) {
+      throw new ServiceError(
+        `You have reached the limit of ${MAX_CODE_MESSAGES} coding implementation messages for this session. You can still ask questions (${askCount}/${MAX_ASK_MESSAGES} used).`,
+        409
+      );
+    }
   }
 
   let turns = session.turns;

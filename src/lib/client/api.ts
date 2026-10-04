@@ -49,6 +49,21 @@ export async function runPipeline(
   }
 }
 
+export interface JdInspectionClientResult {
+  type: "good job ad" | "too vague" | "not a job ad";
+  howSure: string;
+  reason: string;
+  cheatingAttempt: "yes" | "no";
+  formatted: string;
+}
+
+/** Pre-inspects a job description for validity, vagueness, and prompt injections */
+export async function inspectJobAd(rawJd: string): Promise<JdInspectionClientResult> {
+  const res = await post("/api/jd/inspect", { rawJd });
+  const data = await readJson<{ success: boolean; inspection: JdInspectionClientResult }>(res);
+  return data.inspection;
+}
+
 export interface ChatResponse {
   turns: TurnView[];
   writes: FileWrite[];

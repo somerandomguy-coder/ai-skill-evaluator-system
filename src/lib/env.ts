@@ -13,7 +13,7 @@ export function isFastPipeline(): boolean {
   return v === "true" || v === "1" || v === "yes";
 }
 
-export type AiStage = "parse" | "research" | "challenge" | "assistant" | "evaluator";
+export type AiStage = "parse" | "research" | "challenge" | "assistant" | "evaluator" | "inspect";
 
 export type AiProvider = "openai" | "deepseek" | "custom";
 

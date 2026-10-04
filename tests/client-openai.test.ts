@@ -199,4 +199,43 @@ describe("generateStructured (OpenAI)", () => {
     const fallback = requests[1] as { response_format: { type: string } };
     expect(fallback.response_format.type).toBe("json_object");
   });
+
+  it("recovers and strips DeepSeek reasoning tags with braces", async () => {
+    process.env.OPENAI_MODEL = "deepseek-chat";
+    queue = [
+      {
+        content: `<think>I should output: { "bad": 123 }</think>\`\`\`json\n${VALID}\n\`\`\``,
+      },
+    ];
+    const out = await req();
+    expect(out.data.message).toBe("Done.");
+  });
+
+  it("repairs trailing commas in JSON output", async () => {
+    process.env.OPENAI_MODEL = "deepseek-chat";
+    queue = [
+      {
+        content: `{"message": "Done.", "files": [{"path": "a.js", "contents": "x",},], "reasoning": "simple",}`,
+      },
+    ];
+    const out = await req();
+    expect(out.data.message).toBe("Done.");
+  });
+
+  it("automatically unwraps payloads nested in root wrapper objects like 'result' or 'data'", async () => {
+    process.env.OPENAI_MODEL = "deepseek-chat";
+    queue = [
+      {
+        content: JSON.stringify({
+          result: {
+            message: "Done.",
+            files: [{ path: "src/a.js", contents: "x" }],
+            reasoning: "simple",
+          },
+        }),
+      },
+    ];
+    const out = await req();
+    expect(out.data.message).toBe("Done.");
+  });
 });

@@ -152,11 +152,12 @@ export function RequirementBountyHub({
 
       const json = await res.json();
       if (json.success) {
-        // Update local item
-        setItems((prev) =>
-          prev.map((i) => (i.id === json.item.id ? json.item : i))
-        );
-        setSelectedReq(json.item);
+        // Remove audited requirement from pending bounties list so it cannot be re-audited
+        setItems((prev) => prev.filter((i) => i.id !== json.item.id));
+        setSelectedReq(null);
+        setMentorNotes("");
+        setDuplicateTarget("");
+
         if (json.updatedStats) {
           setStats(json.updatedStats);
         }
@@ -177,6 +178,8 @@ export function RequirementBountyHub({
         setTimeout(() => {
           setCelebrationToast(null);
         }, 4000);
+      } else {
+        alert(json.details || json.error || "This requirement has already been audited.");
       }
     } catch (err) {
       console.error("Review submission failed:", err);
@@ -574,7 +577,7 @@ export function RequirementBountyHub({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl animate-in fade-in duration-200 overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
         >
           <div className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-2xl transition-all sm:p-8 my-8 max-h-[92vh] flex flex-col">
             {/* Modal Header */}
@@ -959,10 +962,12 @@ export function RequirementBountyHub({
                 </Button>
                 <Button
                   onClick={handleReviewSubmit}
-                  disabled={submitting}
+                  disabled={submitting || selectedReq.status === "VERIFIED"}
                   className={cn(
                     "rounded-xl text-xs h-9 font-semibold text-white",
-                    actionTab === "VERIFY"
+                    selectedReq.status === "VERIFIED"
+                      ? "bg-muted text-muted-foreground cursor-not-allowed"
+                      : actionTab === "VERIFY"
                       ? "bg-emerald-600 hover:bg-emerald-500"
                       : actionTab === "FLAG_DUPLICATE"
                       ? "bg-purple-600 hover:bg-purple-500"
@@ -971,6 +976,8 @@ export function RequirementBountyHub({
                 >
                   {submitting ? (
                     "Recording..."
+                  ) : selectedReq.status === "VERIFIED" ? (
+                    "Already Verified & Stamped"
                   ) : actionTab === "VERIFY" ? (
                     `Verify & Stamp (+${selectedReq.bountyCredits} Credits)`
                   ) : actionTab === "FLAG_DUPLICATE" ? (
