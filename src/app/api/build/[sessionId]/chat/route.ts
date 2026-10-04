@@ -10,10 +10,11 @@ const Body = z.object({
   message: z.string().max(10_000).default(""),
   retry: z.boolean().optional(),
   stream: z.boolean().optional(),
+  mode: z.enum(["ASK", "CODE"]).optional(),
 });
 
 /**
- * POST { message, retry?, stream? } -> { turns, writes, notes } or SSE stream.
+ * POST { message, retry?, stream?, mode? } -> { turns, writes, notes } or SSE stream.
  * The server owns history and files; the client sends only its new message. The
  * message is saved before the model is called, so `retry: true` re-runs the
  * assistant for an unanswered message without duplicating it.
@@ -38,7 +39,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/build/[sess
       async start(controller) {
         try {
           await sendMessageStream(
-            { sessionId, userId: auth.user.id, message: parsed.body.message, retry: parsed.body.retry },
+            { sessionId, userId: auth.user.id, message: parsed.body.message, retry: parsed.body.retry, mode: parsed.body.mode },
             (event) => {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
             }
@@ -63,7 +64,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/build/[sess
   }
 
   try {
-    return json(await sendMessage({ sessionId, userId: auth.user.id, message: parsed.body.message, retry: parsed.body.retry }));
+    return json(await sendMessage({ sessionId, userId: auth.user.id, message: parsed.body.message, retry: parsed.body.retry, mode: parsed.body.mode }));
   } catch (err) {
     return errorResponse(err);
   }

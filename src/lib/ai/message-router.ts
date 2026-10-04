@@ -61,6 +61,51 @@ export function routeMessageTier(message: string): MessageTier {
   return "CODE";
 }
 
+/**
+ * Resolves the effective message tier considering both the user's explicit mode toggle
+ * and the intent router:
+ * 1. If user is in "ASK" mode: stays strictly in "ASK" mode (user must explicitly click Build to generate code).
+ * 2. If user is in "CODE" (Build) mode: if the message is detected as a question / inquiry,
+ *    it auto-routes back to "ASK" to save the user's code quota! Otherwise remains "CODE".
+ * 3. If no user mode is provided, defaults to routeMessageTier(message).
+ */
+export function resolveEffectiveTier(
+  message: string,
+  userMode?: MessageTier
+): { effectiveTier: MessageTier; reason: string; autoDemoted: boolean } {
+  const detected = routeMessageTier(message);
+
+  if (userMode === "ASK") {
+    return {
+      effectiveTier: "ASK",
+      reason: "User selected Ask mode (safe mode, file writes disabled)",
+      autoDemoted: false,
+    };
+  }
+
+  if (userMode === "CODE") {
+    if (detected === "ASK") {
+      return {
+        effectiveTier: "ASK",
+        reason: "Inquiry detected in Build mode — auto-routed to Ask to preserve your Build quota",
+        autoDemoted: true,
+      };
+    }
+    return {
+      effectiveTier: "CODE",
+      reason: "Build mode active — code implementation enabled",
+      autoDemoted: false,
+    };
+  }
+
+  // Fallback if userMode not specified
+  return {
+    effectiveTier: detected,
+    reason: `Auto-routed by intent classifier to ${detected}`,
+    autoDemoted: false,
+  };
+}
+
 export interface TierCounts {
   askCount: number;
   codeCount: number;

@@ -77,13 +77,16 @@ export type ChatStreamEvent =
   | { type: "done"; result: ChatResponse }
   | { type: "error"; message: string; retryable?: boolean };
 
-export async function sendChat(sessionId: string, body: { message: string; retry?: boolean }): Promise<ChatResponse> {
+export async function sendChat(
+  sessionId: string,
+  body: { message: string; retry?: boolean; mode?: "ASK" | "CODE" }
+): Promise<ChatResponse> {
   return readJson<ChatResponse>(await post(`/api/build/${sessionId}/chat`, body));
 }
 
 export async function sendChatStream(
   sessionId: string,
-  body: { message: string; retry?: boolean },
+  body: { message: string; retry?: boolean; mode?: "ASK" | "CODE" },
   onEvent: (event: ChatStreamEvent) => void
 ): Promise<ChatResponse> {
   const res = await fetch(`/api/build/${sessionId}/chat?stream=true`, {

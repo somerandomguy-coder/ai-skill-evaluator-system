@@ -25,7 +25,7 @@ import { trackEvent, trackUserTurn } from "../ai/langfuse";
 import { getInMemoryChallenge } from "../data/mock";
 import { buildRoleStarterTemplate } from "../engine/starter-template";
 import { SEED_CHALLENGE } from "../fixtures/seed-challenge";
-import { routeMessageTier, countTurnsByTier, MAX_ASK_MESSAGES, MAX_CODE_MESSAGES } from "../ai/message-router";
+import { routeMessageTier, resolveEffectiveTier, countTurnsByTier, MAX_ASK_MESSAGES, MAX_CODE_MESSAGES, type MessageTier } from "../ai/message-router";
 
 export const MAX_MESSAGE_CHARS = 8_000;
 export const MAX_TURNS = 200;
@@ -169,13 +169,14 @@ export async function sendMessage(input: {
   userId: string;
   message: string;
   retry?: boolean;
+  mode?: MessageTier;
 }): Promise<SendResult> {
   const session = await loadOwned(input.sessionId, input.userId);
   if (session.status !== "ACTIVE") throw new ServiceError("This session has already been submitted.", 409);
   if (session.turns.length >= MAX_TURNS) throw new ServiceError("This session has reached its message limit. Please submit.", 409);
 
   const text = input.message.trim();
-  const tier = routeMessageTier(text);
+  const { effectiveTier: tier } = resolveEffectiveTier(text, input.mode);
   const { askCount, codeCount } = countTurnsByTier(session.turns);
 
   if (!input.retry) {
@@ -287,6 +288,7 @@ export async function sendMessageStream(
     userId: string;
     message: string;
     retry?: boolean;
+    mode?: MessageTier;
   },
   onEvent: (event: ChatSessionStreamEvent) => void
 ): Promise<SendResult> {
@@ -295,8 +297,12 @@ export async function sendMessageStream(
   if (session.turns.length >= MAX_TURNS) throw new ServiceError("This session has reached its message limit. Please submit.", 409);
 
   const text = input.message.trim();
-  const tier = routeMessageTier(text);
+  const { effectiveTier: tier, autoDemoted } = resolveEffectiveTier(text, input.mode);
   const { askCount, codeCount } = countTurnsByTier(session.turns);
+
+  if (autoDemoted) {
+    onEvent({ type: "status", message: "Inquiry detected in Build mode — auto-routed to Ask to save your Build quota" });
+  }
 
   if (!input.retry) {
     if (tier === "ASK" && askCount >= MAX_ASK_MESSAGES) {

@@ -113,7 +113,7 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
 
   const fileList = useMemo(() => toFileList(files), [files]);
 
-  async function runChat(req: { message: string; retry?: boolean }, optimistic?: TurnView): Promise<boolean> {
+  async function runChat(req: { message: string; retry?: boolean; mode?: "ASK" | "CODE" }, optimistic?: TurnView): Promise<boolean> {
     setPending(true);
     setPendingSince(Date.now());
     setError(null);
@@ -162,13 +162,13 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
   const isSendingRef = useRef(false);
   const isSubmittingBuildRef = useRef(false);
 
-  function send(text: string) {
+  function send(text: string, mode?: "ASK" | "CODE") {
     if (pending || isSendingRef.current) return Promise.resolve(false);
     isSendingRef.current = true;
     const last = turnsRef.current[turnsRef.current.length - 1];
     const optimistic: TurnView = { seq: (last?.seq ?? 0) + 1, role: "USER", content: text, filesWritten: [], reasoning: null, createdAt: new Date().toISOString() };
     setTurns((prev) => [...prev, optimistic]);
-    return runChat({ message: text }, optimistic).finally(() => {
+    return runChat({ message: text, mode }, optimistic).finally(() => {
       setTimeout(() => {
         isSendingRef.current = false;
       }, 300);

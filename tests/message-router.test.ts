@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   routeMessageTier,
+  resolveEffectiveTier,
   countTurnsByTier,
   MAX_ASK_MESSAGES,
   MAX_CODE_MESSAGES,
@@ -70,6 +71,29 @@ describe("Two-Tier Message Router & Quota System", () => {
       expect(counts.askCount).toBe(30);
       expect(counts.isAskCapReached).toBe(true);
       expect(counts.isCodeCapReached).toBe(false);
+    });
+  });
+
+  describe("resolveEffectiveTier (Interactive Toggle & Auto-Demote)", () => {
+    it("stays in ASK mode when user selects ASK even if coding keywords are typed", () => {
+      const res = resolveEffectiveTier("Please implement src/engine.ts now", "ASK");
+      expect(res.effectiveTier).toBe("ASK");
+      expect(res.autoDemoted).toBe(false);
+      expect(res.reason).toContain("Ask mode");
+    });
+
+    it("auto-demotes to ASK mode when user is in CODE mode but asks a question", () => {
+      const res = resolveEffectiveTier("What are the 5 ATO disaggregation categories?", "CODE");
+      expect(res.effectiveTier).toBe("ASK");
+      expect(res.autoDemoted).toBe(true);
+      expect(res.reason).toContain("auto-routed to Ask");
+    });
+
+    it("executes in CODE mode when user is in CODE mode and gives coding directives", () => {
+      const res = resolveEffectiveTier("Implement the disaggregation logic for allowances in src/engine.ts", "CODE");
+      expect(res.effectiveTier).toBe("CODE");
+      expect(res.autoDemoted).toBe(false);
+      expect(res.reason).toContain("Build mode active");
     });
   });
 });
