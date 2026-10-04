@@ -16,6 +16,9 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:populate": "tsx scripts/populate-challenges.ts",
+    "db:sync-curated": "tsx scripts/sync-supabase.ts",
+    "dataset:build": "python3 scripts/build_curated_100.py",
+    "dataset:export": "tsx scripts/export-requirements.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
   },

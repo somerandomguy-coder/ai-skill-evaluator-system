@@ -18,8 +18,18 @@
   6. `DOMAIN_FIT` (weight: 15)
   7. `COMMUNICATION` (weight: 10)
 - **Data Export Files**:
-  - [`data-export/requirements-dataset.json`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/requirements-dataset.json)
-  - [`data-export/requirements-dataset.csv`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/requirements-dataset.csv)
+  - **100 Clean Requirements (Primary)**:
+    - [`data-export/requirements-dataset.json`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/requirements-dataset.json) (100 finest clean requirements, 1 per challenge)
+    - [`data-export/requirements-dataset.csv`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/requirements-dataset.csv) (101 lines: 1 header + 100 clean rows)
+    - [`data-export/requirements-100.json`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/requirements-100.json) & [`requirements-100.csv`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/requirements-100.csv)
+  - **Complete 700 SFIA Rubric Criteria**:
+    - [`data-export/requirements-dataset-all-700.json`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/requirements-dataset-all-700.json)
+    - [`data-export/requirements-dataset-all-700.csv`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/requirements-dataset-all-700.csv)
+  - **100 Benchmark Challenges (Complete Metadata & Starter Templates)**:
+    - [`data-export/challenges-dataset-100.json`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/data-export/challenges-dataset-100.json)
+- **Supabase Database Synchronization**:
+  - Script: [`scripts/sync-supabase.ts`](file:///home/nam/Documents/git-repos/active/ai-skill-evaluator-system/scripts/sync-supabase.ts) (`npm run db:sync-curated`)
+  - Status: 100/100 Challenges & 100/100 Clean Requirements synced to Supabase PostgreSQL database.
 - **Quality Standard**:
   - 100% of challenges have realistic, non-generic problem briefs.
   - 100% of CRITICAL_JUDGMENT criteria have non-empty, domain-authentic `injectedTrap` definitions.

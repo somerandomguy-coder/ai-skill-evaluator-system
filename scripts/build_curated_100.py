@@ -1259,14 +1259,32 @@ def build_curated_100():
     print(f"Total Requirements Generated: {len(dataset_records)} (Target: 700)")
     assert len(dataset_records) == 700, f"Expected 700 requirements, got {len(dataset_records)}"
     
-    # 4. Save JSON export
+    # 4. Extract the 100 Finest Clean Requirements (1 premier Critical Judgment & Planted Bug requirement per challenge)
+    finest_100_records = [
+        rec for rec in dataset_records 
+        if rec["category"] == "CRITICAL_JUDGMENT"
+    ]
+    assert len(finest_100_records) == 100, f"Expected 100 finest requirements, got {len(finest_100_records)}"
+    
+    # 5. Save Primary JSON exports (100 Clean Requirements)
     json_path = os.path.join(DATA_EXPORT_DIR, "requirements-dataset.json")
     with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(finest_100_records, f, indent=2)
+    print(f"Wrote 100-Clean JSON dataset to: {json_path} ({os.path.getsize(json_path)} bytes)")
+
+    json_100_path = os.path.join(DATA_EXPORT_DIR, "requirements-100.json")
+    with open(json_100_path, "w", encoding="utf-8") as f:
+        json.dump(finest_100_records, f, indent=2)
+
+    # 6. Save Full 700 Requirements JSON export
+    json_700_path = os.path.join(DATA_EXPORT_DIR, "requirements-dataset-all-700.json")
+    with open(json_700_path, "w", encoding="utf-8") as f:
         json.dump(dataset_records, f, indent=2)
-    print(f"Wrote JSON dataset to: {json_path} ({os.path.getsize(json_path)} bytes)")
-    
-    # 5. Save CSV export
+    print(f"Wrote Full 700-criteria JSON dataset to: {json_700_path}")
+
+    # 7. Save Primary CSV exports (1 header + 100 rows = 101 lines)
     csv_path = os.path.join(DATA_EXPORT_DIR, "requirements-dataset.csv")
+    csv_100_path = os.path.join(DATA_EXPORT_DIR, "requirements-100.csv")
     csv_headers = [
         "requirementId",
         "challengeId",
@@ -1282,7 +1300,30 @@ def build_curated_100():
         "failureModes"
     ]
     
-    with open(csv_path, "w", encoding="utf-8", newline="") as f:
+    for target_csv in [csv_path, csv_100_path]:
+        with open(target_csv, "w", encoding="utf-8", newline="") as f:
+            writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(csv_headers)
+            for rec in finest_100_records:
+                writer.writerow([
+                    rec["requirementId"],
+                    rec["challengeId"],
+                    rec["challengeTitle"],
+                    rec["employer"],
+                    rec["roleTitle"],
+                    rec["category"],
+                    rec["statement"],
+                    rec["weight"],
+                    rec["sfiaLevel"],
+                    rec["injectedTrap"] or "",
+                    " ".join(rec["successSignals"]),
+                    " ".join(rec["failureModes"])
+                ])
+        print(f"Wrote 100-Clean CSV dataset to: {target_csv} ({os.path.getsize(target_csv)} bytes)")
+
+    # 8. Save Full 700 CSV export (701 lines)
+    csv_700_path = os.path.join(DATA_EXPORT_DIR, "requirements-dataset-all-700.csv")
+    with open(csv_700_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
         writer.writerow(csv_headers)
         for rec in dataset_records:
@@ -1300,16 +1341,83 @@ def build_curated_100():
                 " ".join(rec["successSignals"]),
                 " ".join(rec["failureModes"])
             ])
-            
-    print(f"Wrote CSV dataset to: {csv_path} ({os.path.getsize(csv_path)} bytes)")
-    
+    print(f"Wrote Full 700-criteria CSV to: {csv_700_path}")
+
+    # 9. Save full 100 challenges dataset with rich metadata for Supabase sync
+    challenges_export = []
+    for ch in all_challenges:
+        brief_md = f"""# {ch['challengeTitle']}
+
+**Company:** {ch['employer']}  
+**Role:** {ch['roleTitle']}  
+**Domain:** {ch['domain']}  
+**Target SFIA Level:** SFIA 9 Level {ch['sfiaLevel']}  
+
+## Mission & Architecture Invariants
+As a member of the engineering team at {ch['employer']}, you will design, implement, and verify a mission-critical subsystem for the {ch['roleTitle']} workflow.
+
+### Planted Bug Archetype
+> [!WARNING]
+> Deliberate planted flaw: {ch['injectedTrap']}
+
+### Rubric & Evaluation Objectives
+Candidate must navigate the 7 SFIA 9 / ECD criteria:
+1. Problem Framing
+2. Technical Approach
+3. AI Direction
+4. Critical Judgment & Trap Rejection
+5. Tradeoff Awareness
+6. Domain Fit
+7. Technical Communication
+"""
+        starter_template = {
+            "package.json": json.dumps({
+                "name": ch["id"],
+                "version": "1.0.0",
+                "description": f"{ch['employer']} {ch['roleTitle']} work-sample assessment",
+                "main": "src/index.ts",
+                "scripts": {
+                    "test": "vitest run",
+                    "typecheck": "tsc --noEmit"
+                },
+                "devDependencies": {
+                    "typescript": "^5.8.2",
+                    "vitest": "^3.0.7"
+                }
+            }, indent=2),
+            "README.md": brief_md,
+            "src/index.ts": f"// {ch['employer']} — {ch['roleTitle']}\n// Implement domain-authentic solution adhering to stated invariants.\n\nexport function solve() {{\n  // TODO: implement\n}}\n",
+            "src/invariants.ts": f"// Technical invariants for {ch['challengeTitle']}\n// Canary trap to catch: {ch['injectedTrap']}\n"
+        }
+        
+        challenges_export.append({
+            "id": ch["id"],
+            "employer": ch["employer"],
+            "roleTitle": ch["roleTitle"],
+            "challengeTitle": ch["challengeTitle"],
+            "domain": ch["domain"],
+            "sfiaLevel": ch["sfiaLevel"],
+            "injectedTrap": ch["injectedTrap"],
+            "brief": brief_md,
+            "timeboxMinutes": 60,
+            "starterTemplate": starter_template,
+            "rubric": ch["requirements"],
+            "cleanRequirement": next(r for r in ch["requirements"] if r["category"] == "CRITICAL_JUDGMENT")
+        })
+
+    ch_json_path = os.path.join(DATA_EXPORT_DIR, "challenges-dataset-100.json")
+    with open(ch_json_path, "w", encoding="utf-8") as f:
+        json.dump(challenges_export, f, indent=2)
+    print(f"Wrote 100 Challenges JSON dataset to: {ch_json_path} ({os.path.getsize(ch_json_path)} bytes)")
+
     # Verification checks
     with open(csv_path, "r", encoding="utf-8") as f:
         reader = list(csv.reader(f))
-        print(f"CSV line count: {len(reader)} (1 header + {len(reader)-1} rows)")
-        assert len(reader) == 701, f"Expected 701 lines in CSV, got {len(reader)}"
+        print(f"Primary CSV line count: {len(reader)} (1 header + {len(reader)-1} rows)")
+        assert len(reader) == 101, f"Expected 101 lines in primary CSV, got {len(reader)}"
         
-    print("\n[SUCCESS] Curated 100 Benchmark Dataset successfully generated!")
+    print("\n[SUCCESS] Curated 100 Benchmark Dataset and 100-Clean Requirements successfully generated!")
 
 if __name__ == "__main__":
     build_curated_100()
+
