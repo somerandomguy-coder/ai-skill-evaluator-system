@@ -1094,5 +1094,227 @@ export interface SreMetricsSnapshot {
       usageCount: 38,
     },
   },
+  {
+    id: "verified-aegis-agent-security-gate",
+    tier: "TIER_1_VERIFIED",
+    companyName: "Aegis Cloud Defense",
+    roleTitle: "Junior Cloud Security & Agent Governance Engineer",
+    sfiaProfile: {
+      level: 2, // Assist / Apply Level 2-3
+      primarySkills: ["PROG", "DESN", "TEST", "ITOP"],
+      attributes: {
+        autonomy: "Works under security policy guidelines; escalates unclassified threats and novel agent escape vectors.",
+        influence: "Collaborates with platform security architects, compliance auditors, and AI engineering squads.",
+        complexity: "Analyzes non-deterministic agent tool requests, sandbox confinement escapes, and cryptographic audit chains.",
+        knowledge: "Applies sound principles of Zero Trust architecture, NIST cybersecurity controls, path canonicalization, and cryptographic integrity.",
+        businessSkills: "Demonstrates defensive mindset: prioritizing defense-in-depth, fail-closed boundaries, and tamper-evident auditability.",
+      },
+    },
+    briefMarkdown: `# Aegis Cloud Defense: Zero Trust Agent Execution Boundary Proxy
+
+## The Problem
+Aegis Cloud Defense engineers enterprise Zero Trust control planes and runtime guardrails for autonomous AI systems. Uncontrolled autonomous coding agents executing on host environments present critical security hazards: unintentional or malicious file destruction, unauthorized credential extraction via path traversal, arbitrary command execution, and silent exfiltration.
+
+You will build the \`AgentSecurityExecutionGate\` and an interactive security monitor console. The gate intercepts tool invocations (\`readFile\`, \`writeFile\`, \`executeCommand\`, \`networkEgress\`) from autonomous agents, validates parameters against a strict Zero Trust policy manifest, enforces canonical root-jail containment, escalates destructive actions for cryptographically verified human approval, and logs all events into an append-only, tamper-evident SHA-256 hash-chain audit log.
+
+## System Invariants & Core Requirements
+1. **Strict Fail-Closed (Default-Deny) Architecture**:
+   - Any unknown tool invocation, schema validation error, missing policy rule, or parsing error must immediately throw a \`SecurityPolicyViolationException\` and return \`decision: "BLOCKED"\`.
+   - Default-allow fallbacks (\`allowed: true\` on catch or unmatched cases) are strictly forbidden.
+2. **Canonical Root-Jail Containment**:
+   - All file paths (\`readFile\`, \`writeFile\`) must be canonicalized using \`path.resolve()\` and strictly verified against the sandbox root (\`resolvedPath.startsWith(sandboxRoot + path.sep)\`).
+   - Relative traversal escapes (e.g. \`../../etc/passwd\` or encoded dots) must be detected and blocked.
+3. **Human-in-the-Loop Approval Escalation**:
+   - High-risk operations (e.g. \`writeFile\` overwrites, dangerous shell commands, non-allowlisted \`networkEgress\`) must yield \`AWAITING_HUMAN_APPROVAL\`.
+   - Invocations proceed if and only if a valid cryptographically verifiable \`humanApprovalToken\` is supplied.
+4. **Append-Only Tamper-Evident Audit Hash Chain**:
+   - Every interception (ALLOWED, BLOCKED, AWAITING_APPROVAL) must be committed to an append-only log.
+   - Each entry contains a UUID, ISO-8601 timestamp, actor hash, policy decision, and a SHA-256 hash chaining to the preceding entry (\`prevHash\`).
+5. **Interactive Visual Security Monitor**:
+   - React interface displaying the live tool interception feed with status badges (green ALLOWED, red BLOCKED, yellow PENDING_APPROVAL), policy rule inspector, human approval review modal, and real-time hash-chain verification badge.
+
+## Definition of Done
+- Security test suite verifies that unknown tool calls and malformed JSON payloads fail closed with \`SecurityPolicyViolationException\`.
+- Negative path traversal test confirms that \`/sandbox/../../etc/shadow\` is blocked with a containment violation.
+- Tamper-evidence test confirms that modifying an intermediate audit record invalidates the subsequent hash chain.`,
+    technicalInvariants: [
+      "Proxy must implement strict fail-closed (default-deny) policy evaluation; unhandled cases throw SecurityPolicyViolationException.",
+      "Path validation must canonicalize via path.resolve() and enforce sandbox jail containment (resolvedPath.startsWith(root + sep)).",
+      "Destructive actions must transition to AWAITING_HUMAN_APPROVAL unless a valid approval token is provided.",
+      "Audit trail must be append-only and cryptographically chained using SHA-256 (entryHash = sha256(prevHash + entryData)).",
+      "Visual monitor must render real-time intercept feed, policy rules, and live hash-chain integrity status.",
+    ],
+    starterSchemas: {
+      "security-gate-types.ts": `export type AgentToolType = "readFile" | "writeFile" | "executeCommand" | "networkEgress";
+
+export type SecurityDecision = "ALLOWED" | "BLOCKED" | "AWAITING_HUMAN_APPROVAL";
+
+export interface PolicyRule {
+  tool: AgentToolType;
+  allowedPrefixes?: string[];
+  disallowedPatterns?: string[];
+  requiresHumanApproval?: boolean;
+}
+
+export interface SecurityPolicyManifest {
+  version: string;
+  defaultAction: "DENY";
+  sandboxRoot: string;
+  allowedDomains: string[];
+  rules: PolicyRule[];
+}
+
+export interface ToolInvocationRequest {
+  requestId: string;
+  tool: AgentToolType;
+  actorId: string;
+  timestampIso: string;
+  params: {
+    path?: string;
+    content?: string;
+    command?: string;
+    targetUrl?: string;
+  };
+  humanApprovalToken?: string;
+}
+
+export interface AuditLogEntry {
+  entryId: string;
+  requestId: string;
+  timestampIso: string;
+  tool: AgentToolType;
+  actorHash: string;
+  decision: SecurityDecision;
+  reason: string;
+  prevHash: string;
+  entryHash: string;
+}
+
+export interface ExecutionGateResult {
+  decision: SecurityDecision;
+  allowed: boolean;
+  reason: string;
+  auditEntry: AuditLogEntry;
+}`,
+    },
+    rubric: [
+      {
+        id: "secgate-req-1",
+        category: "PROBLEM_FRAMING",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Scopes the Zero Trust threat model, fail-closed policy contract, path canonicalization, and human approval boundaries before requesting implementation code.",
+        successSignals: [
+          "Candidate confirms default-deny architecture for all unspecified tools with the AI assistant.",
+          "Candidate queries the AI regarding path traversal vulnerabilities and canonical sandbox boundaries.",
+        ],
+        failureModes: [
+          "Accepts a default-allow architecture or asks AI to generate a single permissive proxy without threat modeling.",
+        ],
+      },
+      {
+        id: "secgate-req-2",
+        category: "TECHNICAL_APPROACH",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Designs decoupled policy evaluation middleware, canonical path validators, approval escalation gate, and cryptographic hash-chain logger.",
+        successSignals: [
+          "Separates policy rule evaluation, path canonicalization, approval verification, and cryptographic audit hashing into modular units.",
+          "Uses path.resolve() and strict boundary prefix checks (sandboxRoot + path.sep).",
+        ],
+        failureModes: [
+          "Blends tool execution, security checks, and logging into an untestable monolithic function.",
+          "Uses naive string prefix checks (startsWith) without resolving relative dots.",
+        ],
+      },
+      {
+        id: "secgate-req-3",
+        category: "AI_DIRECTION",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Directs the AI assistant in staged phases (Policy Schema -> Path Sanitization -> Default-Deny Gate -> Approval Flow -> Hash-Chain Audit Logger).",
+        successSignals: [
+          "Prompts the assistant step-by-step: first establishing schemas and negative tests for path traversal, then writing fail-closed evaluation logic.",
+          "Explicitly instructs the AI to handle malformed inputs, unknown tools, and traversal edge cases.",
+        ],
+        failureModes: [
+          "Issues a generic prompt like 'make a tool security wrapper' and commits unverified code.",
+        ],
+      },
+      {
+        id: "secgate-req-4",
+        category: "CRITICAL_JUDGMENT",
+        weight: 20,
+        sfiaLevel: 2,
+        statement: "Catches and refactors planted AI traps: fail-open exception handling, naive string path traversal escapes, and mutable unverified audit logs.",
+        injectedTrap: "AI defaults to return { allowed: true } on unknown tools or catch blocks, checks file paths with naive path.startsWith(), and logs audit trails using generic console.log() without timestamps or integrity chaining.",
+        successSignals: [
+          "Catches fail-open fallback and enforces strict default-deny throwing SecurityPolicyViolationException.",
+          "Catches naive string path matching and enforces path.resolve() containment within sandboxRoot.",
+          "Catches console.log audit trail and implements append-only SHA-256 hash chaining (prevHash + entryHash).",
+        ],
+        failureModes: [
+          "Allows unknown tools or malformed payloads to bypass security checks.",
+          "Leaves path traversal vulnerability open, allowing relative escapes like /../../etc/passwd.",
+        ],
+      },
+      {
+        id: "secgate-req-5",
+        category: "TRADEOFF_AWARENESS",
+        weight: 10,
+        sfiaLevel: 2,
+        statement: "Articulates security tradeoffs between synchronous policy evaluation latency versus agent throughput, and why autonomous agents must not self-authorize high-risk actions.",
+        successSignals: [
+          "Explains why defense-in-depth and fail-closed architectures prevent autonomous lateral movement even if the upstream LLM is prompt-injected.",
+          "Compares cryptographic hash chain verification overhead against database append latency.",
+        ],
+        failureModes: [
+          "Dismisses path traversal risks as theoretical or claims default-allow is acceptable for internal tools.",
+        ],
+      },
+      {
+        id: "secgate-req-6",
+        category: "DOMAIN_FIT",
+        weight: 15,
+        sfiaLevel: 2,
+        statement: "Conforms to NIST Cybersecurity Framework Zero Trust principles and enterprise agent governance standards (least privilege, continuous verification, tamper resistance).",
+        successSignals: [
+          "Employs authentic Zero Trust vocabulary (default-deny, least-privilege, root jail, cryptographic provenance).",
+          "Correctly classifies destructive versus non-destructive actions for human approval escalation.",
+        ],
+        failureModes: [
+          "Relies on LLM self-policing instead of deterministic runtime guardrails.",
+        ],
+      },
+      {
+        id: "secgate-req-7",
+        category: "COMMUNICATION",
+        weight: 10,
+        sfiaLevel: 2,
+        statement: "Documents security policy syntax, error response codes, and audit verification procedures clearly for security operations (SecOps) and compliance auditors.",
+        successSignals: [
+          "Provides clear docstrings detailing policy evaluation logic, human approval escalation protocol, and cryptographic hash verification.",
+        ],
+        failureModes: [
+          "Leaves security policies undocumented or omits recovery steps for blocked requests.",
+        ],
+      },
+    ],
+    verification: {
+      status: "APPROVED",
+      badge: {
+        mentorId: "mentor-peter-security",
+        mentorName: "Peter Nguyen, Former Microsoft Cloud Security Architect & CISSP",
+        verifiedAt: "2026-03-30T10:00:00Z",
+        auditScore: 20,
+        notes: "Superb Zero Trust agent execution governance benchmark. Rigorously tests fail-closed default-deny invariants, path canonicalization, and cryptographic hash-chain audit integrity.",
+      },
+    },
+    metadata: {
+      createdAt: "2026-03-30T10:00:00Z",
+      usageCount: 35,
+    },
+  },
 ];
+
 

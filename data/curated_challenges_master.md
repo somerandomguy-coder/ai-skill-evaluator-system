@@ -12,7 +12,7 @@
 | **0** | `verified-tgd-rts-sim` | **Total Game Development** | 20Hz deterministic tick loop, spatial hash grid, double-buffering | ✅ Implemented |
 | **1** | `verified-aegis-lending-risk` | **Aegis Risk Analytics** | WAD/RAY fixed-point math, oracle staleness threshold, atomic liquidation rollback | ✅ Implemented |
 | **2** | `verified-apex-subscription-billing` | **Apex Marketplace Infrastructure** | Idempotency guard on retries, integer cent GST math, resilient state machine & SRE metrics | ✅ Implemented |
-| **3** | *(Pending Persona #4)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
+| **3** | `verified-aegis-agent-security-gate` | **Aegis Cloud Defense** | Fail-closed default-deny proxy, path traversal canonicalization, tamper-evident hash-chain audit log | ✅ Implemented |
 | **4** | *(Pending Persona #5)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
 | **5** | *(Pending Persona #6)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
 | **6** | *(Pending Persona #7)* | *Awaiting input...* | *Awaiting input...* | ⏳ Queued |
@@ -82,6 +82,28 @@ Apex Marketplace Infrastructure powers core listing monetization, subscription b
 - **Canary Trap 2: Floating-Point Math on Proration & Australian GST**: AI calculates proration and 10% GST with raw JavaScript floating-point numbers (`price * 0.1`), causing precision drift (e.g., `$19.990000000000002`). Discerning candidates enforce integer cent arithmetic.
 - **Canary Trap 3: Silent Failure & Missing SRE Observability (Swallowed Exceptions)**: AI wraps webhook ingestion in a generic `try/catch` block that logs a vague `console.error` and returns HTTP `200 OK`, hiding transient database deadlocks from gateway retries and telemetry pipelines. Discerning candidates refactor error handling to return `500` on transient errors and emit correlation IDs.
 
+### Challenge #3: Aegis Cloud Defense — `AgentSecurityExecutionGate`
+- **Company**: Aegis Cloud Defense (Sydney / Hybrid)
+- **Role**: Junior Cloud Security & Agent Governance Engineer
+- **SFIA 9 Level**: Level 2 (Assist) / Level 3 (Apply) — `PROG`, `DESN`, `TEST`, `ITOP`
+- **Target Persona**: Peter Nguyen (Former Microsoft Cloud Security Architect, CISSP, U.S. Navy cyber intelligence leader, MentorME Project Aegis)
+
+#### Problem Statement
+Aegis Cloud Defense engineers enterprise Zero Trust control planes and runtime guardrails for autonomous AI systems. Uncontrolled agentic tools can lead to accidental or malicious remote code execution, file boundary escapes, and data exfiltration. Candidates build the `AgentSecurityExecutionGate` to sit between an AI coding agent and local OS/cloud tools (`readFile`, `writeFile`, `executeCommand`, `networkEgress`). The proxy validates payloads against an immutable policy manifest, enforces strict root-jail containment, escalates destructive actions for human approval, and commits every decision into an append-only, tamper-evident SHA-256 hash-chain audit log.
+
+#### Non-Negotiable Technical Invariants
+1. **Strict Fail-Closed (Default-Deny) Architecture**: Any unknown tool invocation, schema validation failure, missing policy rule, or parsing error must immediately throw `SecurityPolicyViolationException` and block execution. Fail-open fallback (`allowed: true`) is strictly forbidden.
+2. **Canonical Root-Jail Containment**: All file operations (`readFile`, `writeFile`) must resolve paths via `path.resolve()` and verify containment within the sandbox directory (`resolvedPath.startsWith(canonicalRoot + path.sep)`). Basic string prefix checks vulnerable to traversal (`../../etc/passwd`) are strictly forbidden.
+3. **Human-in-the-Loop Approval Escalation**: Destructive operations (`writeFile` overwrite, shell commands with mutation flags, `networkEgress`) must be intercepted with an `AWAITING_HUMAN_APPROVAL` state, requiring an explicit cryptographically verified approval token before execution.
+4. **Append-Only Tamper-Evident Audit Hash Chain**: Every intercepted action (allowed, blocked, or pending approval) must be logged with a UUID, ISO-8601 timestamp, actor hash, policy decision, and a SHA-256 hash chaining to the previous entry (`prevHash`), ensuring log integrity.
+5. **Interactive Security Console Monitor**: An interactive visual interface in React displaying the live tool interception feed, policy rule inspector, approval review modal, and real-time hash-chain integrity verification badge.
+
+#### Injected Canary Traps (What Discerning Engineers Catch)
+- **Canary Trap 1: Fail-Open Exception Handling (Default-Allow Vulnerability)**: AI defaults to `return { allowed: true }` inside a loose `catch` block or permits execution when an unknown tool is invoked. Discerning candidates spot the flaw and enforce a strict fail-closed (default-deny) policy.
+- **Canary Trap 2: Path Traversal & Unsanitized File Boundary Escapes**: AI validates file paths with basic string prefix checks (`path.startsWith("/workspace")`), failing to canonicalize and allowing relative `../../` traversal escapes. Discerning candidates enforce `path.resolve()` with canonical boundary assertions.
+- **Canary Trap 3: Mutable, Unverified Audit Telemetry (Log Tampering)**: AI records decisions into a plain mutable array or unformatted stdout via `console.log()` without timestamps, UUIDs, or integrity hashing. Discerning candidates demand an immutable, append-only audit trail with SHA-256 hash chaining.
+
 ---
 
-*(Slots #3 through #10 will be documented here immediately as you paste each profile/brainstorm).*
+*(Slots #4 through #10 will be documented here immediately as you paste each profile/brainstorm).*
+
