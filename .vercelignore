@@ -11,10 +11,12 @@ benchmarks/
 scripts/
 
 # Large offline dataset archives not required at runtime
-data/imported_jds.json
+data/
 data-export/requirements-dataset-all-700.csv
 data-export/requirements-dataset-all-700.json
 data-export/challenges-dataset-100.json
+data-export/requirements-100.csv
+data-export/requirements-100.json
 
 # Docker and local configurations
 docker-compose.yml
