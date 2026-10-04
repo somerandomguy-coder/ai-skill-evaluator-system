@@ -23,6 +23,8 @@ import {
   Check,
   ExternalLink,
   Info,
+  BookOpen,
+  ListChecks,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +32,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { BountyRequirement, MentorBountyStats } from "@/lib/engine/requirement-bounty";
+
+function formatWeight(weight: number): string {
+  if (weight > 5) {
+    return `${weight}% Rubric Allocation`;
+  }
+  return `${weight}/5 Priority Weight`;
+}
 
 interface RequirementBountyHubProps {
   initialMentorId?: string;
@@ -63,6 +72,7 @@ export function RequirementBountyHub({
   const [sfiaFilter, setSfiaFilter] = useState<number | "ALL">("ALL");
 
   // Review action modal state
+  const [modalView, setModalView] = useState<"SPEC" | "BRIEF" | "RUBRIC">("SPEC");
   const [actionTab, setActionTab] = useState<"VERIFY" | "FLAG_DUPLICATE" | "FLAG_BAD">("VERIFY");
   const [mentorNotes, setMentorNotes] = useState("");
   const [duplicateTarget, setDuplicateTarget] = useState("");
@@ -488,10 +498,19 @@ export function RequirementBountyHub({
                       <span className="rounded-md border border-border/60 bg-muted/30 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
                         SFIA L{req.sfiaLevel}
                       </span>
-                      <div className="flex items-center gap-0.5 ml-auto text-amber-500">
-                        {Array.from({ length: req.weight }).map((_, w) => (
-                          <Star key={w} className="size-3 fill-amber-500 text-amber-500" />
-                        ))}
+                      <div className="flex items-center gap-1 ml-auto">
+                        {req.weight > 5 ? (
+                          <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                            {req.weight}% Weight
+                          </span>
+                        ) : (
+                          <div className="flex items-center gap-0.5 text-amber-500">
+                            {Array.from({ length: Math.min(5, req.weight) }).map((_, w) => (
+                              <Star key={w} className="size-3 fill-amber-500 text-amber-500" />
+                            ))}
+                            <span className="text-[10px] text-muted-foreground ml-1">{req.weight}/5</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -557,10 +576,10 @@ export function RequirementBountyHub({
           aria-modal="true"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl animate-in fade-in duration-200 overflow-y-auto"
         >
-          <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-2xl transition-all sm:p-8 my-8 max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-2xl transition-all sm:p-8 my-8 max-h-[92vh] flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4">
-              <div>
+            <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4 shrink-0">
+              <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-mono text-xs font-bold text-primary uppercase">
                     {selectedReq.employer} · {selectedReq.roleTitle}
@@ -568,8 +587,11 @@ export function RequirementBountyHub({
                   <span className="rounded-full border border-border bg-muted/40 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
                     ID: {selectedReq.requirementId.slice(0, 10)}
                   </span>
+                  <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-bold text-primary">
+                    +{selectedReq.bountyCredits} Credits (${selectedReq.bountyUsd} AUD)
+                  </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold tracking-tight text-foreground mt-1">
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                   {selectedReq.challengeTitle}
                 </h3>
               </div>
@@ -582,82 +604,233 @@ export function RequirementBountyHub({
               </button>
             </div>
 
-            {/* Requirement Core Specification */}
-            <div className="py-5 space-y-4">
-              <div className="rounded-2xl border border-border/80 bg-muted/20 p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Observable Requirement Statement
-                  </span>
-                  <div className="flex items-center gap-1 font-mono text-xs text-amber-500">
-                    <span>Weight: {selectedReq.weight}/5</span>
-                    <Star className="size-3.5 fill-amber-500" />
-                  </div>
-                </div>
-                <p className="text-sm font-semibold text-foreground leading-relaxed">
-                  &ldquo;{selectedReq.statement}&rdquo;
-                </p>
-              </div>
+            {/* Modal Navigation Sub-Tabs */}
+            <div className="flex items-center gap-2 border-b border-border/60 py-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setModalView("SPEC")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors",
+                  modalView === "SPEC"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                )}
+              >
+                <ListChecks className="size-3.5" />
+                <span>Observable Specification</span>
+              </button>
 
-              {/* Injected Trap Details */}
-              {selectedReq.injectedTrap && (
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3.5 space-y-1 text-xs">
-                  <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-300">
-                    <Bug className="size-4" />
-                    <span>Injected AI Trap (Zero-Trust Vigilance Test)</span>
+              <button
+                type="button"
+                onClick={() => setModalView("BRIEF")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors",
+                  modalView === "BRIEF"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                )}
+              >
+                <BookOpen className="size-3.5" />
+                <span>Challenge Brief &amp; Invariants</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setModalView("RUBRIC")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors",
+                  modalView === "RUBRIC"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                )}
+              >
+                <Layers className="size-3.5" />
+                <span>All Challenge Criteria ({selectedReq.allChallengeRequirements?.length || 1})</span>
+              </button>
+            </div>
+
+            {/* Modal Body (Scrollable) */}
+            <div className="py-4 space-y-5 overflow-y-auto flex-1 pr-1">
+              {modalView === "SPEC" && (
+                <div className="space-y-4">
+                  {/* Statement Banner */}
+                  <div className="rounded-2xl border border-border/80 bg-muted/20 p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Observable Requirement Statement
+                      </span>
+                      <div className="flex items-center gap-1.5 font-mono text-xs text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg">
+                        <Star className="size-3.5 fill-amber-500" />
+                        <span className="font-bold">{formatWeight(selectedReq.weight)}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm sm:text-base font-semibold text-foreground leading-relaxed">
+                      &ldquo;{selectedReq.statement}&rdquo;
+                    </p>
                   </div>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {selectedReq.injectedTrap}
-                  </p>
+
+                  {/* Injected Trap Details */}
+                  {selectedReq.injectedTrap && (
+                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-1.5 text-xs">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-300">
+                        <Bug className="size-4" />
+                        <span>Injected AI Trap (Zero-Trust Vigilance Test)</span>
+                      </div>
+                      <p className="text-muted-foreground leading-relaxed text-xs">
+                        {selectedReq.injectedTrap}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Observable Signals & Failure Modes */}
+                  <div className="grid gap-3 sm:grid-cols-2 text-xs">
+                    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-2">
+                      <div className="flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-300">
+                        <CheckCircle2 className="size-4" />
+                        <span>Observable Success Signals</span>
+                      </div>
+                      <ul className="space-y-1.5 text-muted-foreground">
+                        {selectedReq.successSignals.map((s, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className="mt-1 size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                            <span>{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 space-y-2">
+                      <div className="flex items-center gap-1.5 font-semibold text-rose-700 dark:text-rose-300">
+                        <AlertTriangle className="size-4" />
+                        <span>Observable Failure Modes</span>
+                      </div>
+                      <ul className="space-y-1.5 text-muted-foreground">
+                        {selectedReq.failureModes.map((f, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className="mt-1 size-1.5 rounded-full bg-rose-500 shrink-0" />
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Current Verification Status */}
+                  {selectedReq.verifiedBy && (
+                    <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <ShieldCheck className="size-5 text-emerald-600 shrink-0" />
+                        <div>
+                          <div className="font-semibold text-emerald-950 dark:text-emerald-200">
+                            Verified by {selectedReq.verifiedBy.mentorName} on {new Date(selectedReq.verifiedBy.verifiedAt).toLocaleDateString()}
+                          </div>
+                          {selectedReq.verifiedBy.notes && (
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              &ldquo;{selectedReq.verifiedBy.notes}&rdquo;
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <span className="font-mono text-[10px] bg-emerald-500/20 px-2.5 py-1 rounded-md font-bold text-emerald-700 dark:text-emerald-300 shrink-0 self-start sm:self-auto">
+                        TIER 1 ACCREDITED
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Observable Signals & Failure Modes */}
-              <div className="grid gap-3 sm:grid-cols-2 text-xs">
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 space-y-2">
-                  <div className="flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-300">
-                    <CheckCircle2 className="size-4" />
-                    <span>Observable Success Signals</span>
+              {modalView === "BRIEF" && (
+                <div className="space-y-4 text-xs">
+                  <div className="rounded-2xl border border-border/80 bg-muted/20 p-5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="size-4 text-primary" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                        Challenge Brief &amp; Problem Framing
+                      </span>
+                    </div>
+                    <div className="prose prose-sm dark:prose-invert max-w-none text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap font-sans">
+                      {selectedReq.briefMarkdown || "No markdown brief provided for this challenge."}
+                    </div>
                   </div>
-                  <ul className="space-y-1.5 text-muted-foreground">
-                    {selectedReq.successSignals.map((s, idx) => (
-                      <li key={idx} className="flex items-start gap-1.5">
-                        <span className="mt-1 size-1 rounded-full bg-emerald-500 shrink-0" />
-                        <span>{s}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
 
-                <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-3.5 space-y-2">
-                  <div className="flex items-center gap-1.5 font-semibold text-rose-700 dark:text-rose-300">
-                    <AlertTriangle className="size-4" />
-                    <span>Observable Failure Modes</span>
-                  </div>
-                  <ul className="space-y-1.5 text-muted-foreground">
-                    {selectedReq.failureModes.map((f, idx) => (
-                      <li key={idx} className="flex items-start gap-1.5">
-                        <span className="mt-1 size-1 rounded-full bg-rose-500 shrink-0" />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Technical Invariants */}
+                  {selectedReq.technicalInvariants && selectedReq.technicalInvariants.length > 0 && (
+                    <div className="rounded-xl border border-border/80 bg-card p-4 space-y-2">
+                      <div className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
+                        <ShieldCheck className="size-4 text-indigo-500" />
+                        <span>Statutory &amp; Technical Invariants</span>
+                      </div>
+                      <ul className="space-y-1.5 text-muted-foreground">
+                        {selectedReq.technicalInvariants.map((inv, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5 font-mono text-[11px]">
+                            <span className="mt-1 size-1.5 rounded-full bg-indigo-500 shrink-0" />
+                            <span>{inv}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
-              {/* Current Verification Status */}
-              {selectedReq.verifiedBy && (
-                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="size-4 text-emerald-600" />
-                    <span>
-                      Verified by <strong>{selectedReq.verifiedBy.mentorName}</strong> on{" "}
-                      {new Date(selectedReq.verifiedBy.verifiedAt).toLocaleDateString()}
-                    </span>
+              {modalView === "RUBRIC" && (
+                <div className="space-y-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <p className="text-muted-foreground">
+                      Full rubric specifications ({selectedReq.allChallengeRequirements?.length || 1} criteria) for this challenge. Click any criterion to audit it:
+                    </p>
                   </div>
-                  <span className="font-mono text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded font-bold text-emerald-700 dark:text-emerald-300">
-                    TIER 1 ACCREDITED
-                  </span>
+                  <div className="space-y-2">
+                    {selectedReq.allChallengeRequirements?.map((cr, idx) => {
+                      const isCurrent = cr.id === selectedReq.id || cr.id === selectedReq.requirementId;
+                      return (
+                        <div
+                          key={cr.id || idx}
+                          onClick={() => {
+                            const sibling = items.find((i) => i.id === cr.id || i.requirementId === cr.id);
+                            if (sibling) {
+                              setSelectedReq(sibling);
+                              setModalView("SPEC");
+                            }
+                          }}
+                          className={cn(
+                            "rounded-xl border p-3.5 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer",
+                            isCurrent
+                              ? "border-primary bg-primary/5 shadow-xs ring-1 ring-primary/40"
+                              : "border-border/70 bg-card hover:border-primary/50 hover:bg-muted/30"
+                          )}
+                        >
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[10px] font-bold text-muted-foreground">
+                                Criterion {idx + 1}
+                              </span>
+                              <Badge variant="outline" className="text-[10px] font-semibold py-0">
+                                {cr.category}
+                              </Badge>
+                              <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400">
+                                {formatWeight(cr.weight)}
+                              </span>
+                              {isCurrent && (
+                                <Badge className="bg-primary/20 text-primary border-primary/30 text-[9px] py-0">
+                                  Currently Inspecting
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs font-medium text-foreground">
+                              {cr.statement}
+                            </p>
+                          </div>
+                          {!isCurrent && (
+                            <span className="text-[11px] font-semibold text-primary inline-flex items-center gap-1 shrink-0">
+                              <span>Audit</span>
+                              <ChevronRight className="size-3.5" />
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

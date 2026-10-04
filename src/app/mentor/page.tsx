@@ -1,142 +1,28 @@
-import { ArrowRight, CircleCheckBig, EyeOff } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { PageShell } from "@/components/common/layout";
-import { ReasonChip } from "@/components/mentor/reason-chips";
-import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import { data } from "@/lib/data";
-import type { QueueItemView } from "@/lib/data/types";
-import { scoreBand, shortId, timeAgo, TONE_TEXT } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { MentorConsoleTabs } from "@/components/mentor/mentor-console-tabs";
 
-import { ChallengeAccreditationCard } from "@/components/mentor/challenge-accreditation-card";
-import { RequirementBountyHub } from "@/components/mentor/requirement-bounty-hub";
-
-export const metadata: Metadata = { title: "Review queue" };
-
-function ScoreSummary({ item }: { item: QueueItemView }) {
-  if (item.coverage === 0) {
-    return (
-      <div className="text-right">
-        <div className="text-lg font-semibold text-muted-foreground">Not scored</div>
-        <div className="text-xs text-muted-foreground">needs a human score</div>
-      </div>
-    );
-  }
-  const band = scoreBand(item.overallScore);
-  return (
-    <div className="text-right">
-      <div className={cn("tabular text-2xl font-semibold tracking-tight", TONE_TEXT[band.tone])}>{Math.round(item.overallScore)}%</div>
-      <div className="text-xs text-muted-foreground">
-        {Math.round(item.coverage * 100)}% scored · confidence {item.confidence.toFixed(2)}
-      </div>
-    </div>
-  );
-}
+export const metadata: Metadata = { title: "Mentor Console" };
 
 export default async function MentorQueuePage() {
   const user = await requireUser("/mentor", "MENTOR");
   const [queue, reviewed] = await Promise.all([data.getQueue(), data.countReviewed()]);
 
   return (
-    <PageShell width="5xl" className="space-y-10">
-      <header className="space-y-3">
-        <div className="text-xs font-medium tracking-wider text-primary/80 uppercase">Mentor Console</div>
-        <h1 className="text-3xl font-semibold tracking-tight">Accreditation &amp; Review Queue</h1>
-        <p className="max-w-2xl text-muted-foreground">
-          Audit and verify authentic work-sample challenges with the 5-point MentorME checklist, claim requirement verification bounties, or review candidate submissions.
-        </p>
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <Badge variant="secondary" className="tabular">
-            {queue.length} candidate submissions waiting
-          </Badge>
-          <Badge variant="outline" className="tabular">
-            {reviewed} candidate reviews completed
-          </Badge>
-          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-            <EyeOff className="size-3.5" aria-hidden />
-            Candidate reviews are blind: you see transcripts and files, never names.
-          </span>
+    <PageShell width="5xl" className="space-y-8 py-6">
+      <header className="space-y-2">
+        <div className="text-xs font-semibold tracking-wider text-primary/80 uppercase">
+          Accredited Mentor Console
         </div>
+        <h1 className="text-3xl font-bold tracking-tight">Quality Assurance &amp; Review Hub</h1>
+        <p className="max-w-2xl text-sm text-muted-foreground">
+          Two primary responsibilities: audit and verify rubric criteria against Australian industry standards, or inspect and re-score AI evaluations for candidate submissions.
+        </p>
       </header>
 
-      {/* Community Requirement Verification Bounty Hub */}
-      <section className="space-y-4">
-        <RequirementBountyHub initialMentorId={user.id} initialMentorName={user.name} />
-      </section>
-
-      {/* Challenge Accreditation Section (e.g. Total Game Development Studio Audit) */}
-      <section className="space-y-4 pt-4 border-t border-border/60">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">Studio Challenge Accreditation</h2>
-            <p className="text-xs text-muted-foreground">5-Point quality gate promoting challenges to Tier 1 Mentor Verified status.</p>
-          </div>
-        </div>
-        <ChallengeAccreditationCard />
-      </section>
-
-      {/* Candidate Submissions Queue Section */}
-      <section className="space-y-4 pt-4 border-t border-border/60">
-        <div className="flex items-center justify-between pb-2">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">Candidate Submissions Queue</h2>
-            <p className="text-xs text-muted-foreground">Human-in-the-loop review for edge cases, low-confidence scores, or contested results.</p>
-          </div>
-          <span className="text-xs text-muted-foreground font-mono">{queue.length} in queue</span>
-        </div>
-
-      {queue.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center gap-2 py-10 text-center">
-            <CircleCheckBig className="size-8 text-emerald-600" aria-hidden />
-            <h2 className="font-semibold">The queue is empty</h2>
-            <p className="max-w-sm text-sm text-muted-foreground">Nothing needs a human right now. New submissions the AI isn&apos;t sure about, and any contested scores, will appear here.</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <ul className="space-y-3">
-          {queue.map((item) => {
-            const reasons = item.contested ? [{ code: "CONTESTED" as const, message: "The candidate contested this score." }, ...item.escalation] : item.escalation;
-            return (
-              <li key={item.id}>
-                <Card className="transition-shadow hover:shadow-md">
-                  <CardContent className="space-y-3">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2 text-sm">
-                          <span className="font-mono text-xs font-medium tracking-wide">#{shortId(item.id)}</span>
-                          <span className="text-muted-foreground">submitted {timeAgo(item.createdAt)}</span>
-                          {item.source !== "ai" && <Badge variant="outline">{item.source === "demo-offline" ? "demo · no AI" : "demo data"}</Badge>}
-                        </div>
-                        <h2 className="text-lg leading-snug font-semibold">{item.challengeTitle}</h2>
-                        <p className="text-sm text-muted-foreground">{item.roleTitle}</p>
-                      </div>
-                      <ScoreSummary item={item} />
-                    </div>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {reasons.map((r, i) => (
-                        <ReasonChip key={`${r.code}-${i}`} reason={r} />
-                      ))}
-                    </div>
-                    {reasons[0] && <p className="text-sm leading-relaxed text-muted-foreground">{reasons[0].message}</p>}
-                    <div className="flex justify-end">
-                      <Link href={`/mentor/${item.id}`} className={buttonVariants({ size: "sm", className: "gap-1.5" })}>
-                        Review
-                        <ArrowRight className="size-3.5" aria-hidden />
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-      </section>
+      <MentorConsoleTabs user={user} queue={queue} reviewed={reviewed} />
     </PageShell>
   );
 }

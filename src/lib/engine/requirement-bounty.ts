@@ -33,6 +33,15 @@ export interface BountyRequirement {
   bountyUsd: number;
   status: BountyStatus;
   reviews: BountyReview[];
+  briefMarkdown?: string;
+  technicalInvariants?: string[];
+  allChallengeRequirements?: {
+    id: string;
+    statement: string;
+    category: string;
+    weight: number;
+    sfiaLevel: number;
+  }[];
   verifiedBy?: {
     mentorId: string;
     mentorName: string;
@@ -106,12 +115,24 @@ function loadBaseRequirements(): BountyRequirement[] {
 
   // 1. First add all verified bank requirements (prioritize curated challenges like Total Game Development)
   for (const challenge of VERIFIED_CHALLENGE_BANK) {
+    const allRubric = challenge.rubric.map((cr) => ({
+      id: cr.id,
+      statement: cr.statement,
+      category: cr.category,
+      weight: cr.weight,
+      sfiaLevel: cr.sfiaLevel || challenge.sfiaProfile.level,
+    }));
+
     for (const r of challenge.rubric) {
       const id = r.id;
       if (seenIds.has(id)) continue;
       seenIds.add(id);
 
       const weight = r.weight || 3;
+      // If weight > 5, it is a percentage allocation (e.g. 15% or 20%), normalize bounty credits
+      const bountyCredits = weight > 5 ? Math.round(weight * 3.5) : weight * 15;
+      const bountyUsd = weight > 5 ? Math.round(weight * 1.5) : weight * 5;
+
       items.push({
         id,
         requirementId: id,
@@ -126,15 +147,18 @@ function loadBaseRequirements(): BountyRequirement[] {
         injectedTrap: r.injectedTrap || null,
         successSignals: r.successSignals || [],
         failureModes: r.failureModes || [],
-        bountyCredits: weight * 15,
-        bountyUsd: weight * 5,
+        bountyCredits,
+        bountyUsd,
         status: challenge.verification.status === "APPROVED" ? "VERIFIED" : "PENDING",
         reviews: [],
+        briefMarkdown: challenge.briefMarkdown,
+        technicalInvariants: challenge.technicalInvariants || [],
+        allChallengeRequirements: allRubric,
         verifiedBy: challenge.verification.status === "APPROVED" ? {
           mentorId: challenge.verification.badge?.mentorId || "mentor_curator_1",
           mentorName: challenge.verification.badge?.mentorName || "Verified Studio Architect",
           verifiedAt: challenge.verification.badge?.verifiedAt || new Date().toISOString(),
-          notes: "Accredited under MentorME 5-Point Studio Checklist.",
+          notes: challenge.verification.badge?.notes || "Accredited under MentorME 5-Point Studio Checklist.",
         } : undefined,
       });
     }
@@ -146,16 +170,49 @@ function loadBaseRequirements(): BountyRequirement[] {
       const raw = fs.readFileSync(DATASET_FILE_PATH, "utf-8");
       const dataset = JSON.parse(raw);
       if (Array.isArray(dataset)) {
+        // Index sibling requirements by challengeId
+        const challengeGroups = new Map<string, any[]>();
+        for (const item of dataset) {
+          const cId = item.challengeId || "generic-challenge";
+          if (!challengeGroups.has(cId)) challengeGroups.set(cId, []);
+          challengeGroups.get(cId)!.push(item);
+        }
+
         for (const item of dataset) {
           const id = item.requirementId || `req-${items.length}`;
           if (seenIds.has(id)) continue;
           seenIds.add(id);
 
+          const cId = item.challengeId || "generic-challenge";
+          const siblings = challengeGroups.get(cId) || [item];
+          const allRubric = siblings.map((s) => ({
+            id: s.requirementId,
+            statement: s.statement,
+            category: s.category || "TECHNICAL_APPROACH",
+            weight: s.weight || 3,
+            sfiaLevel: s.sfiaLevel || 3,
+          }));
+
           const weight = item.weight || 3;
+          const bountyCredits = weight > 5 ? Math.round(weight * 3.5) : weight * 15;
+          const bountyUsd = weight > 5 ? Math.round(weight * 1.5) : weight * 5;
+
+          const synthesizedBrief = `# ${item.challengeTitle || item.roleTitle}
+
+## Employer & Context
+Real-world authentic work-sample challenge derived from active requirements at **${item.employer}** for **${item.roleTitle}** (Target SFIA Level ${item.sfiaLevel || 3}).
+
+## Assessment Overview
+Candidates must demonstrate real engineering competence in an interactive Claude/DeepSeek-powered workspace. The candidate is evaluated under Evidence-Centered Design (ECD) on how they frame problems, drive the AI assistant, and verify domain invariants before shipping.
+
+## Challenge Rubric Criteria (${siblings.length} Core Requirements)
+${siblings.map((s, idx) => `${idx + 1}. **[${s.category}]** ${s.statement} *(Weight: ${s.weight}/5)*`).join("\n")}
+`;
+
           items.push({
             id,
             requirementId: id,
-            challengeId: item.challengeId || "generic-challenge",
+            challengeId: cId,
             challengeTitle: item.challengeTitle || item.roleTitle || "Technical Work-Sample",
             employer: item.employer || "Australian Tech Employer",
             roleTitle: item.roleTitle || "Software Engineer",
@@ -164,18 +221,25 @@ function loadBaseRequirements(): BountyRequirement[] {
             weight,
             sfiaLevel: item.sfiaLevel || 3,
             injectedTrap: item.injectedTrap || null,
-            successSignals: item.successSignals || [
-              `Candidate explicitly designs test cases adhering to ${item.category} standards`,
-              `Transcript displays iterative clarification before requesting code`,
+            successSignals: item.successSignals?.length ? item.successSignals : [
+              `Candidate explicitly articulates design boundaries matching ${item.category} standards`,
+              `Interrogates the brief and clarifies assumptions before requesting code generation`,
             ],
-            failureModes: item.failureModes || [
-              `Candidate accepts naive AI generation without inspecting boundary rules`,
-              `Uncritical acceptance of scope creep or floating-point drift`,
+            failureModes: item.failureModes?.length ? item.failureModes : [
+              `Blindly accepts default AI output without inspecting statutory or boundary constraints`,
+              `Single-prompt code dump without verification or unit tests`,
             ],
-            bountyCredits: weight * 15,
-            bountyUsd: weight * 5,
+            bountyCredits,
+            bountyUsd,
             status: "PENDING",
             reviews: [],
+            briefMarkdown: synthesizedBrief,
+            technicalInvariants: [
+              `Adheres to ${item.employer} statutory engineering standards and SFIA Level ${item.sfiaLevel || 3} rigor`,
+              `Zero-trust verification: candidate must validate AI assumptions with tests or assertions`,
+              `Guards against subtle edge case regressions and unhandled boundary states`,
+            ],
+            allChallengeRequirements: allRubric,
           });
         }
       }
