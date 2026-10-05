@@ -24,7 +24,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (user && !need) redirect(safeNext(next));
 
   return (
-    <div className="relative isolate mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-5 overflow-x-clip px-4 py-10 sm:py-14">
+    <div className="relative isolate mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-5 px-4 py-10 sm:py-14">
       {/* Ambient orange light behind the card. */}
       <div className="ambient -top-24 -left-24 size-[30rem]" aria-hidden />
       <div className="ambient -right-28 -bottom-20 size-[26rem] [animation-delay:-4s]" aria-hidden />

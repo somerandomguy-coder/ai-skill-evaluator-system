@@ -52,7 +52,7 @@ export default function PartnershipsPage() {
 
   return (
     <PageShell width="6xl" className="space-y-16 py-12 sm:py-16">
-      <header className="relative isolate mx-auto max-w-2xl space-y-5 overflow-x-clip text-center">
+      <header className="relative isolate mx-auto max-w-2xl space-y-5 text-center">
         <div className="ambient -top-32 left-1/2 size-[32rem] -translate-x-1/2" aria-hidden />
         <span className="rise inline-flex items-center gap-2 rounded-full border border-signal/50 bg-signal-soft/60 px-3 py-1 text-[13px] font-semibold text-signal-ink backdrop-blur-md">
           <Sparkles className="size-3.5" aria-hidden />

@@ -16,6 +16,8 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { buttonVariants } from "@/components/ui/button";
+import { useMouseGlow } from "@/hooks/use-mouse-glow";
 import type { EvaluationView, SuiteAView, SuiteBView } from "@/lib/data/types";
 import { auditPlantedBugs, type PlantedBugsSummary } from "@/lib/engine/planted-bugs";
 import type { GroundedAssessmentReport } from "@/lib/types/assessment-academic";
@@ -78,6 +80,7 @@ export function ReportJourneyModal({
 }: ReportJourneyModalProps) {
   const [step, setStep] = useState(0);
   const totalSteps = 6;
+  const glowRef = useMouseGlow<HTMLDivElement>();
 
   const plantedBugs: PlantedBugsSummary =
     plantedBugsProp ?? suiteB.plantedBugs ?? auditPlantedBugs(ev.turns, ev.files);
@@ -133,9 +136,16 @@ export function ReportJourneyModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/85 backdrop-blur-xl animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 isolate flex items-center justify-center p-4 bg-background/85 backdrop-blur-xl animate-in fade-in duration-200"
     >
-      <div className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-border/80 bg-card p-6 shadow-2xl transition-all sm:p-8">
+      {/* Ambient light behind the card: absolute within this viewport-sized, unclipped backdrop, so the radial gradient fades out on its own instead of being cut by a nearby edge. */}
+      <div className="ambient -top-16 left-1/4 size-[28rem]" aria-hidden />
+      <div className="ambient -bottom-24 right-1/4 size-[26rem] [animation-delay:-4s]" aria-hidden />
+
+      <div
+        ref={glowRef}
+        className="glow-follow relative w-full max-w-xl overflow-hidden rounded-3xl border border-border/80 bg-card p-6 shadow-2xl transition-all sm:p-8"
+      >
         {/* Top Header Controls */}
         <div className="flex items-center justify-between gap-4 border-b border-border/50 pb-4">
           {/* Step Dots */}
@@ -269,7 +279,7 @@ export function ReportJourneyModal({
               </div>
 
               <div className="py-2">
-                <div className="font-display text-6xl font-extrabold tracking-tight text-primary sm:text-7xl">
+                <div className="text-score-glow font-display text-6xl font-extrabold tracking-tight sm:text-7xl">
                   {animOverall}%
                 </div>
                 <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
@@ -513,7 +523,7 @@ export function ReportJourneyModal({
           <button
             type="button"
             onClick={nextStep}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:scale-[1.02]"
+            className={cn(buttonVariants({ variant: "signal" }), "gap-1.5 rounded-full px-5")}
           >
             <span>{step === totalSteps - 1 ? "View Full Report" : "Next"}</span>
             <ArrowRight className="size-3.5" />

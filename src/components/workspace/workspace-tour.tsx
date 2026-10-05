@@ -13,6 +13,7 @@ import {
   PinOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useMouseGlow } from "@/hooks/use-mouse-glow";
 import { cn } from "@/lib/utils";
 
 interface WorkspaceTourProps {
@@ -68,6 +69,7 @@ export function WorkspaceTour({ open, onClose, onOpenBrief, onStepChange }: Work
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [dockToCorner, setDockToCorner] = useState(false);
+  const glowRef = useMouseGlow<HTMLDivElement>();
 
   const step = TOUR_STEPS[currentStepIndex];
 
@@ -248,7 +250,7 @@ export function WorkspaceTour({ open, onClose, onOpenBrief, onStepChange }: Work
       {/* Target Element Illuminated Neon Spotlight Ring */}
       {targetRect && (
         <div
-          className="fixed rounded-xl pointer-events-none transition-all duration-300 ease-out border-2 border-primary shadow-[0_0_32px_rgba(255,107,0,0.5)] ring-4 ring-primary/25 z-40"
+          className="fixed rounded-xl pointer-events-none transition-all duration-300 ease-out border-2 border-signal shadow-[var(--glow)] ring-4 ring-signal/25 z-40"
           style={{
             top: `${Math.max(0, targetRect.top - 6)}px`,
             left: `${Math.max(0, targetRect.left - 6)}px`,
@@ -263,15 +265,18 @@ export function WorkspaceTour({ open, onClose, onOpenBrief, onStepChange }: Work
         style={getCardStyle()}
         className="pointer-events-auto transition-all duration-300 ease-out animate-in fade-in zoom-in-95"
       >
-        <div className="rounded-2xl border border-border/80 bg-card/95 backdrop-blur-md p-5 shadow-[0_20px_50px_rgba(0,0,0,0.4)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7)] space-y-4">
+        <div
+          ref={glowRef}
+          className="glow-follow rounded-2xl border border-border/80 bg-card/95 backdrop-blur-md p-5 shadow-[0_20px_50px_rgba(0,0,0,0.4)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7)] space-y-4"
+        >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border/60 pb-3">
             <div className="flex items-center gap-2">
-              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-signal/10 text-signal">
                 <Icon className="size-4" />
               </div>
               <div>
-                <span className="font-mono text-[10px] uppercase font-bold text-primary tracking-wider block">
+                <span className="font-mono text-[10px] uppercase font-bold text-signal tracking-wider block">
                   {step.badge}
                 </span>
                 <h3 className="font-bold text-foreground text-sm">{step.title}</h3>
@@ -317,7 +322,7 @@ export function WorkspaceTour({ open, onClose, onOpenBrief, onStepChange }: Work
                   onOpenBrief();
                   handleNext();
                 }}
-                className="w-full text-xs font-medium gap-1.5 h-8 border-primary/30 text-primary hover:bg-primary/10"
+                className="w-full text-xs font-medium gap-1.5 h-8 border-signal/30 text-signal hover:bg-signal/10"
               >
                 <BookOpenText className="size-3.5" />
                 Peek at Brief & Requirements
@@ -367,9 +372,10 @@ export function WorkspaceTour({ open, onClose, onOpenBrief, onStepChange }: Work
               )}
 
               <Button
+                variant="signal"
                 size="sm"
                 onClick={handleNext}
-                className="h-8 gap-1 px-3 text-xs font-bold rounded-lg bg-primary text-white hover:bg-primary/90"
+                className="gap-1 px-3 font-bold"
               >
                 <span>{isLast ? "Got it!" : "Next"}</span>
                 {isLast ? <CheckCircle2 className="size-3.5" /> : <ChevronRight className="size-3.5" />}

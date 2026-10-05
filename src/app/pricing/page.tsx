@@ -92,7 +92,7 @@ const FAQS = [
 export default function PricingPage() {
   return (
     <PageShell width="6xl" className="space-y-16 py-12 sm:py-16">
-      <header className="relative isolate mx-auto max-w-2xl space-y-5 overflow-x-clip text-center">
+      <header className="relative isolate mx-auto max-w-2xl space-y-5 text-center">
         <div className="ambient -top-32 left-1/2 size-[32rem] -translate-x-1/2" aria-hidden />
         <span className="rise inline-flex items-center gap-2 rounded-full border border-signal/50 bg-signal-soft/60 px-3 py-1 text-[13px] font-semibold text-signal-ink backdrop-blur-md">
           <Sparkles className="size-3.5" aria-hidden />
@@ -103,7 +103,7 @@ export default function PricingPage() {
         </h1>
       </header>
 
-      <div className="relative isolate grid grid-cols-1 items-stretch gap-6 overflow-x-clip py-4 md:grid-cols-3">
+      <div className="relative isolate grid grid-cols-1 items-stretch gap-6 py-4 md:grid-cols-3">
         <div className="ambient top-1/2 left-1/2 h-[30rem] w-[46rem] -translate-x-1/2 -translate-y-1/2" aria-hidden />
         {TIERS.map((tier, i) => {
           const Icon = tier.icon;

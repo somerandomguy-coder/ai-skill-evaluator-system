@@ -669,6 +669,226 @@
   pointer-events: none;
 }
 
+/*
+ * Soft cursor-tracking light. Painted on a pseudo-element clipped to the
+ * card's own border-radius (never a box-shadow ring), so it reads as ambient
+ * light bleeding across the surface rather than a hard outline. The JS side
+ * (useMouseGlow) only ever writes --mx/--my; everything else is CSS.
+ */
+.glow-follow {
+  position: relative;
+  isolation: isolate;
+}
+.glow-follow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out-expo);
+  background: radial-gradient(480px circle at var(--mx, 50%) var(--my, 50%), rgb(255 107 0 / 0.16), transparent 70%);
+}
+.dark .glow-follow::before {
+  background: radial-gradient(480px circle at var(--mx, 50%) var(--my, 50%), rgb(255 138 61 / 0.22), transparent 70%);
+}
+.glow-follow:hover::before,
+.glow-follow.glow-active::before {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .glow-follow::before {
+    transition: none;
+  }
+}
+
+/*
+ * Global cursor light, mounted once by <GlobalMouseGlow> in the root layout.
+ * A single pre-blurred circle moved with `transform: translate3d` (GPU
+ * compositing only — the gradient itself never repaints), sitting at z:-1
+ * inside body's stacking context, same as the static aurora. Desktop
+ * fine-pointer only.
+ */
+.global-mouse-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 640px;
+  height: 640px;
+  margin-left: -320px;
+  margin-top: -320px;
+  border-radius: 9999px;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(closest-side, rgb(255 107 0 / 0.14), transparent 72%);
+  filter: blur(100px);
+  transform: translate3d(var(--gx, 50vw), var(--gy, 50vh), 0);
+  transition: opacity 0.6s var(--ease-out-expo);
+  will-change: transform;
+}
+.dark .global-mouse-glow {
+  background: radial-gradient(closest-side, rgb(255 138 61 / 0.2), transparent 72%);
+}
+.global-mouse-glow.is-active {
+  opacity: 1;
+}
+@media (hover: none), (pointer: coarse) {
+  .global-mouse-glow {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .global-mouse-glow {
+    transition: none;
+  }
+}
+
+/*
+ * Ambient 3D grid for report templates: a tilted floor-plane grid built from
+ * three layered background-images (two hairline grids + glowing node dots at
+ * each intersection) — no SVG, no canvas, no JS. The radial mask fades it out
+ * before it reaches the busiest part of the page, so it reads as structural
+ * depth behind the hero, never as texture competing with content. Fixed
+ * positioning means it never repaints on scroll.
+ */
+.report-grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.report-grid-bg::before {
+  content: "";
+  position: absolute;
+  inset: -10% -10% -25%;
+  background-image:
+    radial-gradient(circle, rgb(255 107 0 / 0.35) 1px, transparent 1.5px),
+    linear-gradient(rgb(0 0 0 / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(0 0 0 / 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  transform: perspective(1200px) rotateX(14deg) scale(1.08);
+  transform-origin: top center;
+  mask-image: radial-gradient(ellipse 65% 55% at 50% 15%, black 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 65% 55% at 50% 15%, black 0%, transparent 75%);
+}
+.dark .report-grid-bg::before {
+  background-image:
+    radial-gradient(circle, rgb(255 138 61 / 0.4) 1px, transparent 1.5px),
+    linear-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.07) 1px, transparent 1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .report-grid-bg::before {
+    transform: none;
+  }
+}
+
+/*
+ * Tactile embossed row for the Interviewer Deck's repeated data cards (4D
+ * Build phases, AI Direction criteria, Evidence quotes, Audit items): a
+ * raised, lit-from-above surface that lifts and picks up a signal-colored
+ * glow on hover — a physical control, not a static decoration.
+ */
+.tile-emboss {
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.06),
+    inset 0 -1px 0 0 rgb(0 0 0 / 0.12),
+    0 1px 2px rgb(0 0 0 / 0.14);
+  transition: transform 0.25s var(--ease-out-expo), box-shadow 0.25s var(--ease-out-expo), border-color 0.25s var(--ease-out-expo);
+}
+.dark .tile-emboss {
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.08),
+    inset 0 -1px 0 0 rgb(0 0 0 / 0.35),
+    0 1px 3px rgb(0 0 0 / 0.4);
+}
+.tile-emboss:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--signal) 35%, var(--border));
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.08),
+    inset 0 -1px 0 0 rgb(0 0 0 / 0.2),
+    0 8px 20px -8px rgb(255 107 0 / 0.25);
+}
+.dark .tile-emboss:hover {
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.1),
+    inset 0 -1px 0 0 rgb(0 0 0 / 0.4),
+    0 8px 22px -8px rgb(255 138 61 / 0.3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile-emboss {
+    transition: box-shadow 0.25s var(--ease-out-expo), border-color 0.25s var(--ease-out-expo);
+  }
+  .tile-emboss:hover {
+    transform: none;
+  }
+}
+
+/* Inset bevel for small score/metric chips sitting inside a .tile-emboss row. */
+.chip-emboss {
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.15), inset 0 -1px 0 rgb(255 255 255 / 0.04);
+}
+.dark .chip-emboss {
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.4), inset 0 -1px 0 rgb(255 255 255 / 0.06);
+}
+
+/*
+ * 3D embossed finish for report tiles/cards/chips: a soft top highlight plus
+ * a gentle drop shadow. Explicitly split light/dark from the start — a flat
+ * rgba(0,0,0,0.5)-style shadow with no split is exactly the "muddy in light
+ * mode" bug fixed earlier on the credential page; this never repeats it.
+ */
+.tile-emboss {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 1px 2px rgb(0 0 0 / 0.04);
+}
+.dark .tile-emboss {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 16px -10px rgb(0 0 0 / 0.45);
+}
+.chip-emboss {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 -1px 1px rgb(0 0 0 / 0.04);
+}
+.dark .chip-emboss {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), inset 0 -1px 1px rgb(0 0 0 / 0.3);
+}
+
+/* Ambient glow behind a section icon: uses currentColor, so it automatically matches whatever text-{color} class the icon has — one utility, any accent. */
+.icon-glow {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, currentColor 55%, transparent));
+}
+
+/* Token-driven gradient score text: reuses the one action gradient so every big number on the site matches. */
+.text-score-glow {
+  background-image: var(--gradient-action);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgb(255 107 0 / 0.35));
+}
+.dark .text-score-glow {
+  filter: drop-shadow(0 0 22px rgb(255 138 61 / 0.4));
+}
+
+/* Frosted-glass surface: token-driven (light/dark both resolve sanely), unlike a literal bg-neutral-900/80. */
+.glass-card {
+  background: color-mix(in oklab, var(--card) 82%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+}
+
+/* Section eyebrows / subheadings: accent fading to ink, instead of a flat single color. */
+.heading-signal {
+  background-image: linear-gradient(90deg, var(--signal) 0%, var(--foreground) 140%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
 /* One sweep of light across a surface on hover (transform only). */
 .shimmer {
   position: relative;
