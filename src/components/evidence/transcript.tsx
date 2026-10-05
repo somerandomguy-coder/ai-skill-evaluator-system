@@ -45,18 +45,18 @@ export function Transcript({ turns, className }: { turns: TurnView[]; className?
             key={t.seq}
             id={`turn-${t.seq}`}
             className={cn(
-              "scroll-mt-24 rounded-2xl p-3.5 ring-1 transition-shadow",
+              "scroll-mt-24 rounded-2xl p-4 ring-1 transition-shadow",
               isUser ? "bg-card ring-border" : "bg-surface-container-low ring-border",
               active && "ring-2 ring-signal"
             )}
           >
-            <div className="mb-1.5 flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
               {isUser ? <User className="size-3.5" aria-hidden /> : <Bot className="size-3.5" aria-hidden />}
               <span className="font-medium text-foreground/80">{isUser ? "Candidate" : "Assistant"}</span>
               <span className="tabular font-mono">#{t.seq}</span>
               <span className="tabular ml-auto font-mono">{offset < 1 ? "start" : `+${formatMinutes(offset)}`}</span>
             </div>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            <p className="text-base leading-relaxed whitespace-pre-wrap">
               <Marked text={t.content} quote={active ? target?.quote : undefined} />
             </p>
             {t.filesWritten.length > 0 && (

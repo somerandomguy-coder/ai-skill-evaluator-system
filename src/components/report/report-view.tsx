@@ -102,15 +102,15 @@ function Section({
         onClick={onToggle}
         aria-expanded={open}
         aria-controls={`${id}-body`}
-        className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-muted/50 sm:px-5"
+        className="flex w-full items-center gap-3.5 p-5 text-left transition-colors hover:bg-muted/50 sm:px-6"
       >
-        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-signal-soft text-signal-ink">{icon}</span>
-        <h2 className="min-w-0 flex-1 truncate text-[15px] font-semibold">{title}</h2>
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-signal-soft text-signal-ink">{icon}</span>
+        <h2 className="min-w-0 flex-1 truncate text-lg font-semibold">{title}</h2>
         <span className="hidden items-center gap-1.5 sm:flex">{meta}</span>
-        <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300 ease-[var(--ease)]", open && "rotate-180")} aria-hidden />
+        <ChevronDown className={cn("size-5 shrink-0 text-muted-foreground transition-transform duration-300 ease-[var(--ease)]", open && "rotate-180")} aria-hidden />
       </button>
       {open && (
-        <div id={`${id}-body`} className="slide-in border-t border-border p-4 sm:p-6">
+        <div id={`${id}-body`} className="slide-in border-t border-border p-5 sm:p-7">
           {children}
         </div>
       )}
@@ -125,10 +125,10 @@ const Count = ({ children }: { children: ReactNode }) => (
 function BulletList({ items, tone }: { items: string[]; tone: "ok" | "warn" | "signal" }) {
   const dot = { ok: "bg-ok", warn: "bg-warn", signal: "bg-signal" }[tone];
   return (
-    <ul className="grid gap-2 sm:grid-cols-2">
+    <ul className="grid gap-2.5 sm:grid-cols-2">
       {items.map((s, i) => (
-        <li key={i} className="flex gap-2.5 rounded-xl bg-surface-container-low p-3 text-sm leading-relaxed ring-1 ring-border">
-          <span className={cn("mt-[7px] size-1.5 shrink-0 rounded-full", dot)} aria-hidden />
+        <li key={i} className="flex gap-3 rounded-xl bg-surface-container-low p-4 text-base leading-relaxed ring-1 ring-border">
+          <span className={cn("mt-[9px] size-1.5 shrink-0 rounded-full", dot)} aria-hidden />
           <span>{s}</span>
         </li>
       ))}
@@ -315,10 +315,10 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
               </span>
               <div>
                 <p className="font-semibold text-foreground text-sm">
-                  Empirically Grounded Assessment Engine
+                  Scored against real research, not opinion
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  Evaluated via Barke et al. (OOPSLA &apos;23), Vasconcelos et al. (Stanford / CHI &apos;23), &amp; SFIA 9 / Mislevy et al.
+                  See the studies behind this score:
                 </p>
               </div>
             </div>
@@ -360,29 +360,29 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
         </div>
 
         {/* Scoreboard */}
-        <div className="rise grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)]" style={stagger(3)}>
-          <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-lift)] dark:shadow-[0_24px_60px_-30px_rgb(255_107_0/0.35)]">
-            <ScoreRing score={ev.effective.score} size={184} stroke={12} />
+        <div className="rise grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]" style={stagger(3)}>
+          <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-border bg-card p-8 shadow-[var(--shadow-lift)] dark:shadow-[0_24px_60px_-30px_rgb(255_107_0/0.35)]">
+            <ScoreRing score={ev.effective.score} size={208} stroke={13} />
             <Pill className={TONE[band.tone].soft}>
               {ev.effective.basis === "mentor-override" ? "Mentor adjusted" : ev.effective.basis === "mentor-confirmed" ? "Mentor confirmed" : "Overall"}
             </Pill>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-4 rounded-3xl border border-border bg-card p-5">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-5 rounded-3xl border border-border bg-card p-6">
               <div className="flex items-baseline justify-between gap-2">
-                <h2 className="text-sm font-semibold">Product 4D</h2>
-                <span className="tabular font-display text-2xl">
+                <h2 className="text-lg font-semibold">Product 4D</h2>
+                <span className="tabular font-display text-3xl">
                   {suiteA.score}
-                  <span className="text-sm font-normal text-muted-foreground">/{suiteA.maxScore || 40}</span>
+                  <span className="text-base font-normal text-muted-foreground">/{suiteA.maxScore || 40}</span>
                 </span>
               </div>
-              <ul className="space-y-2.5">
+              <ul className="space-y-3">
                 {suiteA.phases.map((p) => (
-                  <li key={p.name} className="grid grid-cols-[6.5rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-[13px]">
+                  <li key={p.name} className="grid grid-cols-[6.5rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-base">
                     <span className="text-muted-foreground">{p.name}</span>
                     <Meter value={p.score} max={p.maxScore || 10} />
-                    <span className="tabular text-right font-mono text-xs">
+                    <span className="tabular text-right font-mono text-sm">
                       {p.score}/{p.maxScore || 10}
                     </span>
                   </li>
@@ -390,22 +390,22 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
               </ul>
             </div>
 
-            <div className="space-y-4 rounded-3xl border border-border bg-card p-5">
+            <div className="space-y-5 rounded-3xl border border-border bg-card p-6">
               <div className="flex items-baseline justify-between gap-2">
-                <h2 className="text-sm font-semibold">AI steering</h2>
-                <span className="tabular font-display text-2xl">
+                <h2 className="text-lg font-semibold">AI steering</h2>
+                <span className="tabular font-display text-3xl">
                   {suiteB.criteria?.length ? suiteB.criteria.reduce((sum, c) => sum + c.score, 0) : suiteB.score}
-                  <span className="text-sm font-normal text-muted-foreground">/{suiteB.maxScore || 25}</span>
+                  <span className="text-base font-normal text-muted-foreground">/{suiteB.maxScore || 25}</span>
                 </span>
               </div>
-              <ul className="space-y-2.5">
+              <ul className="space-y-3">
                 {suiteB.criteria.map((c) => (
-                  <li key={c.criterion} className="grid grid-cols-[6.5rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-[13px]">
+                  <li key={c.criterion} className="grid grid-cols-[6.5rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-base">
                     <span className="truncate text-muted-foreground" title={c.label}>
                       {c.label}
                     </span>
                     <Meter value={c.score} max={5} />
-                    <span className="tabular text-right font-mono text-xs">{c.score}/5</span>
+                    <span className="tabular text-right font-mono text-sm">{c.score}/5</span>
                   </li>
                 ))}
               </ul>
@@ -417,9 +417,9 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
                 { label: "Confidence", value: `${Math.round(ev.confidence * 100)}%` },
                 { label: "Citations", value: String(citedResults) },
               ].map((s) => (
-                <div key={s.label} className="bg-card px-4 py-3.5">
-                  <dt className="text-xs text-muted-foreground">{s.label}</dt>
-                  <dd className="tabular font-display mt-1 text-2xl">{s.value}</dd>
+                <div key={s.label} className="bg-card px-4 py-5">
+                  <dt className="text-sm text-muted-foreground">{s.label}</dt>
+                  <dd className="tabular font-display mt-1 text-3xl">{s.value}</dd>
                 </div>
               ))}
             </dl>
@@ -428,13 +428,13 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
 
         {/* Detail sections */}
         <div className="flex items-center justify-between gap-3 pt-2">
-          <h2 className="font-title text-lg">Details</h2>
+          <h2 className="font-title text-xl">Details</h2>
           <button
             type="button"
             onClick={toggleAll}
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <ChevronsUpDown className="size-3.5" aria-hidden />
+            <ChevronsUpDown className="size-4" aria-hidden />
             {anyOpen ? "Collapse all" : "Expand all"}
           </button>
         </div>
@@ -453,39 +453,39 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
             open={open.summary}
             onToggle={() => toggle("summary")}
           >
-            <div className="space-y-6">
+            <div className="space-y-7">
               {isReviewed && review && (
-                <figure className="space-y-3 rounded-2xl bg-ok-soft p-4 ring-1 ring-ok/20">
-                  <figcaption className="flex flex-wrap items-center gap-2 text-xs font-semibold text-ok">
+                <figure className="space-y-3 rounded-2xl bg-ok-soft p-5 ring-1 ring-ok/20">
+                  <figcaption className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ok">
                     <UserCheck className="size-4" aria-hidden />
                     Mentor {review.verdict === "OVERRIDE" ? "adjusted" : "confirmed"}
                     {review.adjustedScore !== null && <span className="tabular font-mono">→ {review.adjustedScore}%</span>}
                   </figcaption>
-                  <blockquote className="text-[13px] leading-relaxed whitespace-pre-line text-foreground/90">{review.comments}</blockquote>
+                  <blockquote className="text-base leading-relaxed whitespace-pre-line text-foreground/90">{review.comments}</blockquote>
                 </figure>
               )}
               {suiteB.strengths.length > 0 && (
-                <div className="space-y-2.5">
-                  <h3 className="flex items-center gap-2 text-[13px] font-semibold">
-                    <TrendingUp className="size-4 text-ok" aria-hidden />
+                <div className="space-y-3">
+                  <h3 className="flex items-center gap-2 text-base font-semibold">
+                    <TrendingUp className="size-5 text-ok" aria-hidden />
                     Strengths
                   </h3>
                   <BulletList items={suiteB.strengths} tone="ok" />
                 </div>
               )}
               {ev.gaps.length > 0 && (
-                <div className="space-y-2.5">
-                  <h3 className="flex items-center gap-2 text-[13px] font-semibold">
-                    <ListChecks className="size-4 text-warn" aria-hidden />
+                <div className="space-y-3">
+                  <h3 className="flex items-center gap-2 text-base font-semibold">
+                    <ListChecks className="size-5 text-warn" aria-hidden />
                     Gaps
                   </h3>
                   <BulletList items={ev.gaps} tone="warn" />
                 </div>
               )}
               {nextSteps.length > 0 && (
-                <div className="space-y-2.5">
-                  <h3 className="flex items-center gap-2 text-[13px] font-semibold">
-                    <Lightbulb className="size-4 text-signal" aria-hidden />
+                <div className="space-y-3">
+                  <h3 className="flex items-center gap-2 text-base font-semibold">
+                    <Lightbulb className="size-5 text-signal" aria-hidden />
                     Next steps
                   </h3>
                   <BulletList items={nextSteps} tone="signal" />
@@ -497,7 +497,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
           {groundedAssessment && (
             <Section
               id="academic"
-              title="Research-Backed AI Collaboration Rubric"
+              title="AI Collaboration Rubric"
               icon={<GraduationCap className="size-4" aria-hidden />}
               meta={<Count>{groundedAssessment.dimensions.length} dimensions</Count>}
               open={open.academic}
@@ -508,10 +508,10 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[13px] font-semibold tracking-tight">
-                      Peer-Reviewed Competency Dimensions
+                      What We Measured
                     </h3>
                     <span className="text-xs text-muted-foreground">
-                      Click verbatim turn excerpts to inspect in explorer
+                      Click a quote to see it in your transcript
                     </span>
                   </div>
                   <div className="grid gap-4">
@@ -532,10 +532,10 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
             open={open.rubric}
             onToggle={() => toggle("rubric")}
           >
-            <div className="space-y-6">
+            <div className="space-y-7">
               {groups.map((g) => (
                 <div key={g.category} className="space-y-3">
-                  <h3 className="flex items-center gap-2 text-[13px] font-semibold">
+                  <h3 className="flex items-center gap-2 text-base font-semibold">
                     {CATEGORY_META[g.category]?.label ?? g.category}
                     <Count>{g.items.length}</Count>
                   </h3>
@@ -562,11 +562,11 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
             onToggle={() => toggle("signals")}
           >
             {plantedBugs && (
-              <div className="mb-4 rounded-xl border border-border bg-surface-container-lowest p-4 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+              <div className="mb-5 rounded-2xl border border-border bg-surface-container-lowest p-5 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
                   <div className="flex items-center gap-2">
-                    <Bug className="size-4 text-primary" aria-hidden />
-                    <span className="font-mono text-xs font-bold uppercase tracking-wider text-primary">
+                    <Bug className="size-5 text-primary" aria-hidden />
+                    <span className="text-sm font-bold uppercase tracking-wider text-primary">
                       Planted AI Traps Audit
                     </span>
                   </div>
@@ -584,25 +584,25 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
                   </span>
                 </div>
 
-                <p className="text-xs sm:text-[13px] leading-relaxed text-foreground font-medium">
+                <p className="text-base leading-relaxed text-foreground font-medium">
                   {plantedBugs.summary}
                 </p>
 
-                <div className="grid gap-2.5 sm:grid-cols-3 pt-1">
+                <div className="grid gap-3 sm:grid-cols-3 pt-1">
                   {plantedBugs.bugs.map((b) => {
                     const isFixed = b.status === "FIXED";
                     return (
                       <div
                         key={b.id}
                         className={cn(
-                          "rounded-lg p-3 border flex flex-col justify-between space-y-2 text-xs",
+                          "rounded-xl p-3.5 border flex flex-col justify-between space-y-2 text-sm",
                           isFixed
                             ? "bg-emerald-500/5 border-emerald-500/30 text-foreground"
                             : "bg-amber-500/5 border-amber-500/30 text-foreground"
                         )}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-bold truncate text-[12px]">{b.name}</span>
+                          <span className="font-bold truncate">{b.name}</span>
                           <span
                             className={cn(
                               "font-mono text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0",
@@ -614,7 +614,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
                             {isFixed ? "FIXED" : "MISSED"}
                           </span>
                         </div>
-                        <p className="text-[11px] leading-relaxed text-muted-foreground">
+                        <p className="text-[13px] leading-relaxed text-muted-foreground">
                           {isFixed ? b.evidence : b.remedy}
                         </p>
                       </div>
@@ -624,15 +624,15 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
               </div>
             )}
 
-            <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
               {FLAGS.map((f) => {
                 const value = suiteB.flags[f.key];
                 const good = value === f.goodWhen;
                 return (
-                  <li key={f.key} className="flex items-center justify-between gap-3 rounded-xl bg-surface-container-low px-3.5 py-3 text-[13px] ring-1 ring-border">
+                  <li key={f.key} className="flex items-center justify-between gap-3 rounded-xl bg-surface-container-low px-4 py-3.5 text-base ring-1 ring-border">
                     <span>{f.label}</span>
-                    <span className={cn("inline-flex items-center gap-1 text-xs font-semibold", good ? "text-ok" : "text-bad")}>
-                      {good ? <CircleCheck className="size-4" aria-hidden /> : <CircleX className="size-4" aria-hidden />}
+                    <span className={cn("inline-flex items-center gap-1.5 text-sm font-semibold", good ? "text-ok" : "text-bad")}>
+                      {good ? <CircleCheck className="size-5" aria-hidden /> : <CircleX className="size-5" aria-hidden />}
                       {value ? "Yes" : "No"}
                     </span>
                   </li>
@@ -650,20 +650,20 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
             onToggle={() => toggle("citations")}
           >
             {totalQuotes === 0 ? (
-              <p className="text-[13px] text-muted-foreground">No quotes recorded.</p>
+              <p className="text-base text-muted-foreground">No quotes recorded.</p>
             ) : (
-              <ul className="grid gap-2 sm:grid-cols-2">
+              <ul className="grid gap-3 sm:grid-cols-2">
                 {suiteB.criteria.flatMap((c) =>
                   c.evidenceQuotes.map((q, qIdx) => (
                     <li key={`${c.criterion}-${qIdx}`}>
                       <button
                         type="button"
                         onClick={() => setSelectedCitation({ title: c.label, quote: q, rationale: c.rationale, confidence: c.confidence })}
-                        className="lift group flex w-full items-center gap-3 rounded-xl bg-surface-container-low p-3 text-left ring-1 ring-border hover:ring-signal/40"
+                        className="lift group flex w-full items-center gap-3 rounded-xl bg-surface-container-low p-4 text-left ring-1 ring-border hover:ring-signal/40"
                       >
-                        <span className="shrink-0 rounded-full bg-signal-soft px-2 py-0.5 text-[11px] font-semibold text-signal-ink">{c.label}</span>
-                        <span className="min-w-0 flex-1 truncate text-[13px] text-foreground/85">&ldquo;{q}&rdquo;</span>
-                        <span className="tabular shrink-0 font-mono text-xs text-muted-foreground">{c.score}/5</span>
+                        <span className="shrink-0 rounded-full bg-signal-soft px-2.5 py-1 text-xs font-semibold text-signal-ink">{c.label}</span>
+                        <span className="min-w-0 flex-1 truncate text-base text-foreground/85">&ldquo;{q}&rdquo;</span>
+                        <span className="tabular shrink-0 font-mono text-sm text-muted-foreground">{c.score}/5</span>
                       </button>
                     </li>
                   ))

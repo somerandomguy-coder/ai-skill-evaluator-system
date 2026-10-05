@@ -16,8 +16,8 @@ export function RequirementResultCard({ result, showCategory = true }: { result:
   const scored = result.score !== null;
 
   return (
-    <div id={`req-${req.id}`} className={cn("scroll-mt-24 rounded-2xl p-4 sm:p-5", scored ? "bg-surface-container-low ring-1 ring-border" : "border border-dashed border-foreground/20 bg-muted/40")}>
-      <div className="space-y-3.5">
+    <div id={`req-${req.id}`} className={cn("scroll-mt-24 rounded-2xl p-5 sm:p-6", scored ? "bg-surface-container-low ring-1 ring-border" : "border border-dashed border-foreground/20 bg-muted/40")}>
+      <div className="space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2.5">
             {showCategory && <CategoryBadge category={req.category} />}
@@ -34,30 +34,30 @@ export function RequirementResultCard({ result, showCategory = true }: { result:
           </div>
         </div>
 
-        <p className="text-[15px] leading-snug font-medium text-pretty">{req.statement}</p>
+        <p className="text-lg leading-snug font-medium text-pretty">{req.statement}</p>
 
         {req.injectedTrap && (
-          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs dark:bg-amber-500/10">
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm dark:bg-amber-500/10">
             <div className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-300">
-              <Bug className="size-3.5" aria-hidden />
+              <Bug className="size-4" aria-hidden />
               <span>Deliberate Injected AI Trap</span>
             </div>
-            <p className="mt-1 text-muted-foreground leading-relaxed">
+            <p className="mt-1.5 text-muted-foreground leading-relaxed">
               {req.injectedTrap}
             </p>
           </div>
         )}
 
-        <p className="text-[13px] leading-relaxed text-muted-foreground">{result.rationale}</p>
+        <p className="text-base leading-relaxed text-muted-foreground">{result.rationale}</p>
 
         {result.evidence.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <div className="text-xs font-semibold text-muted-foreground">Observable Transcript &amp; Diff Citations</div>
-            <ul className="space-y-2">
+            <ul className="space-y-2.5">
               {result.evidence.map((e, i) => (
                 <li key={`${e.type}-${e.ref}-${i}`} className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3">
                   <EvidenceChip evidence={e} className="shrink-0 self-start" />
-                  <blockquote className="min-w-0 border-l-2 border-signal/40 pl-3 text-[13px] leading-relaxed text-foreground/80">&ldquo;{e.quote}&rdquo;</blockquote>
+                  <blockquote className="min-w-0 border-l-2 border-signal/40 pl-3 text-base leading-relaxed text-foreground/80">&ldquo;{e.quote}&rdquo;</blockquote>
                 </li>
               ))}
             </ul>
@@ -65,12 +65,12 @@ export function RequirementResultCard({ result, showCategory = true }: { result:
         )}
 
         {!scored && (
-          <div className="flex items-center gap-2 rounded-xl bg-warn-soft px-3 py-2 text-[13px] font-medium text-warn">
+          <div className="flex items-center gap-2 rounded-xl bg-warn-soft px-3.5 py-2.5 text-sm font-medium text-warn">
             <Flag className="size-4 shrink-0" aria-hidden />
             No evidence, sent to mentor
           </div>
         )}
-        {result.note && scored && <p className="text-xs text-warn">{result.note}</p>}
+        {result.note && scored && <p className="text-sm text-warn">{result.note}</p>}
 
         <RubricDetails requirement={req} label="Rubric" />
       </div>

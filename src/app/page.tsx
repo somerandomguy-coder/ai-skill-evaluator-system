@@ -55,7 +55,7 @@ export default async function HomePage() {
   return (
     <PageShell width="7xl" className="space-y-20 pt-10 pb-16 sm:pt-16 lg:space-y-24">
       {/* Hero: the headline on the left, the real first action on the right. */}
-      <section className="relative isolate grid grid-cols-1 items-start gap-10 overflow-x-clip lg:grid-cols-12 lg:gap-12">
+      <section className="relative isolate grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
         <div className="ambient -top-40 -left-40 size-[34rem]" aria-hidden />
         <div className="ambient -top-24 -right-32 size-[40rem] [animation-delay:-4s]" aria-hidden />
         <div className="min-w-0 space-y-7 lg:col-span-6 lg:pt-4">

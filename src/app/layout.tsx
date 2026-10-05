@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Google_Sans, Google_Sans_Code } from "next/font/google";
+import { GlobalMouseGlow } from "@/components/common/global-mouse-glow";
 import { SiteHeader } from "@/components/site/header";
 import { THEME_INIT_SCRIPT } from "@/components/site/theme-script";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="relative isolate flex min-h-full flex-col bg-background text-foreground">
+        <GlobalMouseGlow />
         <SiteHeader />
         <main className="flex flex-1 flex-col">{children}</main>
       </body>

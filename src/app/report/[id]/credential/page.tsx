@@ -116,7 +116,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
   ];
 
   return (
-    <div className="relative isolate w-full overflow-x-clip px-4 py-8 sm:px-6 lg:px-8">
+    <div className="relative isolate w-full px-4 py-8 sm:px-6 lg:px-8">
       <div className="ambient -top-32 left-[6%] size-[34rem]" aria-hidden />
       <div className="ambient right-[4%] -bottom-40 size-[30rem] [animation-delay:-4s]" aria-hidden />
 
@@ -167,7 +167,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
         </div>
 
         {/* Hero: holder, verdict, headline metrics */}
-        <div className="space-y-6 rounded-3xl border border-signal/30 bg-card/80 p-6 shadow-2xl backdrop-blur-2xl sm:p-8">
+        <div className="space-y-6 rounded-3xl border border-signal/30 bg-card/80 p-6 shadow-lg dark:shadow-2xl backdrop-blur-2xl sm:p-8">
           <div className="flex flex-col justify-between gap-5 border-b border-border pb-6 lg:flex-row lg:items-end">
             <div className="space-y-2.5">
               <span className="inline-flex items-center gap-2 rounded-full bg-signal-soft px-3 py-1 text-[13px] font-semibold text-signal-ink">
@@ -199,7 +199,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
                   className={cn(
                     // Raised slab: tinted gradient face, lit top edge, colour cast underneath.
                     "group relative isolate overflow-hidden rounded-2xl p-5 ring-1 transition-transform duration-300 ease-out hover:-translate-y-1",
-                    "bg-gradient-to-br shadow-[0_1px_0_0_rgba(255,255,255,0.18)_inset,0_10px_22px_-12px_rgba(0,0,0,0.55)]",
+                    "bg-gradient-to-br shadow-[0_1px_0_0_rgba(255,255,255,0.18)_inset,0_6px_16px_-10px_rgba(0,0,0,0.12)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.18)_inset,0_10px_22px_-12px_rgba(0,0,0,0.55)]",
                     t.face,
                     t.ring,
                     t.glow,
@@ -208,7 +208,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
                   <span aria-hidden className={cn("absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent", t.edge)} />
                   <span aria-hidden className={cn("pointer-events-none absolute -top-16 -right-10 size-36 rounded-full blur-2xl transition-opacity duration-300 group-hover:opacity-90", t.orb)} />
                   <span className={cn("relative text-[13px] font-medium", t.label)}>{m.label}</span>
-                  <div className={cn("tabular font-display relative mt-1 bg-clip-text text-4xl text-transparent drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]", t.value)}>
+                  <div className={cn("tabular font-display relative mt-1 bg-clip-text text-4xl text-transparent drop-shadow-[0_1px_1px_rgba(0,0,0,0.06)] dark:drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]", t.value)}>
                     {m.value}
                     <span className="text-base font-normal text-muted-foreground">{m.suffix}</span>
                   </div>
