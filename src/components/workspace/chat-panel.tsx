@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, BookOpenText, ChevronRight, Code2, FileCode, ImageIcon, MessageSquare, RotateCcw, Sparkles, TriangleAlert, X, Zap } from "lucide-react";
+import { ArrowUp, BookOpenText, ChevronRight, Code2, FileCode, ImageIcon, MessageSquare, RotateCcw, Sparkles, Terminal, TriangleAlert, X, Zap } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,13 @@ import { AiMessageMarkdown } from "@/components/common/ai-message-markdown";
 import type { TurnView } from "@/lib/data/types";
 import { useNowSeconds } from "@/lib/hooks/use-now";
 import { cn } from "@/lib/utils";
+import { useSkills } from "@/hooks/use-skills";
+import { SkillRegisterModal } from "./skill-register-modal";
+import {
+  parseSkillCommands,
+  getSlashAutocompleteQuery,
+  formatPromptWithSkills,
+} from "@/lib/skills/slash-parser";
 import {
   routeMessageTier,
   resolveEffectiveTier,
@@ -254,6 +261,65 @@ export function ChatPanel({
   };
 
   const [userMode, setUserMode] = useState<"ASK" | "CODE">("ASK");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Skill Register & Slash Command state
+  const { skills, addSkill, removeSkill, resetToPresets } = useSkills();
+  const [isSkillsModalOpen, setIsSkillsModalOpen] = useState(false);
+  const [cursorPos, setCursorPos] = useState<number | null>(null);
+
+  // Parse draft for slash commands
+  const { recognized: recognizedSkills, unrecognized: unrecognizedSkills } = useMemo(
+    () => parseSkillCommands(draft, skills),
+    [draft, skills]
+  );
+
+  // Autocomplete matching when user is typing /
+  const autocomplete = useMemo(() => {
+    if (cursorPos === null) return { isQuerying: false, suggestions: [], startIndex: -1 };
+    const textBefore = draft.slice(0, cursorPos);
+    const queryInfo = getSlashAutocompleteQuery(textBefore);
+    if (!queryInfo.isQuerying) return { isQuerying: false, suggestions: [], startIndex: -1 };
+
+    const q = queryInfo.query;
+    const matches = skills.filter(
+      (s) => s.id.startsWith(q) || s.name.toLowerCase().includes(q)
+    );
+    return {
+      isQuerying: true,
+      suggestions: matches,
+      startIndex: queryInfo.startIndex,
+    };
+  }, [draft, cursorPos, skills]);
+
+  const removeSkillFromDraft = (skillId: string) => {
+    const regex = new RegExp(`(?:^|\\s)\\/${skillId}(?=\\s|$)`, "gi");
+    setDraft((prev) => prev.replace(regex, " ").replace(/\s{2,}/g, " ").trim());
+  };
+
+  const insertSkillIntoDraft = (skillId: string) => {
+    setDraft((prev) => {
+      const clean = prev.trim();
+      if (!clean) return `/${skillId} `;
+      if (clean.includes(`/${skillId}`)) return clean;
+      return `/${skillId} ${clean}`;
+    });
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
+
+  const applyAutocomplete = (skillId: string) => {
+    if (autocomplete.startIndex === -1) return;
+    const before = draft.slice(0, autocomplete.startIndex);
+    const after = draft.slice(cursorPos ?? draft.length);
+    const updated = `${before}/${skillId} ${after}`;
+    setDraft(updated);
+    setCursorPos(before.length + skillId.length + 2);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
 
   const { askCount, codeCount, isAskCapReached, isCodeCapReached } = useMemo(
     () => countTurnsByTier(turns),
@@ -281,14 +347,19 @@ export function ChatPanel({
   async function submit() {
     if (!canSend || isSendingRef.current) return;
     isSendingRef.current = true;
-    const text = attachedImage
+    const baseText = attachedImage
       ? `${draft.trim()}\n\n[Attached Design Reference: ${attachedImage.name}]`
       : draft.trim();
+
+    // Format message with active skill steering instructions if invoked
+    const text = formatPromptWithSkills(baseText, recognizedSkills);
+
     setDraft("");
     setAttachedImage(null);
+    setCursorPos(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     try {
-      const accepted = await onSend(text, userMode);
+      const accepted = await onSend(text, effectiveTier);
       if (!accepted) setDraft(draft);
     } finally {
       setTimeout(() => {
@@ -491,10 +562,100 @@ export function ChatPanel({
             </div>
           )}
 
+          {/* Active Skills Notification Banner */}
+          {recognizedSkills.length > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-signal/10 border-b border-signal/20 text-xs text-signal animate-in fade-in">
+              <Sparkles className="size-3.5 shrink-0" />
+              <span className="font-semibold text-signal-ink">Active Skill:</span>
+              <div className="flex items-center gap-1 flex-wrap">
+                {recognizedSkills.map((s) => (
+                  <span
+                    key={s.id}
+                    className="inline-flex items-center gap-1 font-mono text-[11px] bg-background/90 px-2 py-0.5 rounded-md border border-signal/30 text-foreground shadow-2xs"
+                  >
+                    /{s.id}
+                    <button
+                      type="button"
+                      onClick={() => removeSkillFromDraft(s.id)}
+                      className="text-muted-foreground hover:text-bad ml-0.5 text-xs font-bold leading-none cursor-pointer"
+                      title={`Remove /${s.id}`}
+                      aria-label={`Remove /${s.id}`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <span className="text-[11px] text-muted-foreground ml-auto hidden sm:inline truncate max-w-[200px]">
+                {recognizedSkills[0]?.description}
+              </span>
+            </div>
+          )}
+
+          {/* Unrecognized Skills Notification Banner */}
+          {unrecognizedSkills.length > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-500 animate-in fade-in">
+              <TriangleAlert className="size-3.5 shrink-0" />
+              <span>Unknown skill {unrecognizedSkills.join(", ")} (not registered).</span>
+              <button
+                type="button"
+                onClick={() => setIsSkillsModalOpen(true)}
+                className="underline hover:text-foreground font-semibold ml-1 cursor-pointer"
+              >
+                Click Skills to register it
+              </button>
+            </div>
+          )}
+
+          {/* Autocomplete Popup */}
+          {autocomplete.isQuerying && autocomplete.suggestions.length > 0 && (
+            <div className="absolute bottom-full mb-1 left-2 right-2 z-30 max-h-56 overflow-y-auto rounded-xl border border-border bg-card/95 backdrop-blur-md p-1 shadow-xl animate-in fade-in slide-in-from-bottom-2">
+              <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between border-b border-border/50">
+                <span>Slash Commands ({autocomplete.suggestions.length})</span>
+                <span className="font-mono text-[9px] lowercase">tab or click to select</span>
+              </div>
+              <div className="py-1 space-y-0.5">
+                {autocomplete.suggestions.map((skill) => (
+                  <button
+                    key={skill.id}
+                    type="button"
+                    onClick={() => applyAutocomplete(skill.id)}
+                    className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs hover:bg-muted transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-mono font-bold text-signal px-1.5 py-0.5 rounded bg-signal-soft border border-signal/20 text-[11px]">
+                        /{skill.id}
+                      </span>
+                      <span className="font-medium text-foreground truncate">{skill.name}</span>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground truncate max-w-[180px] hidden sm:inline">
+                      {skill.description}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <textarea
+            ref={textareaRef}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
+            onSelect={(e) => setCursorPos(e.currentTarget.selectionStart)}
+            onKeyUp={(e) => setCursorPos(e.currentTarget.selectionStart)}
+            onClick={(e) => setCursorPos(e.currentTarget.selectionStart)}
             onKeyDown={(e) => {
+              if (autocomplete.isQuerying && autocomplete.suggestions.length > 0) {
+                if (e.key === "Tab") {
+                  e.preventDefault();
+                  applyAutocomplete(autocomplete.suggestions[0].id);
+                  return;
+                }
+                if (e.key === "Escape") {
+                  setCursorPos(null);
+                  return;
+                }
+              }
               if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
                 if (canSend) {
@@ -506,8 +667,8 @@ export function ChatPanel({
               isCurrentTierCapReached
                 ? `Limit reached for ${userMode === "ASK" ? "questions (30/30)" : "coding (20/20)"} — switch modes or submit.`
                 : userMode === "CODE"
-                  ? "Describe what to code, fix, or build (AI will write and modify files)…"
-                  : "Ask a question, clarify brief requirements, or explore design trade-offs…"
+                  ? "Describe what to code, fix, or build (type / for skills like /grill-me, /prototype)…"
+                  : "Ask a question, clarify brief requirements (type / for skills like /grill-me)…"
             }
             aria-label="Message the assistant"
             disabled={blocked}
@@ -532,6 +693,22 @@ export function ChatPanel({
               </span>
             </div>
             <div className="flex items-center gap-2">
+              {/* Skills Register Button */}
+              <button
+                type="button"
+                onClick={() => setIsSkillsModalOpen(true)}
+                disabled={blocked}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/50 text-[11.5px] font-medium transition-all select-none cursor-pointer"
+                title="Skill Register: Browse or add slash command skills (/grill-me, /prototype, etc.)"
+                aria-label="Open Skill Register"
+              >
+                <Sparkles className="size-3 text-signal" />
+                <span className="hidden sm:inline">Skills</span>
+                <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-signal/15 text-signal font-semibold">
+                  {skills.length}
+                </span>
+              </button>
+
               {/* Base44-style compact Plan/Build segmented pill toggle */}
               <div
                 className="inline-flex items-center p-0.5 rounded-lg bg-muted/70 border border-border/50 text-[11.5px]"
@@ -598,6 +775,17 @@ export function ChatPanel({
           </div>
         </form>
       </div>
+
+      {/* Skill Register Dialog */}
+      <SkillRegisterModal
+        isOpen={isSkillsModalOpen}
+        onClose={() => setIsSkillsModalOpen(false)}
+        skills={skills}
+        onAddSkill={addSkill}
+        onRemoveSkill={removeSkill}
+        onResetPresets={resetToPresets}
+        onSelectSkillToInsert={(id) => insertSkillIntoDraft(id)}
+      />
     </section>
   );
 }

@@ -71,13 +71,50 @@ CRITICAL INSTRUCTION - CODING MODE (IMPLEMENTATION TIER):
 - Explain your approach and architectural decisions, then output complete whole-file implementations in the "files" array.
 </execution_mode>`;
 
-  return `${getAssistantSystemPrompt(challenge)}${tierPrompt}
+  const skillInstruction = `\n\n<active_skill_instruction>
+ACTIVE SKILL / PERSONA DIRECTIVE:
+If the user's message contains an <active_skill> block (e.g. grill-me, prototype, audit, or custom), you MUST strictly adopt that persona and prioritize all of its constraints above default behavior.
+For example:
+- In grill-me mode: STRICTLY REFUSE to generate code implementations or file writes; ask 1 or 2 targeted, probing questions to interrogate architectural assumptions, failure modes, and invariants.
+- In prototype mode: Focus on the simplest working vertical slice with immediate visual feedback.
+- In audit mode: Interrogate code for boundary underflow, IEEE-754 float drift, PII leaks, and swallowed errors.
+</active_skill_instruction>`;
+
+  return `${getAssistantSystemPrompt(challenge)}${tierPrompt}${skillInstruction}
 
 <challenge title="${challenge.title}" timebox_minutes="${challenge.timeboxMinutes}">
 ${challenge.domainContext}
 
 ${challenge.brief}
 </challenge>`;
+}
+
+function getSkillAwareDemoTurn(content: string): AssistantTurn | null {
+  if (/<active_skill name="grill-me"/i.test(content) || /(?:^|\s)\/grill-me(?=\s|$)/i.test(content)) {
+    return {
+      message: "Architectural Socratic Review (/grill-me):\n\nBefore writing code, let's interrogate your design boundaries:\n\n1. How does your state model ensure idempotency when an event is replayed or retried over the network?\n2. What data structure guarantees sub-linear query efficiency rather than an O(N²) nested scan under load?\n\nWalk me through your boundary validation and error handling invariants before we move to code.",
+      files: [],
+      reasoning: "Grill-Me mode active: Halting code generation. Interrogating candidate on state idempotency and algorithmic efficiency invariants.",
+    };
+  }
+
+  if (/<active_skill name="audit"/i.test(content) || /(?:^|\s)\/audit(?=\s|$)/i.test(content)) {
+    return {
+      message: "Zero-Trust Invariant Audit (/audit):\n\nInspecting workspace files against statutory and resilience rules:\n\n• Statutory Currency: Verify that all calculations operate in integer cents ($19.99 = 1999) to eliminate IEEE-754 float drift.\n• Boundary Bounds: Confirm array and capacity checks guard against negative underflow (< 0).\n• Data Hygiene: Ensure customer identifiers and bearer tokens are masked before logging.\n\nWhich of these boundaries needs immediate remediation in your implementation?",
+      files: [],
+      reasoning: "Audit mode active: Emitting zero-trust security and statutory invariance checklist.",
+    };
+  }
+
+  if (/<active_skill name="rubber-duck"/i.test(content) || /(?:^|\s)\/rubber-duck(?=\s|$)/i.test(content)) {
+    return {
+      message: "Rubber Duck Debugging (/rubber-duck):\n\nLet's trace the logic together step by step.\n\n1. What was the exact input passed to the failing function?\n2. What value did you expect it to return versus what it actually returned?\n3. Which specific line of code first makes an assumption that might be false?",
+      files: [],
+      reasoning: "Rubber Duck mode active: Guiding candidate to isolate logic flaw through Socratic questions.",
+    };
+  }
+
+  return null;
 }
 
 export async function buildAssistant(
@@ -93,6 +130,9 @@ export async function buildAssistant(
   const tier = tierOverride ?? routeMessageTier(last.content);
 
   if (isDemoMode()) {
+    const skillDemo = getSkillAwareDemoTurn(last.content);
+    if (skillDemo) return skillDemo;
+
     const turn = demoAssistantTurn(history.filter((m) => m.role === "assistant").length);
     if (tier === "ASK") {
       turn.files = [];
@@ -168,7 +208,8 @@ export async function buildAssistantStream(
   const tier = tierOverride ?? routeMessageTier(last.content);
 
   if (isDemoMode()) {
-    const turn = demoAssistantTurn(history.filter((m) => m.role === "assistant").length);
+    const skillDemo = getSkillAwareDemoTurn(last.content);
+    const turn = skillDemo ?? demoAssistantTurn(history.filter((m) => m.role === "assistant").length);
     if (tier === "ASK") {
       turn.files = [];
     }

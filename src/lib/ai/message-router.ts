@@ -79,6 +79,18 @@ export function resolveEffectiveTier(
   message: string,
   userMode?: MessageTier
 ): { effectiveTier: MessageTier; reason: string; autoDemoted: boolean } {
+  // 0. Active skill routing override
+  if (
+    /(?:^|\s)\/(?:grill-me|rubber-duck)(?=\s|$)/i.test(message) ||
+    /<active_skill name="(?:grill-me|rubber-duck)"/i.test(message)
+  ) {
+    return {
+      effectiveTier: "ASK",
+      reason: "Conversational skill (/grill-me) active — routed to Ask mode to preserve Build quota",
+      autoDemoted: userMode === "CODE",
+    };
+  }
+
   // 1. User explicitly selected Ask mode
   if (userMode === "ASK") {
     return {
