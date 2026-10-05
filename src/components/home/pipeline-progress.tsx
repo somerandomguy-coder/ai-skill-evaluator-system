@@ -14,6 +14,7 @@ export interface ProgressStep {
 
 export const PIPELINE_STEPS: Omit<ProgressStep, "state" | "detail">[] = [
   { id: "read", label: "Read the posting", hint: "Fetching the page and pulling out the job text" },
+  { id: "classify", label: "Screen the ad", hint: "Checking it's a genuine job ad, not junk or a hidden instruction to the evaluator" },
   { id: "parse", label: "Understand the role", hint: "Skills and seniority, filtering barriers, and SFIA 9 calibration" },
   { id: "challenge", label: "Design your project", hint: "3-Tier resolution (Mentor-Verified, Cached, or Tailored)" },
   { id: "rubric", label: "Write the rubric", hint: "Calibrated to SFIA 9 and Evidence-Centered Design" },

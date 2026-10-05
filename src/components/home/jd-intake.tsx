@@ -4,10 +4,12 @@ import { ArrowRight, CircleAlert, ClipboardPaste, FileText, LoaderCircle, Shield
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfidenceMeter } from "@/components/common/score";
 import { runPipeline, inspectJobAd, type JdInspectionClientResult } from "@/lib/client/api";
 import { cn } from "@/lib/utils";
-import type { PipelineEvent } from "@/lib/pipeline-events";
+import type { JdQualityVerdict, PipelineEvent } from "@/lib/pipeline-events";
 import { PIPELINE_STEPS, PipelineProgress, type ProgressStep } from "./pipeline-progress";
 
 const MIN_CHARS = 80;
@@ -30,6 +32,7 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
   const [fastMode, setFastMode] = useState(false);
   const [inspection, setInspection] = useState<JdInspectionClientResult | null>(null);
   const [inspecting, setInspecting] = useState(false);
+  const [jdQuality, setJdQuality] = useState<JdQualityVerdict | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const steps = useRef<ProgressStep[]>([]);
 
@@ -89,6 +92,7 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
 
     isSubmittingRef.current = true;
     steps.current = initialSteps();
+    setJdQuality(null);
     setRun({ status: "running", steps: steps.current });
     let done: Extract<PipelineEvent, { type: "done" }> | null = null;
     try {
@@ -96,6 +100,8 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
         if (ev.type === "step") {
           steps.current = applyEvent(steps.current, ev);
           setRun({ status: "running", steps: steps.current });
+        } else if (ev.type === "jd_quality") {
+          setJdQuality(ev.verdict);
         } else if (ev.type === "done") {
           done = ev;
         } else {
@@ -160,6 +166,17 @@ export function JdIntake({ signedIn, isCandidate }: { signedIn: boolean; isCandi
                   <AlertTitle>Couldn&apos;t build the challenge</AlertTitle>
                   <AlertDescription>{run.message}</AlertDescription>
                 </Alert>
+                {jdQuality && jdQuality.type !== "good" && (
+                  <div className="flex flex-wrap items-center gap-2.5 rounded-lg border border-border bg-surface-container-low px-3 py-2">
+                    <Badge variant={jdQuality.cheatingAttempt ? "destructive" : "outline"}>
+                      {jdQuality.cheatingAttempt ? "possible cheating attempt" : jdQuality.type === "too_vague" ? "too vague" : "not a job ad"}
+                    </Badge>
+                    <ConfidenceMeter value={jdQuality.confidence} />
+                    {jdQuality.cheatingEvidence && (
+                      <span className="font-mono text-xs text-muted-foreground">“{jdQuality.cheatingEvidence}”</span>
+                    )}
+                  </div>
+                )}
                 <Button variant="outline" onClick={() => setRun({ status: "idle" })}>
                   Edit job description
                 </Button>

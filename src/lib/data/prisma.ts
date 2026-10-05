@@ -79,6 +79,7 @@ const evaluationInclude = {
       turns: { orderBy: { seq: "asc" } },
       snapshot: true,
       challenge: { include: challengeInclude },
+      user: { select: { name: true } },
     },
   },
 } satisfies Prisma.EvaluationInclude;
@@ -114,6 +115,7 @@ function toEvaluationView(e: EvaluationRow): EvaluationView {
     id: e.id,
     sessionId: session.id,
     ownerId: session.userId,
+    candidateName: session.user.name,
     createdAt: e.createdAt.toISOString(),
     challenge: { id: challenge.id, title: challenge.title, timeboxMinutes: challenge.timeboxMinutes, rubricVersion: e.rubricVersion },
     job: { roleTitle: challenge.job.roleTitle, employer: challenge.job.employer },
