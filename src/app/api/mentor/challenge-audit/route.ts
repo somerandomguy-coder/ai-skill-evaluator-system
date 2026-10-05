@@ -53,11 +53,12 @@ export async function POST(request: Request) {
     });
 
     const challenge = getChallengeFromRepository(challengeId);
-    let updatedChallenge = null;
-    if (challenge) {
-      updatedChallenge = applyAuditToChallenge(challenge, evaluation);
-      registerChallengeInRepository(updatedChallenge);
+    if (!challenge) {
+      return NextResponse.json({ error: `Challenge "${challengeId}" not found in repository` }, { status: 404 });
     }
+
+    const updatedChallenge = applyAuditToChallenge(challenge, evaluation);
+    registerChallengeInRepository(updatedChallenge);
 
     return NextResponse.json({
       evaluation,

@@ -212,12 +212,16 @@ function toReasoningEffort(effort: Effort | undefined): "low" | "medium" | "high
 }
 
 let client: OpenAI | null = null;
+let clientKey: string | null = null;
+let clientBaseURL: string | null = null;
 
 function getClient(): OpenAI {
-  if (client) return client;
   const apiKey = aiApiKey();
   if (!apiKey) throw new MissingApiKeyError();
-  const baseURL = aiBaseUrl();
+  const baseURL = aiBaseUrl() || null;
+  if (client && clientKey === apiKey && clientBaseURL === baseURL) return client;
+  clientKey = apiKey;
+  clientBaseURL = baseURL;
   client = new OpenAI({
     apiKey,
     ...(baseURL ? { baseURL } : {}),

@@ -79,30 +79,36 @@ export function auditPlantedBugs(
     const unitCode = fileMap["src/engine/unit-manager.ts"] || allCode;
 
     // 1. Tick Drift / Accumulator
-    const tickChatFixed = /\b(?:accumulator|fixed-?(?:time|step)?|delta_?time|dt drift|20\s*hz|50\s*ms|tick drift|desync|floating-?point tick)\b/i.test(userText);
+    const tickChatFixed =
+      /\b(?:accumulator|fixed-?(?:time|step)?|delta_?time|dt drift|20\s*hz|50\s*ms|tick drift|desync|floating-?point tick)\b/i.test(userText) &&
+      /\b(?:fix|prevent|resolve|implement|replace|avoid|clamp|desync|drift|catch|handle)\b/i.test(userText);
     const tickCodeFixed =
       (accumCode.includes("accumulator +=") || accumCode.includes("while (") || accumCode.includes("tickRateMs")) &&
       !accumCode.includes("onTick(); // BUG");
-    const isTickFixed = tickChatFixed || tickCodeFixed;
+    const isTickFixed = fileMap["src/engine/accumulator.ts"] ? tickCodeFixed : (tickCodeFixed || tickChatFixed);
 
     // 2. Spatial Query / O(N^2)
-    const spatialChatFixed = /\b(?:spatial(?:-|\s*)hash|grid partition|o\(n\^2\)|pairwise|proximity query|cell size|bucketed)\b/i.test(userText);
+    const spatialChatFixed =
+      /\b(?:spatial(?:-|\s*)hash|grid partition|o\(n\^2\)|pairwise|proximity query|cell size|bucketed)\b/i.test(userText) &&
+      /\b(?:fix|partition|optimize|replace|avoid|eliminate|reduce|scale|performance|bucket)\b/i.test(userText);
     const spatialCodeFixed =
-      spatialCode.includes("SpatialHash") ||
+      (spatialCode.includes("SpatialHash") ||
       spatialCode.includes("getBucket") ||
-      spatialCode.includes("grid.get") ||
-      (userTurns.length >= 2 && spatialChatFixed);
-    const isSpatialFixed = spatialChatFixed || spatialCodeFixed;
+      spatialCode.includes("grid.get")) &&
+      !spatialCode.includes("// BUG: O(N^2)");
+    const isSpatialFixed = fileMap["src/engine/spatial-grid.ts"] ? spatialCodeFixed : (spatialCodeFixed || spatialChatFixed);
 
     // 3. State Mutation / Double Buffering
-    const mutationChatFixed = /\b(?:double-?buffer|race condition|mutation in loop|snapshot|immutable|copy state|next state)\b/i.test(userText);
+    const mutationChatFixed =
+      /\b(?:double-?buffer|race condition|mutation in loop|snapshot|immutable|copy state|next state)\b/i.test(userText) &&
+      /\b(?:fix|isolate|prevent|avoid|eliminate|race condition|mutation|buffer|clone|immutable)\b/i.test(userText);
     const mutationCodeFixed =
-      unitCode.includes("nextState") ||
+      (unitCode.includes("nextState") ||
       unitCode.includes("snapshot") ||
       unitCode.includes("structuredClone") ||
-      unitCode.includes("{ ...") ||
+      unitCode.includes("{ ...")) &&
       !unitCode.includes("// BUG: Direct mutation");
-    const isMutationFixed = mutationChatFixed || mutationCodeFixed;
+    const isMutationFixed = fileMap["src/engine/unit-manager.ts"] ? mutationCodeFixed : (mutationCodeFixed || mutationChatFixed);
 
     const simBugs: PlantedBugAuditItem[] = [
       {

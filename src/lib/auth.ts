@@ -15,9 +15,14 @@ import { USER_COOKIE } from "./constants";
 import { data, type Role, type UserView } from "./data";
 
 export const getCurrentUser = cache(async (): Promise<UserView | null> => {
-  const id = (await cookies()).get(USER_COOKIE)?.value;
-  if (!id) return null;
-  return data.findUser(id);
+  try {
+    const cookieStore = await cookies();
+    const id = cookieStore.get(USER_COOKIE)?.value;
+    if (!id) return null;
+    return data.findUser(id);
+  } catch {
+    return null;
+  }
 });
 
 /** For pages: send an anonymous visitor to the login page, then back. */
@@ -43,5 +48,11 @@ export async function clearUserCookie() {
 
 /** Only same-site relative paths may be used as a post-login destination. */
 export function safeNext(next: string | null | undefined): string {
-  return next && /^\/(?!\/)/.test(next) ? next : "/";
+  if (!next || typeof next !== "string") return "/";
+  const trimmed = next.trim();
+  // Must start with a single forward slash, and not followed by another slash or backslash
+  if (!/^\/[^/\\]/.test(trimmed)) return "/";
+  // Must not contain backslashes, carriage returns, or control characters that browsers or parsers could normalize to another origin
+  if (/[\\<>'"\r\n\t\0]/.test(trimmed)) return "/";
+  return trimmed;
 }

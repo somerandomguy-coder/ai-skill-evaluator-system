@@ -82,12 +82,16 @@ export function deepseekApiKey(): string | undefined {
   return key ? key : undefined;
 }
 
-/** Active API key based on selected provider. */
+/** Active API key based on selected provider. Never leaks cross-vendor credentials. */
 export function aiApiKey(): string | undefined {
-  if (aiProvider() === "deepseek") {
-    return deepseekApiKey() || openaiApiKey();
+  const provider = aiProvider();
+  if (provider === "deepseek") {
+    return deepseekApiKey();
   }
-  return openaiApiKey() || deepseekApiKey();
+  if (provider === "openai") {
+    return openaiApiKey();
+  }
+  return process.env.CUSTOM_AI_API_KEY?.trim() || openaiApiKey() || deepseekApiKey();
 }
 
 /** Base URL for OpenAI-compatible endpoints or DeepSeek. */

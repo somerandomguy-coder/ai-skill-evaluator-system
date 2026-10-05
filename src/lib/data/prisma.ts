@@ -104,11 +104,13 @@ function toEvaluationView(e: EvaluationRow): EvaluationView {
   }));
   const end = session.submittedAt ?? e.createdAt;
   const turns = session.turns.map(toTurnView);
+  const files = parseFileList(session.snapshot?.tree);
   const cognitive = buildCognitiveSuites({
     sessionId: session.id,
     challengeTitle: challenge.title,
     overallScore: e.overallScore,
     turns,
+    files,
   });
 
   return {

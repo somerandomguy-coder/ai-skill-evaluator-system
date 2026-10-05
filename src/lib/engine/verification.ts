@@ -104,14 +104,12 @@ export function applyAuditToChallenge(
   challenge: ChallengeV2,
   audit: MentorAuditEvaluation
 ): ChallengeV2 {
-  const updated: ChallengeV2 = {
+  return {
     ...challenge,
     verification: {
       status: audit.status,
-      badge: audit.badge ?? challenge.verification.badge,
+      badge: audit.passed ? audit.badge : undefined,
     },
-    tier: audit.passed ? "TIER_1_VERIFIED" : challenge.tier,
+    tier: audit.passed ? "TIER_1_VERIFIED" : "TIER_3_GENERATED",
   };
-
-  return updated;
 }

@@ -128,7 +128,14 @@ INSERT INTO audit_logs (action, user_id, details) VALUES
       isMounted = false;
       eng.close();
     };
-  }, [files["schema.sql"]]);
+  }, [
+    files["schema.sql"],
+    files["seed.sql"],
+    files["server/schema.sql"],
+    files["server/seed.sql"],
+    files["src/schema.sql"],
+    files["src/seed.sql"],
+  ]);
 
   function handleRunQuery(sqlToRun?: string) {
     const sql = (sqlToRun ?? query).trim();

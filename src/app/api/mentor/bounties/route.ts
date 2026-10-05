@@ -11,7 +11,13 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   try {
     const user = await getCurrentUser();
-    const mentorId = user?.id || "mentor_demo";
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    if (user.role !== "MENTOR") {
+      return NextResponse.json({ error: "Forbidden: Mentor access required" }, { status: 403 });
+    }
+    const mentorId = user.id;
 
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q") || undefined;

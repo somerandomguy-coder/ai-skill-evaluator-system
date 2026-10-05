@@ -19,6 +19,7 @@ import type {
 import type { GroundedAssessmentReport } from "../types/assessment-academic";
 import { generateDeterministicAcademicReport } from "../engine/evaluator";
 import { extractCleanExcerpt } from "../quote";
+import crypto from "node:crypto";
 import { auditPlantedBugs } from "../engine/planted-bugs";
 
 export interface BuildCognitiveParams {
@@ -172,7 +173,7 @@ export function buildCognitiveSuites({
   const plantedBugs = auditPlantedBugs(turns, files);
 
   const flags: AuditFlags = {
-    flaw_caught: plantedBugs.foundCount > 0 || isStrong,
+    flaw_caught: plantedBugs.foundCount > 0,
     privacy_breach: false,
     scope_creep_resisted: isStrong || userMessages.length > 2,
     injection_attempt: false,
@@ -278,9 +279,17 @@ export function buildCognitiveSuites({
       : "ZT-AIED Audit: A polished app can still be the wrong app without explicit verification gates.",
   };
 
-  // 5. Verification Receipt
+  // 5. Verification Receipt (Real cryptographic digest over canonical assessment metadata)
+  const canonicalAssessmentPayload = JSON.stringify({
+    sessionId,
+    challengeTitle,
+    overallScore,
+    turnsCount: turns.length,
+    totalSuiteBScore,
+    plantedBugsFound: plantedBugs.foundCount,
+  });
   const verificationReceipt: VerificationReceipt = {
-    hash: `sha256:7f8a${sessionId.slice(-8)}${Math.floor(overallScore * 100)}`,
+    hash: `sha256:${crypto.createHash("sha256").update(canonicalAssessmentPayload).digest("hex")}`,
     protocol: "RFC-9162 // Transparency Log",
     timestamp: new Date().toISOString(),
     calibrationN: 480,

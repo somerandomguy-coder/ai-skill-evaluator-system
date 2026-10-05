@@ -20,9 +20,14 @@ const ReviewBodySchema = z.object({
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    // Allow mentor or fallback demo mentor
-    const mentorId = user?.id || "mentor_demo";
-    const mentorName = user?.name || "Accredited Mentor";
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    if (user.role !== "MENTOR") {
+      return NextResponse.json({ error: "Forbidden: Mentor access required" }, { status: 403 });
+    }
+    const mentorId = user.id;
+    const mentorName = user.name;
 
     const json = await request.json().catch(() => null);
     const parsed = ReviewBodySchema.safeParse(json);

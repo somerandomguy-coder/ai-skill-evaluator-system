@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, FileSearch, Layers, ShieldCheck, Sparkles, Terminal } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CopyLinkButton, PrintExecutivePdfButton } from "@/components/report/actions";
 import type { AuditFlags } from "@/lib/data/types";
 import { data } from "@/lib/data";
@@ -82,11 +82,20 @@ function ScoreRingPip({ score, max = 5 }: { score: number; max?: number }) {
 
 export default async function CredentialPage({ params }: PageProps<"/report/[id]/credential">) {
   const { id } = await params;
+  if (id.startsWith("seed-")) {
+    redirect("/");
+  }
   const ev = await data.getEvaluation(id);
   if (!ev) notFound();
 
   // Same derivation as the report, so the two screens never disagree.
-  const derived = buildCognitiveSuites({ sessionId: ev.sessionId, challengeTitle: ev.challenge.title, overallScore: ev.overallScore, turns: ev.turns });
+  const derived = buildCognitiveSuites({
+    sessionId: ev.sessionId,
+    challengeTitle: ev.challenge.title,
+    overallScore: ev.overallScore,
+    turns: ev.turns,
+    files: ev.files,
+  });
   const suiteA = ev.suiteA ?? derived.suiteA;
   const suiteB = ev.suiteB ?? derived.suiteB;
 
@@ -94,7 +103,7 @@ export default async function CredentialPage({ params }: PageProps<"/report/[id]
   const mentorVerified = ev.reviewStatus === "REVIEWED" && ev.reviews.length > 0;
   const pending = ev.reviewStatus === "PENDING";
   // Anonymous submissions keep a stable short code rather than an invented name.
-  const holder = ev.candidateName ?? "Alex Chen";
+  const holder = ev.candidateName ?? `Candidate #${shortId(ev.ownerId)}`;
   const flagIssues = FLAG_RULES.filter((f) => suiteB.flags[f.key] !== f.goodWhen).length;
 
   const seal = mentorVerified

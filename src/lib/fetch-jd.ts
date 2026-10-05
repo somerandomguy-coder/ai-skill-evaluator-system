@@ -27,7 +27,9 @@ const MAX_REDIRECTS = 3;
 /** True for loopback, private, link-local, CGNAT, multicast and other non-public addresses. */
 export function isPublicAddress(ip: string): boolean {
   if (net.isIPv4(ip)) {
-    const [a, b] = ip.split(".").map(Number);
+    const parts = ip.split(".").map(Number);
+    if (parts.length !== 4 || parts.some((n) => isNaN(n) || n < 0 || n > 255)) return false;
+    const [a, b] = parts;
     if (a === 0 || a === 10 || a === 127) return false;
     if (a === 100 && b >= 64 && b <= 127) return false; // CGNAT
     if (a === 169 && b === 254) return false; // link-local, cloud metadata
@@ -41,11 +43,35 @@ export function isPublicAddress(ip: string): boolean {
   if (net.isIPv6(ip)) {
     const v = ip.toLowerCase();
     if (v === "::" || v === "::1") return false;
-    const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v);
-    if (mapped) return isPublicAddress(mapped[1]);
-    if (/^f[cd]/.test(v)) return false; // unique local fc00::/7
-    if (/^fe[89ab]/.test(v)) return false; // link-local fe80::/10
+
+    // Pattern 1: dotted decimal mapped (e.g. ::ffff:127.0.0.1 or 0:0:0:0:0:ffff:127.0.0.1)
+    const dotted = /(?:^|:)ffff:(\d+)\.(\d+)\.(\d+)\.(\d+)$/i.exec(v);
+    if (dotted) {
+      return isPublicAddress(`${dotted[1]}.${dotted[2]}.${dotted[3]}.${dotted[4]}`);
+    }
+
+    // Pattern 2: hex mapped (e.g. ::ffff:7f00:1 or 0:0:0:0:0:ffff:a9fe:a9fe)
+    const hex = /(?:^|:)ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i.exec(v);
+    if (hex) {
+      const w1 = parseInt(hex[1], 16);
+      const w2 = parseInt(hex[2], 16);
+      const ipv4 = `${(w1 >> 8) & 0xff}.${w1 & 0xff}.${(w2 >> 8) & 0xff}.${w2 & 0xff}`;
+      return isPublicAddress(ipv4);
+    }
+
+    if (/^f[cd]/i.test(v)) return false; // unique local fc00::/7
+    if (/^fe[89ab]/i.test(v)) return false; // link-local fe80::/10
     if (v.startsWith("ff")) return false; // multicast
+
+    // Deprecated IPv4-compatible IPv6 (::x:x)
+    const compatHex = /^::([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i.exec(v);
+    if (compatHex) {
+      const w1 = parseInt(compatHex[1], 16);
+      const w2 = parseInt(compatHex[2], 16);
+      const ipv4 = `${(w1 >> 8) & 0xff}.${w1 & 0xff}.${(w2 >> 8) & 0xff}.${w2 & 0xff}`;
+      return isPublicAddress(ipv4);
+    }
+
     return true;
   }
   return false;

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getCurrentUser } from "@/lib/auth";
+import { isDemoMode } from "@/lib/env";
 import { resolveChallenge } from "@/lib/engine/resolver";
 import { inspectJobDescription } from "@/lib/ai/inspect-jd";
+import type { ChallengeV2, RubricRequirement } from "@/lib/types/assessment-v2";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -11,12 +14,25 @@ const GenerateBodySchema = z.object({
   companyName: z.string().max(100).optional().default("Australian Technology Enterprise"),
 });
 
+function toCandidateSafeChallenge(c: ChallengeV2) {
+  const { embeddingVector: _, rubric, ...rest } = c;
+  return {
+    ...rest,
+    rubric: rubric.map(({ injectedTrap: _trap, failureModes: _fm, ...req }) => req as RubricRequirement),
+  };
+}
+
 /**
  * POST /api/challenge/generate
  * Resolves an incoming Job Description through the 3-Tier Challenge Hierarchy.
  */
 export async function POST(request: Request) {
   try {
+    const contentLength = Number(request.headers.get("content-length") || 0);
+    if (contentLength > 64 * 1024) {
+      return NextResponse.json({ error: "Payload too large (max 64KB)" }, { status: 413 });
+    }
+
     const json = await request.json().catch(() => null);
     if (!json) {
       return NextResponse.json({ error: "Invalid JSON request body" }, { status: 400 });
@@ -28,6 +44,11 @@ export async function POST(request: Request) {
         { error: "Validation failed", details: parsed.error.format() },
         { status: 400 }
       );
+    }
+
+    const user = await getCurrentUser();
+    if (!user && !isDemoMode() && process.env.NODE_ENV !== "test") {
+      return NextResponse.json({ error: "Authentication required to generate challenges" }, { status: 401 });
     }
 
     const { rawJd, companyName } = parsed.data;
@@ -64,12 +85,18 @@ export async function POST(request: Request) {
 
     const result = await resolveChallenge(rawJd, companyName);
 
-    return NextResponse.json(result, {
-      status: 200,
-      headers: {
-        "cache-control": "no-store",
+    return NextResponse.json(
+      {
+        ...result,
+        challenge: toCandidateSafeChallenge(result.challenge),
       },
-    });
+      {
+        status: 200,
+        headers: {
+          "cache-control": "no-store",
+        },
+      }
+    );
   } catch (err) {
     console.error("[POST /api/challenge/generate] Error:", err);
     return NextResponse.json(

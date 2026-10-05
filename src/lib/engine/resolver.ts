@@ -210,10 +210,12 @@ export async function resolveChallenge(
     for (const item of challengeRepository.values()) {
       const itemComp = item.companyName.toLowerCase();
       if (itemComp.length >= 3 && (itemComp.includes(searchComp) || searchComp.includes(itemComp))) {
+        // Enforce verification status check: only APPROVED challenges qualify for TIER_1_VERIFIED
+        const isApproved = item.verification.status === "APPROVED";
         await incrementChallengeUsage(item.id);
         return {
-          challenge: item,
-          tierResolved: "TIER_1_VERIFIED",
+          challenge: isApproved ? item : { ...item, tier: "TIER_2_CACHED" },
+          tierResolved: isApproved ? "TIER_1_VERIFIED" : "TIER_2_CACHED",
           similarityScore: 0.95,
           latencyMs: Date.now() - startTime,
         };
@@ -233,7 +235,7 @@ export async function resolveChallenge(
       if (dbMatch && dbMatch.requirements.length > 0) {
         const item: ChallengeV2 = {
           id: dbMatch.id,
-          tier: "TIER_1_VERIFIED",
+          tier: "TIER_2_CACHED",
           companyName: companyName && companyName !== "Unknown" ? companyName : searchComp.toUpperCase(),
           roleTitle: dbMatch.title,
           sfiaProfile: {
@@ -262,14 +264,14 @@ export async function resolveChallenge(
             successSignals: (r.successSignals as string[]) || [],
             failureModes: (r.failureModes as string[]) || [],
           })),
-          verification: { status: "APPROVED" },
+          verification: { status: "PENDING" },
           metadata: { createdAt: dbMatch.createdAt.toISOString(), usageCount: 1 },
         };
         registerChallengeInRepository(item);
         return {
           challenge: item,
-          tierResolved: "TIER_1_VERIFIED",
-          similarityScore: 0.95,
+          tierResolved: "TIER_2_CACHED",
+          similarityScore: 0.90,
           latencyMs: Date.now() - startTime,
         };
       }

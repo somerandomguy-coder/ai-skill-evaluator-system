@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { data } from "@/lib/data";
 import { EmployerDeck } from "@/components/report/employer-deck";
 
@@ -11,6 +11,9 @@ export default async function EmployerReportPage({
   params,
 }: PageProps<"/report/[id]/employer">) {
   const { id } = await params;
+  if (id.startsWith("seed-")) {
+    redirect("/");
+  }
   const ev = await data.getEvaluation(id);
   if (!ev) notFound();
 

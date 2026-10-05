@@ -85,27 +85,16 @@ CREATE TABLE IF NOT EXISTS consents (
   status TEXT NOT NULL CHECK(status IN ('ACTIVE', 'REVOKED', 'EXPIRED')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-
--- Initial seed data for candidate testing
-INSERT INTO users (name, email, role) VALUES 
-  ('Sarah Connor', 'sarah.connor@example.com', 'admin'),
-  ('John Doe', 'john.doe@example.com', 'candidate'),
-  ('Alice Wang', 'alice.wang@example.com', 'developer');
-
-INSERT INTO consents (user_id, purpose, status) VALUES
-  (1, 'CDR Banking Data Access', 'ACTIVE'),
-  (2, 'Taxation Automated Reporting', 'ACTIVE'),
-  (3, 'Diagnostics & Error Telemetry', 'REVOKED');
 `;
 
     files["seed.sql"] = `-- Seed Data for Local Development
-INSERT INTO users (name, email, role) VALUES 
+INSERT OR IGNORE INTO users (name, email, role) VALUES 
   ('Sarah Connor', 'sarah.connor@example.com', 'admin'),
   ('John Doe', 'john.doe@example.com', 'candidate'),
   ('Alice Wang', 'alice.wang@example.com', 'developer'),
   ('David Miller', 'david.miller@example.com', 'auditor');
 
-INSERT INTO consents (user_id, purpose, status) VALUES
+INSERT OR IGNORE INTO consents (user_id, purpose, status) VALUES
   (1, 'CDR Banking Data Access', 'ACTIVE'),
   (2, 'Taxation Automated Reporting', 'ACTIVE'),
   (3, 'Diagnostics & Error Telemetry', 'REVOKED'),
