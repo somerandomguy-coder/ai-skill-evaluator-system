@@ -32,7 +32,10 @@ export async function POST(request: Request) {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        await runChallengePipeline({ userId: auth.user.id, ...parsed.body }, (event) => controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`)));
+        await runChallengePipeline(
+          { userId: auth.user.id, userName: auth.user.name, userEmail: auth.user.email, ...parsed.body },
+          (event) => controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`))
+        );
       } catch (err) {
         // runChallengePipeline reports its own failures; this is the last-resort guard.
         const message = ((await errorResponse(err).json()) as { error: string }).error;

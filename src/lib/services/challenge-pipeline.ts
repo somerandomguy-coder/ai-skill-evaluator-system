@@ -6,6 +6,7 @@
  * from the database (with a notice when the pasted text was not the seeded JD).
  */
 import { AiError } from "../ai/client";
+import { classifyJd, enforceJdQuality } from "../ai/classify-jd";
 import { DemoFixtureMissingError, isSeedJd } from "../ai/demo";
 import { generateChallenge } from "../ai/generate-challenge";
 import { generateRequirementBank } from "../ai/generate-requirements";
@@ -61,7 +62,7 @@ async function runDemo(text: string, emit: Emit) {
 }
 
 async function runFastPipeline(
-  input: { userId: string; rawJd: string; sourceUrl?: string },
+  input: { userId: string; userName?: string; userEmail?: string; rawJd: string; sourceUrl?: string },
   emit: Emit
 ) {
   const text = input.rawJd;
@@ -124,7 +125,12 @@ async function runFastPipeline(
     await prisma.user.upsert({
       where: { id: input.userId },
       update: {},
-      create: { id: input.userId, email: `${input.userId}@proofcraft.dev`, name: "Candidate", role: "CANDIDATE" },
+      create: {
+        id: input.userId,
+        email: input.userEmail ?? `${input.userId}@proofcraft.dev`,
+        name: input.userName ?? "Candidate",
+        role: "CANDIDATE",
+      },
     });
     const sub = await prisma.jobSubmission.create({
       data: {
@@ -183,7 +189,7 @@ async function runFastPipeline(
 }
 
 export async function runChallengePipeline(
-  input: { userId: string; rawJd?: string; sourceUrl?: string; fast?: boolean },
+  input: { userId: string; userName?: string; userEmail?: string; rawJd?: string; sourceUrl?: string; fast?: boolean },
   emit: Emit
 ): Promise<void> {
   try {
@@ -212,15 +218,30 @@ export async function runChallengePipeline(
     // Only run fast simulation if explicitly requested by client, or if FAST_PIPELINE is true and not explicitly disabled
     const shouldRunFast = input.fast === true || (isFastPipeline() && input.fast !== false);
     if (shouldRunFast) {
-      return await runFastPipeline({ userId: input.userId, rawJd: text, sourceUrl }, emit);
+      return await runFastPipeline(
+        { userId: input.userId, userName: input.userName, userEmail: input.userEmail, rawJd: text, sourceUrl },
+        emit
+      );
     }
 
-    // 2. Parse.
+    // 2. Classify: screen for junk, too-vague, non-JD text, and prompt-injection attempts.
+    emit({ type: "step", step: "classify", status: "start" });
+    const jdQuality = await classifyJd(text);
+    emit({ type: "jd_quality", verdict: jdQuality });
+    emit({
+      type: "step",
+      step: "classify",
+      status: "done",
+      detail: jdQuality.cheatingAttempt ? "possible injection attempt" : jdQuality.type === "good" ? "looks like a real job ad" : jdQuality.type,
+    });
+    enforceJdQuality(jdQuality);
+
+    // 3. Parse.
     emit({ type: "step", step: "parse", status: "start" });
     const parsed = await parseJobDescription(text);
     emit({ type: "step", step: "parse", status: "done", detail: `${parsed.roleTitle} at ${parsed.employer}` });
 
-    // 3. Fast Domain Signals (direct from JD, zero web search latency).
+    // 4. Fast Domain Signals (direct from JD, zero web search latency).
     const research = {
       whatTheyDo: `Engineering organisation specialising in ${parsed.roleTitle} solutions.`,
       domainAndUsers: `Internal and external users of ${parsed.employer}'s systems.`,
@@ -229,7 +250,7 @@ export async function runChallengePipeline(
       sources: [] as Array<{ title: string; url: string }>,
     };
 
-    // 4. 3-Tier Resolution Engine: SFIA 9 & Evidence-Centered Design
+    // 5. 3-Tier Resolution Engine: SFIA 9 & Evidence-Centered Design
     emit({ type: "step", step: "challenge", status: "start" });
     const resolution = await resolveChallenge(text, parsed.employer);
     const resolved = resolution.challenge;
@@ -258,8 +279,8 @@ export async function runChallengePipeline(
         update: {},
         create: {
           id: input.userId,
-          email: `${input.userId}@proofcraft.dev`,
-          name: "Candidate",
+          email: input.userEmail ?? `${input.userId}@proofcraft.dev`,
+          name: input.userName ?? "Candidate",
           role: "CANDIDATE",
         },
       });

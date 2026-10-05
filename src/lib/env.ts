@@ -13,7 +13,7 @@ export function isFastPipeline(): boolean {
   return v === "true" || v === "1" || v === "yes";
 }
 
-export type AiStage = "parse" | "research" | "challenge" | "assistant" | "evaluator";
+export type AiStage = "classify" | "parse" | "research" | "challenge" | "assistant" | "evaluator";
 
 export type AiProvider = "openai" | "deepseek" | "custom";
 
@@ -65,7 +65,7 @@ export function isDeepSeekThinkingEnabled(stage: AiStage, model: string): boolea
   const globalVar = process.env.DEEPSEEK_THINKING;
   if (globalVar !== undefined) return globalVar.toLowerCase() === "true" || globalVar === "1";
 
-  if (stage === "assistant" || stage === "parse" || stage === "research") {
+  if (stage === "assistant" || stage === "parse" || stage === "research" || stage === "classify") {
     return false;
   }
 
