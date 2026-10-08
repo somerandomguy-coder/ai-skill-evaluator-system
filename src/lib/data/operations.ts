@@ -9,7 +9,27 @@
  */
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+
+function resolveCacheFilePath(defaultFileName: string, customPath?: string): string {
+  if (customPath) {
+    return customPath;
+  }
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    return path.join(os.tmpdir(), "proofcraft-cache", defaultFileName);
+  }
+  const localCache = path.join(process.cwd(), ".cache");
+  try {
+    if (!fs.existsSync(localCache)) {
+      fs.mkdirSync(localCache, { recursive: true });
+    }
+    fs.accessSync(localCache, fs.constants.W_OK);
+    return path.join(localCache, defaultFileName);
+  } catch {
+    return path.join(os.tmpdir(), "proofcraft-cache", defaultFileName);
+  }
+}
 
 export type OperationType = "GENERATION" | "EVALUATION";
 export type OperationStatus = "PENDING" | "DISPATCHED" | "COMMITTED" | "FAILED";
@@ -45,40 +65,71 @@ function clone<T>(v: T): T {
 
 export class OperationRepository {
   private filePath: string;
+  private memoryStore: OperationsStore = { operations: {}, byDigest: {} };
 
   constructor(filePath?: string) {
-    this.filePath = filePath || path.join(process.cwd(), ".cache", "proofcraft-operations.json");
+    this.filePath = resolveCacheFilePath("proofcraft-operations.json", filePath);
     this.ensureStore();
   }
 
   private ensureStore(): void {
-    const dir = path.dirname(this.filePath);
-    if (!fs.existsSync(dir)) {
-      try {
-        fs.mkdirSync(dir, { recursive: true });
-      } catch {
-        // ignore
+    try {
+      const dir = path.dirname(this.filePath);
+      if (!fs.existsSync(dir)) {
+        try {
+          fs.mkdirSync(dir, { recursive: true });
+        } catch {
+          // ignore
+        }
       }
-    }
-    if (!fs.existsSync(this.filePath)) {
-      const initial: OperationsStore = { operations: {}, byDigest: {} };
-      this.writeStore(initial);
+      if (!fs.existsSync(this.filePath)) {
+        const initial: OperationsStore = { operations: {}, byDigest: {} };
+        this.writeStore(initial);
+      }
+    } catch (err) {
+      if (!this.memoryStore) {
+        this.memoryStore = { operations: {}, byDigest: {} };
+      }
     }
   }
 
   private readStore(): OperationsStore {
-    this.ensureStore();
     try {
-      return JSON.parse(fs.readFileSync(this.filePath, "utf-8")) as OperationsStore;
+      if (fs.existsSync(this.filePath)) {
+        const parsed = JSON.parse(fs.readFileSync(this.filePath, "utf-8")) as OperationsStore;
+        if (parsed && typeof parsed === "object" && parsed.operations) {
+          this.memoryStore = parsed;
+          return clone(parsed);
+        }
+      }
     } catch {
-      return { operations: {}, byDigest: {} };
+      // ignore
     }
+    return clone(this.memoryStore);
   }
 
   private writeStore(data: OperationsStore): void {
-    const tempPath = `${this.filePath}.${randomUUID()}.tmp`;
-    fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), "utf-8");
-    fs.renameSync(tempPath, this.filePath);
+    this.memoryStore = clone(data);
+    try {
+      const dir = path.dirname(this.filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      const tempPath = `${this.filePath}.${randomUUID()}.tmp`;
+      fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), "utf-8");
+      try {
+        fs.renameSync(tempPath, this.filePath);
+      } catch {
+        fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), "utf-8");
+        try {
+          fs.unlinkSync(tempPath);
+        } catch {
+          // ignore
+        }
+      }
+    } catch (err) {
+      console.warn(`[OperationRepository] Disk store write warning (${this.filePath}):`, err instanceof Error ? err.message : err);
+    }
   }
 
   public reset(): void {

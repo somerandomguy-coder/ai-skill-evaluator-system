@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { VERIFIED_CHALLENGE_BANK } from "./verified-bank";
 
@@ -62,7 +63,10 @@ export interface MentorBountyStats {
   nextRankThreshold: number;
 }
 
-const REVIEWS_FILE_PATH = path.join(process.cwd(), "data-export", "bounty-reviews.json");
+const REVIEWS_FILE_PATH =
+  process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+    ? path.join(os.tmpdir(), "proofcraft-cache", "bounty-reviews.json")
+    : path.join(process.cwd(), "data-export", "bounty-reviews.json");
 const DATASET_FILE_PATH = path.join(process.cwd(), "data-export", "requirements-dataset.json");
 
 // In-memory cache of reviews keyed by requirement ID

@@ -12,7 +12,29 @@
  */
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+
+function resolveCacheFilePath(defaultFileName: string, customPath?: string): string {
+  if (customPath) {
+    return customPath;
+  }
+  // In serverless environments (e.g. Vercel, AWS Lambda), process.cwd() (/var/task) is read-only.
+  // os.tmpdir() is the guaranteed writable scratch directory.
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    return path.join(os.tmpdir(), "proofcraft-cache", defaultFileName);
+  }
+  const localCache = path.join(process.cwd(), ".cache");
+  try {
+    if (!fs.existsSync(localCache)) {
+      fs.mkdirSync(localCache, { recursive: true });
+    }
+    fs.accessSync(localCache, fs.constants.W_OK);
+    return path.join(localCache, defaultFileName);
+  } catch {
+    return path.join(os.tmpdir(), "proofcraft-cache", defaultFileName);
+  }
+}
 import type { ChallengeV2, MentorBadge, TierLevel, VerificationStatus } from "../types/assessment-v2";
 import {
   evaluateMentorAudit,
@@ -98,41 +120,74 @@ function clone<T>(obj: T): T {
 
 export class TaskApprovalRepository {
   private filePath: string;
+  private memoryStore: StoreSchema = { challenges: {} };
 
   constructor(filePath?: string) {
-    this.filePath = filePath || path.join(process.cwd(), ".cache", "proofcraft-task-approval.json");
+    this.filePath = resolveCacheFilePath("proofcraft-task-approval.json", filePath);
     this.ensureStoreInitialized();
   }
 
   private ensureStoreInitialized(): void {
-    const dir = path.dirname(this.filePath);
-    if (!fs.existsSync(dir)) {
-      try {
-        fs.mkdirSync(dir, { recursive: true });
-      } catch {
-        // Ignore if directory already created concurrently
+    try {
+      const dir = path.dirname(this.filePath);
+      if (!fs.existsSync(dir)) {
+        try {
+          fs.mkdirSync(dir, { recursive: true });
+        } catch {
+          // Ignore if directory already created concurrently
+        }
       }
-    }
-    if (!fs.existsSync(this.filePath)) {
-      const initial: StoreSchema = { challenges: {} };
-      this.writeStore(initial);
+      if (!fs.existsSync(this.filePath)) {
+        const initial: StoreSchema = { challenges: {} };
+        this.writeStore(initial);
+      }
+    } catch (err) {
+      // In constrained/read-only environments, keep memoryStore healthy without throwing
+      if (!this.memoryStore) {
+        this.memoryStore = { challenges: {} };
+      }
     }
   }
 
   private readStore(): StoreSchema {
-    this.ensureStoreInitialized();
     try {
-      const content = fs.readFileSync(this.filePath, "utf-8");
-      return JSON.parse(content) as StoreSchema;
+      if (fs.existsSync(this.filePath)) {
+        const content = fs.readFileSync(this.filePath, "utf-8");
+        const parsed = JSON.parse(content) as StoreSchema;
+        if (parsed && typeof parsed === "object" && parsed.challenges) {
+          this.memoryStore = parsed;
+          return clone(parsed);
+        }
+      }
     } catch {
-      return { challenges: {} };
+      // If reading from disk fails, fall back to memoryStore
     }
+    return clone(this.memoryStore);
   }
 
   private writeStore(data: StoreSchema): void {
-    const tempPath = `${this.filePath}.${randomUUID()}.tmp`;
-    fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), "utf-8");
-    fs.renameSync(tempPath, this.filePath);
+    this.memoryStore = clone(data);
+    try {
+      const dir = path.dirname(this.filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      const tempPath = `${this.filePath}.${randomUUID()}.tmp`;
+      fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), "utf-8");
+      try {
+        fs.renameSync(tempPath, this.filePath);
+      } catch {
+        fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), "utf-8");
+        try {
+          fs.unlinkSync(tempPath);
+        } catch {
+          // ignore
+        }
+      }
+    } catch (err) {
+      // Non-fatal in read-only / constrained serverless environments
+      console.warn(`[TaskApprovalRepository] Disk store write warning (${this.filePath}):`, err instanceof Error ? err.message : err);
+    }
   }
 
   public reset(): void {
