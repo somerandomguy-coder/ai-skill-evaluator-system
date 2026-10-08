@@ -350,7 +350,8 @@ export async function resolveChallenge(
   // Generate pending challenge directly without bank initialization or query embedding.
   const generatedChallenge = await runAgenticGenerationPipeline(rawJd, companyName);
   generatedChallenge.provenance = {
-    origin: "ai",
+    ...generatedChallenge.provenance,
+    origin: generatedChallenge.provenance?.origin || "ai",
     resolutionReason: "GENERATED",
   };
   registerChallengeInRepository(generatedChallenge);
