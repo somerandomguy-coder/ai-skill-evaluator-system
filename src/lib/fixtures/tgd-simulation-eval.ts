@@ -703,10 +703,9 @@ export const TGD_EVALUATION_VIEW: EvaluationView = {
   },
   verificationReceipt: {
     hash: "sha256-tgd-sim-2026-verified-receipt",
-    protocol: "SFIA-9-ECD-v2",
+    algorithm: "SHA-256",
+    scope: "saved assessment metadata",
     timestamp: "2026-03-25T10:30:00Z",
-    calibrationN: 42,
-    evaluatorVersion: "ProofCraft-v2.4",
   },
   groundedAssessment: TGD_GROUNDED_ASSESSMENT,
 };

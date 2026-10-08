@@ -18,6 +18,11 @@ const Body = z.object({
  */
 export async function POST(request: Request) {
   try {
+    const contentLength = Number(request.headers.get("content-length") || 0);
+    if (contentLength > 64 * 1024) {
+      return NextResponse.json({ error: "Payload too large (max 64KB)" }, { status: 413 });
+    }
+
     const json = await request.json().catch(() => ({}));
     const parsed = Body.safeParse(json);
     if (!parsed.success) {
@@ -39,9 +44,10 @@ export async function POST(request: Request) {
       cheatingAttempt: inspection.cheatingAttempt,
       formatted: inspection.formatted,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    console.error("[POST /api/jd/inspect] Error:", err);
     return NextResponse.json(
-      { error: "Failed to inspect job description", details: err?.message },
+      { error: "Failed to inspect job description" },
       { status: 500 }
     );
   }

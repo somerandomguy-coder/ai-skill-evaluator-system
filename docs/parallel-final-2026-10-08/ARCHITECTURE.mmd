@@ -1,0 +1,26 @@
+flowchart LR
+  subgraph B["Candidate browser"]
+    UI["Editor · AI chat · preview"]
+    WC["WebContainer runtime\nvirtual files and app execution"]
+    UI <--> WC
+  end
+  subgraph S["Next.js server"]
+    GEN["JD intake · task resolution\nprofile → task → rubric"]
+    CHAT["Assistant orchestration\nvalidated file writes · session records"]
+    EVAL["Transcript + file snapshot + rubric\nAI proposal → deterministic evidence checks"]
+    REVIEW["Saved assessment · review state\nreport / credential projection"]
+    GEN --> CHAT --> EVAL --> REVIEW
+  end
+  DB[("Supabase PostgreSQL\nsessions · files · tasks · evaluations · reviews")]
+  AI["External model provider\ngeneration · assistant · evaluation"]
+  M["Human mentor\ntask audit or candidate assessment review"]
+  J["PROPOSED: Jev shadow check\nlog recommendation only\nno score or routing authority"]
+  UI -->|JD / messages / submit| S
+  CHAT <-->|persist / load| DB
+  REVIEW <-->|persist / load| DB
+  S <-->|selected source and evidence| AI
+  M <-->|inspect / confirm / override| REVIEW
+  REVIEW -->|viewer-specific report| UI
+  EVAL -.->|optional bounded shadow input| J
+  classDef planned fill:#fff,stroke:#0d9488,stroke-width:2px,stroke-dasharray:6 4;
+  class J planned;

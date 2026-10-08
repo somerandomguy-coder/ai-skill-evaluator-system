@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowRight,
   BadgeCheck,
   Briefcase,
   Bug,
@@ -37,9 +36,8 @@ import type { AuditFlags, EvaluationView, UserView } from "@/lib/data/types";
 import { downloadProjectZip } from "@/lib/export/zip";
 import type { GroundedAssessmentReport } from "@/lib/types/assessment-academic";
 import { formatMinutes, scoreBand } from "@/lib/format";
-import { buildCognitiveSuites } from "@/lib/services/cognitive-rubric";
 import { cn } from "@/lib/utils";
-import { ContestDialog, CopyLinkButton, PrintExecutivePdfButton, ViewCredentialButton } from "./actions";
+import { ContestDialog, PrintExecutivePdfButton, ShareEmployerReportButton, ViewCredentialButton } from "./actions";
 import { RequirementResultCard } from "./requirement-result";
 import { ChallengeTierBadge } from "@/components/challenge/tier-badge";
 import { AcademicRubricCard } from "./academic-rubric-card";
@@ -146,14 +144,19 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
   const [showJourney, setShowJourney] = useState(false);
 
   useEffect(() => {
+    let timer: number | undefined;
     try {
       const seen = localStorage.getItem(`report-journey-seen-${ev.id}`);
       if (!seen) {
-        setShowJourney(true);
+        // Defer the welcome panel until after the current render commits.
+        timer = window.setTimeout(() => setShowJourney(true), 0);
       }
     } catch {
       // Ignore storage access errors
     }
+    return () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
   }, [ev.id]);
 
   const closeJourney = () => {
@@ -180,17 +183,40 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
     setOpen({ summary: next, academic: next, rubric: next, signals: next, citations: next, transcript: next });
   };
 
-  const dynamicCognitive = buildCognitiveSuites({
-    sessionId: ev.sessionId,
-    challengeTitle: ev.challenge.title,
-    overallScore: ev.overallScore,
-    turns: ev.turns,
-    files: ev.files,
-  });
-  const suiteA = ev.suiteA ?? dynamicCognitive.suiteA;
-  const suiteB = ev.suiteB ?? dynamicCognitive.suiteB;
-  const plantedBugs = suiteB.plantedBugs ?? dynamicCognitive.suiteB.plantedBugs;
-  const groundedAssessment: GroundedAssessmentReport | undefined = ev.groundedAssessment ?? dynamicCognitive.groundedAssessment;
+  // Assessments created before the immutable envelope was introduced do not
+  // contain a stored cognitive assessment. Recomputing it at read time would
+  // present a new result as if it had been generated during the candidate's
+  // submission, so make the limitation explicit instead.
+  if (!ev.suiteA || !ev.suiteB) {
+    return (
+      <EvidenceProvider>
+        <div className="space-y-6 py-4 sm:py-8">
+          <header className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">Assessment report</p>
+            <h1 className="text-3xl font-semibold tracking-tight">Historical assessment record</h1>
+            <p className="max-w-2xl text-muted-foreground">
+              This record predates saved assessment evidence. Its original score is retained, but ProofCraft cannot recreate an auditable cognitive assessment after submission.
+            </p>
+          </header>
+          <section className="rounded-2xl border border-warn/30 bg-warn-soft p-5 text-sm text-warn">
+            A mentor should review this historical result before it is used for a hiring or candidate decision.
+          </section>
+          <section className="rounded-2xl border border-border bg-card p-5">
+            <dl className="grid gap-4 sm:grid-cols-3">
+              <div><dt className="text-sm text-muted-foreground">Original score</dt><dd className="mt-1 text-2xl font-semibold">{Math.round(ev.overallScore)}/100</dd></div>
+              <div><dt className="text-sm text-muted-foreground">Evidence coverage</dt><dd className="mt-1 text-2xl font-semibold">{Math.round(ev.coverage * 100)}%</dd></div>
+              <div><dt className="text-sm text-muted-foreground">Status</dt><dd className="mt-1 text-lg font-semibold">{ev.reviewStatus === "REVIEWED" ? "Mentor reviewed" : "Needs review"}</dd></div>
+            </dl>
+          </section>
+        </div>
+      </EvidenceProvider>
+    );
+  }
+
+  const suiteA = ev.suiteA;
+  const suiteB = ev.suiteB;
+  const plantedBugs = suiteB.plantedBugs;
+  const groundedAssessment: GroundedAssessmentReport | undefined = ev.groundedAssessment;
 
   const groups = REQUIREMENT_CATEGORIES.map((category) => ({
     category,
@@ -289,7 +315,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
               <Download className="size-3.5 text-muted-foreground" />
               Download ZIP
             </button>
-            <CopyLinkButton />
+            {isOwner ? <ShareEmployerReportButton evaluationId={ev.id} /> : null}
             <PrintExecutivePdfButton />
           </div>
         </header>
@@ -697,10 +723,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
           </span>
           <div className="flex flex-wrap gap-2">
             {isOwner && <ContestDialog evaluationId={ev.id} />}
-            <Link href={`/report/${ev.id}/employer`} className={buttonVariants({ variant: "signal", size: "lg", className: "rounded-full px-4" })}>
-              Share with employer
-              <ArrowRight aria-hidden />
-            </Link>
+            {isOwner ? <ShareEmployerReportButton evaluationId={ev.id} /> : null}
           </div>
         </div>
 

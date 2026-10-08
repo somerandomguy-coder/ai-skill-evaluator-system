@@ -91,10 +91,13 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
     turnsRef.current = turns;
   }, [turns]);
 
-  // Warm start: boot the environment as soon as the workspace opens, not on the first message.
+  // Warm start: boot the environment scoped to this workspace session, and clean up on unmount / session switch.
   useEffect(() => {
-    void startRuntime(workspace.files);
-  }, [workspace.files]);
+    void startRuntime(workspace.sessionId, workspace.files);
+    return () => {
+      void stopRuntime(workspace.sessionId);
+    };
+  }, [workspace.sessionId, workspace.files]);
 
   // Guard against accidental browser back navigation (e.g. exiting active workspace to Step 2):
   useEffect(() => {

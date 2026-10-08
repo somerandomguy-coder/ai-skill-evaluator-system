@@ -71,6 +71,8 @@ export function buildEvaluationData(i: EvaluationRowInput): Prisma.EvaluationUnc
     overallScore: i.result.overallScore,
     turns: turnViews,
     files: i.files,
+    academicReport,
+    sfiaLevel: challengeLevel,
   });
 
   const decision = shouldEscalate({
@@ -167,7 +169,11 @@ export async function evaluateAndStore(sessionId: string): Promise<Evaluation> {
   });
 
   const end = session.submittedAt ?? new Date();
-  const challengeLevel = (session.challenge as any).sfiaProfile?.level ?? 3;
+  const challengeMeta = session.challenge.meta && typeof session.challenge.meta === "object"
+    ? session.challenge.meta as Record<string, unknown>
+    : {};
+  const storedSfiaLevel = (challengeMeta.sfiaProfile as { level?: unknown } | undefined)?.level;
+  const challengeLevel = storedSfiaLevel === 2 ? 2 : 3;
   const data = buildEvaluationData({
     buildSessionId: sessionId,
     rubricVersion: session.challenge.rubricVersion,

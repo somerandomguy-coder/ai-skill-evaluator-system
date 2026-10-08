@@ -14,7 +14,7 @@ import {
   OFFLINE_SYNC_DRAFT_FIXTURE,
 } from "./draft-fixtures";
 
-// --- Agent 1: SFIA 8 Profile Schema ---
+// --- Agent 1: SFIA 9 Profile Schema ---
 
 export const SfiaSkillCodeSchema = z.enum(["PROG", "DESN", "TEST", "DBDS", "ITOP"]);
 
@@ -86,6 +86,14 @@ export function formatSourceJdForPrompt(rawJd: string, maxLen = 5000): {
   omittedChars: number;
 } {
   const trimmed = rawJd.trim();
+  if (maxLen <= 0) {
+    return {
+      promptText: "",
+      sourceTruncated: trimmed.length > 0,
+      omittedChars: trimmed.length,
+    };
+  }
+
   if (trimmed.length <= maxLen) {
     return {
       promptText: trimmed,
@@ -94,10 +102,12 @@ export function formatSourceJdForPrompt(rawJd: string, maxLen = 5000): {
     };
   }
 
-  // Preserve relevant opening (3500 chars) AND decisive tail facts (1500 chars)
-  const opening = trimmed.slice(0, 3500);
-  const tail = trimmed.slice(-1500);
-  const omitted = trimmed.length - 5000;
+  // Dynamically allocate budget: 70% opening and 30% tail, guaranteeing omittedChars > 0
+  const openingLen = Math.floor(maxLen * 0.7);
+  const tailLen = Math.max(0, maxLen - openingLen);
+  const opening = trimmed.slice(0, openingLen);
+  const tail = tailLen > 0 ? trimmed.slice(-tailLen) : "";
+  const omitted = trimmed.length - (opening.length + tail.length);
   const promptText = `${opening}\n\n[...OMITTED ${omitted} CHARACTERS OF MIDDLE TEXT...]\n\n${tail}`;
 
   return {
@@ -501,9 +511,11 @@ export async function runAgent3RubricGeneratorWithRecord(
 export async function runAgenticGenerationPipeline(
   rawJd: string,
   companyName: string,
-  jdEmbedding?: number[]
+  jdEmbedding?: number[],
+  options?: { maxSourceJdLength?: number }
 ): Promise<ChallengeV2> {
-  const { sourceTruncated, omittedChars } = formatSourceJdForPrompt(rawJd, 5000);
+  const maxLen = options?.maxSourceJdLength ?? 5000;
+  const { sourceTruncated, omittedChars } = formatSourceJdForPrompt(rawJd, maxLen);
 
   const stage1 = await runAgent1SfiaDeconstructorWithRecord(rawJd, companyName);
   const stage2 = await runAgent2EcdTaskSynthesizerWithRecord(stage1.data, rawJd, companyName);
@@ -531,6 +543,8 @@ export async function runAgenticGenerationPipeline(
     provenance: {
       origin: hasFallback ? "deterministic_fallback" : "ai",
       resolutionReason: "GENERATED",
+      generatedAt: new Date().toISOString(),
+      configVersion: "ecd-v2.1",
     },
     verification: {
       status: "PENDING",
@@ -539,8 +553,12 @@ export async function runAgenticGenerationPipeline(
       createdAt: new Date().toISOString(),
       usageCount: 1,
       promptVersion: "ecd-v2.1",
+      generationConfigVersion: "ecd-v2.1",
+      rubricVersion: "sfia-9-ecd-v2.1",
+      calibrationFramework: "SFIA 9 (Levels 2-3 subset)",
       sourceTruncated,
       omittedChars,
+      sourceOmissionDecisive: omittedChars > 0,
       stages,
     },
   };

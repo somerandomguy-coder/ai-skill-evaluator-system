@@ -27,6 +27,62 @@ async function readJson<T>(res: Response): Promise<T> {
 const post = (url: string, body?: unknown) =>
   fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body ?? {}) });
 
+/**
+ * Processes an NDJSON stream with robust handling for:
+ * 1. Split chunks across network packets
+ * 2. Trailing final lines without newlines at EOF
+ * 3. Malformed records
+ * 4. Interrupted streams (missing terminal 'done' or 'error' event)
+ */
+export async function readNdjsonPipelineStream(
+  readable: ReadableStream<Uint8Array>,
+  onEvent: (e: PipelineEvent) => void
+): Promise<{ terminalEventSeen: boolean; lastEvent?: PipelineEvent }> {
+  const reader = readable.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let terminalEventSeen = false;
+  let lastEvent: PipelineEvent | undefined;
+
+  const processLine = (line: string) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    try {
+      const event = JSON.parse(trimmed) as PipelineEvent;
+      lastEvent = event;
+      if (event.type === "done" || event.type === "error") {
+        terminalEventSeen = true;
+      }
+      onEvent(event);
+    } catch {
+      // Discard malformed JSON records gracefully without crashing the stream
+    }
+  };
+
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let nl: number;
+      while ((nl = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, nl);
+        buffer = buffer.slice(nl + 1);
+        processLine(line);
+      }
+    }
+    // Flush the decoder then process any remaining trailing buffer at EOF.
+    buffer += decoder.decode();
+    if (buffer.trim()) {
+      processLine(buffer);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return { terminalEventSeen, lastEvent };
+}
+
 /** Build a challenge from a job description; streams progress events as NDJSON. */
 export async function runPipeline(
   input: { rawJd?: string; sourceUrl?: string; fast?: boolean },
@@ -34,18 +90,11 @@ export async function runPipeline(
 ): Promise<void> {
   const res = await post("/api/jd", input);
   if (!res.ok || !res.body) await readJson(res); // throws with the server's message
-  const reader = res.body!.pipeThrough(new TextDecoderStream()).getReader();
-  let buffer = "";
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += value;
-    let nl: number;
-    while ((nl = buffer.indexOf("\n")) >= 0) {
-      const line = buffer.slice(0, nl).trim();
-      buffer = buffer.slice(nl + 1);
-      if (line) onEvent(JSON.parse(line) as PipelineEvent);
-    }
+
+  const { terminalEventSeen } = await readNdjsonPipelineStream(res.body!, onEvent);
+
+  if (!terminalEventSeen) {
+    throw new ApiError("Pipeline stream interrupted unexpectedly before completion.", 0, true);
   }
 }
 

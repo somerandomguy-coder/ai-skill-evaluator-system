@@ -203,10 +203,11 @@ export interface SuiteBView {
 
 export interface VerificationReceipt {
   hash: string;
-  protocol: string;
+  /** A local integrity digest only. It is not an external transparency-log entry. */
+  algorithm: "SHA-256";
+  /** What was hashed so a reader does not mistake this for score calibration. */
+  scope: "saved assessment metadata";
   timestamp: string;
-  calibrationN: number;
-  evaluatorVersion: string;
 }
 
 export interface EvaluationView {

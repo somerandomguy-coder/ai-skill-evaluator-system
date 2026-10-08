@@ -17,6 +17,7 @@ import type {
   FileWrite,
 } from "../data/types";
 import type { GroundedAssessmentReport } from "../types/assessment-academic";
+import type { SfiaLevel } from "../types/assessment-v2";
 import { generateDeterministicAcademicReport } from "../engine/evaluator";
 import { extractCleanExcerpt } from "../quote";
 import crypto from "node:crypto";
@@ -28,6 +29,9 @@ export interface BuildCognitiveParams {
   overallScore: number;
   turns: TurnView[];
   files?: Record<string, string> | FileWrite[];
+  /** The same saved academic assessment that drives escalation and report views. */
+  academicReport?: GroundedAssessmentReport | null;
+  sfiaLevel?: SfiaLevel;
 }
 
 export function buildCognitiveSuites({
@@ -36,6 +40,8 @@ export function buildCognitiveSuites({
   overallScore,
   turns,
   files,
+  academicReport: suppliedAcademicReport,
+  sfiaLevel = 3,
 }: BuildCognitiveParams): {
   suiteA: SuiteAView;
   suiteB: SuiteBView;
@@ -43,14 +49,17 @@ export function buildCognitiveSuites({
   verificationReceipt: VerificationReceipt;
   groundedAssessment: GroundedAssessmentReport;
 } {
-  const groundedAssessment = generateDeterministicAcademicReport(
+  // Keep a single academic assessment per evaluation. Re-running a heuristic here
+  // used to make the cognitive cards disagree with the persisted escalation path
+  // and silently changed Level 2 work into Level 3 work.
+  const groundedAssessment = suppliedAcademicReport ?? generateDeterministicAcademicReport(
     {
       sessionId,
       challengeTitle,
       turns,
       finalScore: overallScore,
     },
-    3
+    sfiaLevel
   );
 
   const userTurns = turns.filter((t) => t.role === "USER" || (t as any).role === "user");
@@ -279,7 +288,9 @@ export function buildCognitiveSuites({
       : "ZT-AIED Audit: A polished app can still be the wrong app without explicit verification gates.",
   };
 
-  // 5. Verification Receipt (Real cryptographic digest over canonical assessment metadata)
+  // 5. Local integrity digest over saved assessment metadata. This proves only
+  // that these fields produce the displayed digest; it is not a transparency-log
+  // receipt, calibration result, or assertion about the model used.
   const canonicalAssessmentPayload = JSON.stringify({
     sessionId,
     challengeTitle,
@@ -290,10 +301,9 @@ export function buildCognitiveSuites({
   });
   const verificationReceipt: VerificationReceipt = {
     hash: `sha256:${crypto.createHash("sha256").update(canonicalAssessmentPayload).digest("hex")}`,
-    protocol: "RFC-9162 // Transparency Log",
+    algorithm: "SHA-256",
+    scope: "saved assessment metadata",
     timestamp: new Date().toISOString(),
-    calibrationN: 480,
-    evaluatorVersion: "gpt-5.5 (ZT-AIED v4.2)",
   };
 
   return { suiteA, suiteB, ztAiedAudit, verificationReceipt, groundedAssessment };

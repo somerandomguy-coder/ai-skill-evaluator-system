@@ -2,11 +2,10 @@ import { ArrowLeft, ArrowRight, FileSearch, Layers, ShieldCheck, Sparkles, Termi
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CopyLinkButton, PrintExecutivePdfButton } from "@/components/report/actions";
+import { PrintExecutivePdfButton, ShareEmployerReportButton } from "@/components/report/actions";
 import type { AuditFlags } from "@/lib/data/types";
 import { data } from "@/lib/data";
 import { formatMinutes, scoreBand, shortId } from "@/lib/format";
-import { buildCognitiveSuites } from "@/lib/services/cognitive-rubric";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Credential" };
@@ -102,26 +101,35 @@ export default async function CredentialPage({
 
   if (!isOwner && !isMentor) {
     const sp = searchParams ? await searchParams : {};
-    if (sp.share) {
-      const res = await resolveShareCapability(sp.share);
-      if (res.status !== "VALID" || res.capability.evaluationId !== ev.id) {
-        redirect(`/login?error=forbidden&next=${encodeURIComponent(`/report/${id}/credential`)}`);
+    const share = Array.isArray(sp.share) ? sp.share[0] : sp.share;
+    if (share) {
+      const res = await resolveShareCapability(share);
+      if (res.status === "VALID" && res.capability.evaluationId === ev.id) {
+        // A capability grants the employer summary only, never the credential
+        // details or links back to transcript evidence.
+        redirect(`/report/${encodeURIComponent(ev.id)}/employer?share=${encodeURIComponent(share)}`);
       }
-    } else {
-      redirect(`/login?error=forbidden&next=${encodeURIComponent(`/report/${id}/credential`)}`);
     }
+    redirect(`/login?error=forbidden&next=${encodeURIComponent(`/report/${id}/credential`)}`);
   }
 
-  // Same derivation as the report, so the two screens never disagree.
-  const derived = buildCognitiveSuites({
-    sessionId: ev.sessionId,
-    challengeTitle: ev.challenge.title,
-    overallScore: ev.overallScore,
-    turns: ev.turns,
-    files: ev.files,
-  });
-  const suiteA = ev.suiteA ?? derived.suiteA;
-  const suiteB = ev.suiteB ?? derived.suiteB;
+  // A credential must only show an assessment saved at submission time. Older
+  // reports have no immutable envelope and must be reviewed rather than derived
+  // afresh when someone opens this route.
+  if (!ev.suiteA || !ev.suiteB) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-2xl items-center px-6 py-16">
+        <section className="space-y-4 rounded-3xl border border-warn/30 bg-card p-8 shadow-sm">
+          <p className="text-sm font-medium text-warn">Historical assessment</p>
+          <h1 className="text-2xl font-semibold">Credential unavailable until mentor review</h1>
+          <p className="text-muted-foreground">This assessment predates the saved evidence envelope, so ProofCraft will not recreate a credential from current heuristics.</p>
+          <Link className="inline-flex text-signal-ink underline" href={`/report/${ev.id}`}>View the historical report</Link>
+        </section>
+      </main>
+    );
+  }
+  const suiteA = ev.suiteA;
+  const suiteB = ev.suiteB;
 
   const band = scoreBand(ev.effective.score);
   const mentorVerified = ev.reviewStatus === "REVIEWED" && ev.reviews.length > 0;
@@ -170,7 +178,7 @@ export default async function CredentialPage({
             </Link>
           </div>
           <div className="flex flex-wrap gap-2">
-            <CopyLinkButton label="Share credential" variant="signal" />
+            {isOwner ? <ShareEmployerReportButton evaluationId={ev.id} label="Share with employer" /> : null}
             <PrintExecutivePdfButton label="Download PDF" variant="signal" />
           </div>
         </div>
@@ -355,7 +363,7 @@ export default async function CredentialPage({
             Transcript and source files
           </Link>
           <div className="flex flex-wrap gap-2">
-            <CopyLinkButton label="Share credential" variant="signal" />
+            {isOwner ? <ShareEmployerReportButton evaluationId={ev.id} label="Share with employer" /> : null}
             <PrintExecutivePdfButton label="Download PDF" variant="signal" />
           </div>
         </div>

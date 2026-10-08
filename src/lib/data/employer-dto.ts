@@ -24,7 +24,6 @@ export interface EmployerReportDto {
   gaps: string[];
   publicEvidence: PublicEvidenceExcerpt[];
   shareScope: "EMPLOYER_VIEW";
-  shareTokenHash: string;
 }
 
 /**
@@ -37,16 +36,14 @@ export function toEmployerReportDto(
   capability: ShareCapability
 ): EmployerReportDto {
   const publicEvidence: PublicEvidenceExcerpt[] = evaluation.results.map((r) => {
-    // Only verified candidate quotations from USER turns can be public excerpts
-    const candidateTurn = r.evidence.find(
-      (e) => e.verified && e.type === "turn" && (e as any).speaker !== "ASSISTANT"
-    );
+    // Current rows are joined with their requirement; older saved envelopes
+    // may retain the category and statement as flat fields instead.
+    const legacy = r as unknown as { category?: string; statement?: string };
     return {
       requirementId: r.requirementId,
-      category: r.requirement?.category || (r as any).category || "GENERAL",
-      statement: r.requirement?.statement || (r as any).statement || "",
+      category: r.requirement?.category ?? legacy.category ?? "GENERAL",
+      statement: r.requirement?.statement ?? legacy.statement ?? "",
       score: r.score,
-      publicExcerpt: candidateTurn?.quote,
     };
   });
 
@@ -64,7 +61,6 @@ export function toEmployerReportDto(
     gaps: evaluation.gaps,
     publicEvidence,
     shareScope: "EMPLOYER_VIEW",
-    shareTokenHash: capability.tokenHash,
   };
 }
 

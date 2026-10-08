@@ -10,6 +10,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { contestScore } from "@/lib/client/api";
+import { createEmployerShare } from "@/app/actions/shares";
 
 export function CopyLinkButton({ url, label = "Copy link", variant = "outline" }: { url?: string; label?: string; variant?: "outline" | "signal" }) {
   const [copied, setCopied] = useState(false);
@@ -28,6 +29,40 @@ export function CopyLinkButton({ url, label = "Copy link", variant = "outline" }
       {copied ? <Check className="pop-in size-3.5 text-ok" aria-hidden /> : <Link2 className="size-3.5" aria-hidden />}
       <span>{copied ? "Copied" : label}</span>
     </Button>
+  );
+}
+
+/** Creates a revocable public dossier link instead of copying the private report URL. */
+export function ShareEmployerReportButton({ evaluationId, label = "Share with employer" }: { evaluationId: string; label?: string }) {
+  const [pending, setPending] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function share() {
+    if (pending) return;
+    setPending(true);
+    setError(null);
+    try {
+      const relativeUrl = await createEmployerShare(evaluationId);
+      const absoluteUrl = new URL(relativeUrl, window.location.origin).toString();
+      await navigator.clipboard.writeText(absoluteUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2_000);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not create an employer share link.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <span className="inline-flex flex-col items-start gap-1">
+      <Button variant="signal" size="lg" onClick={() => void share()} disabled={pending} className="gap-1.5 rounded-full px-3.5 text-[13px]">
+        {pending ? <LoaderCircle className="size-3.5 animate-spin" aria-hidden /> : copied ? <Check className="size-3.5" aria-hidden /> : <Link2 className="size-3.5" aria-hidden />}
+        <span>{copied ? "Employer link copied" : label}</span>
+      </Button>
+      {error ? <span role="alert" className="max-w-56 text-xs text-bad">{error}</span> : null}
+    </span>
   );
 }
 

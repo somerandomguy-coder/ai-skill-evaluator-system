@@ -84,10 +84,25 @@ export function EmployerDeck({ evaluation: ev, candidateName }: EmployerDeckProp
   const [mode, setMode] = useState<"deck" | "full">("deck");
   const glowRef = useMouseGlow<HTMLDivElement>();
 
+  // A public dossier must be derived from the immutable assessment saved at
+  // submission. Historical rows have no such envelope, and inventing a deck
+  // from their overall score would misrepresent what was actually assessed.
+  if (!ev.suiteA || !ev.suiteB) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-2xl items-center px-6 py-16">
+        <section className="space-y-4 rounded-3xl border border-warn/30 bg-card p-8 shadow-sm">
+          <p className="text-sm font-medium text-warn">Historical assessment</p>
+          <h1 className="text-2xl font-semibold">Employer dossier unavailable</h1>
+          <p className="text-muted-foreground">This assessment was created before ProofCraft stored an immutable evidence envelope. It needs mentor review before it can be shared as an employer-facing dossier.</p>
+        </section>
+      </main>
+    );
+  }
+
   const isStrong = ev.overallScore >= 80;
   const shaHash =
     ev.verificationReceipt?.hash ??
-    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    "not recorded";
 
   const suiteA = ev.suiteA ?? {
     title: "Product Test Suite (4Ds)",

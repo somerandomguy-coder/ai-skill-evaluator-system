@@ -459,7 +459,7 @@ export async function submitSession(sessionId: string, userId: string): Promise<
   const existing = await prisma.evaluation.findUnique({ where: { buildSessionId: sessionId }, select: { id: true } });
   if (existing) return existing.id;
 
-  const claim = operationRepo.claimOperation("EVALUATION", userId, { sessionId });
+  let claim = operationRepo.claimOperation("EVALUATION", userId, { sessionId });
   if (claim.alreadyCompleted && claim.operation.resultId) {
     return claim.operation.resultId;
   }
@@ -476,8 +476,16 @@ export async function submitSession(sessionId: string, userId: string): Promise<
       const evalRow = await prisma.evaluation.findUnique({ where: { buildSessionId: sessionId }, select: { id: true } });
       if (evalRow) return evalRow.id;
       if (pollOp?.status === "FAILED") {
+        // The prior worker explicitly failed, so a fresh lease may retry.
+        claim = operationRepo.claimOperation("EVALUATION", userId, { sessionId });
         break;
       }
+    }
+
+    // A live worker still owns the lease. Starting a second evaluator here
+    // causes duplicate provider calls and can race the final stored result.
+    if (claim.inFlight) {
+      throw new ServiceError("Evaluation is still running. Please refresh shortly.", 409, true);
     }
   }
 

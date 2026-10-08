@@ -24,6 +24,9 @@ export interface ChallengeProvenance {
   origin: TaskOrigin;
   resolutionReason?: ResolutionReason;
   parentChallengeId?: string;
+  generatedAt?: string;
+  generationModel?: string;
+  configVersion?: string;
 }
 
 export type VerificationStatus = "APPROVED" | "RE_CALIBRATE" | "REJECTED" | "PENDING";
@@ -77,6 +80,10 @@ export interface ChallengeMetadata {
   sourceTruncated?: boolean;
   omittedChars?: number;
   stages?: StageExecutionRecord[];
+  generationConfigVersion?: string;
+  sourceOmissionDecisive?: boolean;
+  rubricVersion?: string;
+  calibrationFramework?: string; // e.g. "SFIA 9 (Levels 2-3 subset)"
 }
 
 export interface ChallengeV2 {

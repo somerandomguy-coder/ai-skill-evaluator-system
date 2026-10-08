@@ -195,6 +195,43 @@ describe("buildCognitiveSuites() Integration", () => {
       expect(res.suiteB.score).toBe(24);
     }
   });
+
+  it("uses the supplied Level 2 assessment exactly once and labels the receipt as a local digest", async () => {
+    const assessment = await generateGroundedAssessmentReport({
+      sessionId: "session-level-2",
+      sfiaLevel: 2,
+      challengeTitle: "Junior engineering task",
+      turns: [
+        {
+          seq: 1,
+          role: "USER",
+          content: "Please explain the first safe step before we write code.",
+          filesWritten: [],
+          reasoning: null,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    const res = buildCognitiveSuites({
+      sessionId: "session-level-2",
+      challengeTitle: "Junior engineering task",
+      overallScore: 70,
+      turns: [],
+      academicReport: assessment,
+      sfiaLevel: 2,
+    });
+
+    expect(res.groundedAssessment).toBe(assessment);
+    expect(res.groundedAssessment.sfiaLevel).toBe(2);
+    expect(res.verificationReceipt).toMatchObject({
+      algorithm: "SHA-256",
+      scope: "saved assessment metadata",
+    });
+    expect(Object.hasOwn(res.verificationReceipt, "protocol")).toBe(false);
+    expect(Object.hasOwn(res.verificationReceipt, "calibrationN")).toBe(false);
+    expect(Object.hasOwn(res.verificationReceipt, "evaluatorVersion")).toBe(false);
+  });
 });
 
 describe("Backend Substring Verifier & Bounded Evidence Extraction", () => {

@@ -194,8 +194,28 @@ model Evaluation {
 
   buildSession  BuildSession   @relation(fields: [buildSessionId], references: [id], onDelete: Cascade)
   mentorReviews MentorReview[]
+  shareCapabilities ShareCapability[]
 
   @@index([reviewStatus])
+}
+
+/// An opaque, revocable grant created by the candidate for a specific employer
+/// dossier. The token itself is never stored; only its SHA-256 digest is kept.
+model ShareCapability {
+  id           String   @id @default(cuid(2))
+  evaluationId String
+  ownerId      String
+  tokenHash    String   @unique
+  scope        String   @default("EMPLOYER_VIEW")
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime?
+  revokedAt    DateTime?
+  versionRef   String   @default("v1")
+
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+
+  @@index([evaluationId])
+  @@index([ownerId])
 }
 
 model MentorReview {

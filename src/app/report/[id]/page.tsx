@@ -36,14 +36,13 @@ export default async function ReportPage({
   }
 
   const sp = searchParams ? await searchParams : {};
-  if (sp.share) {
-    const res = await resolveShareCapability(sp.share);
+  const share = Array.isArray(sp.share) ? sp.share[0] : sp.share;
+  if (share) {
+    const res = await resolveShareCapability(share);
     if (res.status === "VALID" && res.capability.evaluationId === evaluation.id) {
-      return (
-        <PageShell width="5xl">
-          <ReportView evaluation={evaluation} viewer={null} />
-        </PageShell>
-      );
+      // A share grant is for the minimised employer dossier, never the private
+      // report component that includes transcript and workspace evidence.
+      redirect(`/report/${encodeURIComponent(evaluation.id)}/employer?share=${encodeURIComponent(share)}`);
     }
   }
 

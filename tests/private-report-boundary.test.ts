@@ -68,7 +68,7 @@ const MOCK_EVALUATION: EvaluationView = {
     "src/secret.ts": "// private proprietary code implementation\nexport const internalKey = 'priv-99';",
   },
   contestReason: "Private candidate objection: I believe my turn 1 was graded harshly.",
-} as any;
+} as unknown as EvaluationView;
 
 describe("B02 — Private Reports & Minimal Share Boundary (Rows P04–P06)", () => {
   beforeEach(() => {
@@ -137,14 +137,19 @@ describe("B02 — Private Reports & Minimal Share Boundary (Rows P04–P06)", ()
       expect(dto.candidateName).toBe("Alice Candidate");
       expect(dto.overallScore).toBe(84);
       expect(dto.publicEvidence).toHaveLength(1);
-      expect(dto.publicEvidence[0].publicExcerpt).toBe("Do we handle AEST offset transitions?");
+      // A share link is not proof that a candidate consented to publish a
+      // particular transcript quotation. The public view carries rubric
+      // coverage only until quote-level consent is modelled explicitly.
+      expect(dto.publicEvidence[0].publicExcerpt).toBeUndefined();
 
       // SENSITIVE PRIVATE FIELDS EXCLUDED
-      expect((dto as any).turns).toBeUndefined();
-      expect((dto as any).files).toBeUndefined();
-      expect((dto as any).contestReason).toBeUndefined();
-      expect((dto as any).reasoning).toBeUndefined();
-      expect((dto as any).rawModelProse).toBeUndefined();
+      const serializedDto = dto as unknown as Record<string, unknown>;
+      expect(serializedDto.turns).toBeUndefined();
+      expect(serializedDto.files).toBeUndefined();
+      expect(serializedDto.contestReason).toBeUndefined();
+      expect(serializedDto.reasoning).toBeUndefined();
+      expect(serializedDto.rawModelProse).toBeUndefined();
+      expect(serializedDto.shareTokenHash).toBeUndefined();
     });
 
     it("respects token revocation and expiration", async () => {
@@ -175,7 +180,7 @@ describe("B02 — Private Reports & Minimal Share Boundary (Rows P04–P06)", ()
   // P06: Full report sent to a client component
   describe("P06: Server-Side DTO Construction Boundary", () => {
     it("ensures public visitor receives only server-constructed minimal DTO", async () => {
-      const { token, capability } = await createShareCapability("eval-private-001", "candidate-owner");
+      const { token } = await createShareCapability("eval-private-001", "candidate-owner");
       const resolved = await resolveShareCapability(token);
       expect(resolved.status).toBe("VALID");
 
@@ -189,6 +194,7 @@ describe("B02 — Private Reports & Minimal Share Boundary (Rows P04–P06)", ()
         expect(serialized).not.toContain("private proprietary code implementation");
         expect(serialized).not.toContain("Internal prompt secret reasoning");
         expect(serialized).not.toContain("Private candidate objection");
+        expect(serialized).not.toContain("Do we handle AEST offset transitions?");
 
         // Must contain certified public evidence statement and score
         expect(serialized).toContain("Clarifies scope before coding");
