@@ -38,7 +38,8 @@ export async function readNdjsonPipelineStream(
   readable: ReadableStream<Uint8Array>,
   onEvent: (e: PipelineEvent) => void
 ): Promise<{ terminalEventSeen: boolean; lastEvent?: PipelineEvent }> {
-  const reader = readable.pipeThrough(new TextDecoderStream()).getReader();
+  const reader = readable.getReader();
+  const decoder = new TextDecoder();
   let buffer = "";
   let terminalEventSeen = false;
   let lastEvent: PipelineEvent | undefined;
@@ -62,7 +63,7 @@ export async function readNdjsonPipelineStream(
     for (;;) {
       const { value, done } = await reader.read();
       if (done) break;
-      buffer += value;
+      buffer += decoder.decode(value, { stream: true });
       let nl: number;
       while ((nl = buffer.indexOf("\n")) >= 0) {
         const line = buffer.slice(0, nl);
@@ -70,7 +71,8 @@ export async function readNdjsonPipelineStream(
         processLine(line);
       }
     }
-    // Process any remaining trailing buffer at EOF
+    // Flush the decoder then process any remaining trailing buffer at EOF.
+    buffer += decoder.decode();
     if (buffer.trim()) {
       processLine(buffer);
     }
