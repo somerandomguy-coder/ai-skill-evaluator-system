@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowRight, FileSearch, Layers, ShieldCheck, Sparkles, Termi
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CopyLinkButton, PrintExecutivePdfButton } from "@/components/report/actions";
+import { PrintExecutivePdfButton, ShareEmployerReportButton } from "@/components/report/actions";
 import type { AuditFlags } from "@/lib/data/types";
 import { data } from "@/lib/data";
 import { formatMinutes, scoreBand, shortId } from "@/lib/format";
@@ -101,14 +101,16 @@ export default async function CredentialPage({
 
   if (!isOwner && !isMentor) {
     const sp = searchParams ? await searchParams : {};
-    if (sp.share) {
-      const res = await resolveShareCapability(sp.share);
-      if (res.status !== "VALID" || res.capability.evaluationId !== ev.id) {
-        redirect(`/login?error=forbidden&next=${encodeURIComponent(`/report/${id}/credential`)}`);
+    const share = Array.isArray(sp.share) ? sp.share[0] : sp.share;
+    if (share) {
+      const res = await resolveShareCapability(share);
+      if (res.status === "VALID" && res.capability.evaluationId === ev.id) {
+        // A capability grants the employer summary only, never the credential
+        // details or links back to transcript evidence.
+        redirect(`/report/${encodeURIComponent(ev.id)}/employer?share=${encodeURIComponent(share)}`);
       }
-    } else {
-      redirect(`/login?error=forbidden&next=${encodeURIComponent(`/report/${id}/credential`)}`);
     }
+    redirect(`/login?error=forbidden&next=${encodeURIComponent(`/report/${id}/credential`)}`);
   }
 
   // A credential must only show an assessment saved at submission time. Older
@@ -176,7 +178,7 @@ export default async function CredentialPage({
             </Link>
           </div>
           <div className="flex flex-wrap gap-2">
-            <CopyLinkButton label="Share credential" variant="signal" />
+            {isOwner ? <ShareEmployerReportButton evaluationId={ev.id} label="Share with employer" /> : null}
             <PrintExecutivePdfButton label="Download PDF" variant="signal" />
           </div>
         </div>
@@ -361,7 +363,7 @@ export default async function CredentialPage({
             Transcript and source files
           </Link>
           <div className="flex flex-wrap gap-2">
-            <CopyLinkButton label="Share credential" variant="signal" />
+            {isOwner ? <ShareEmployerReportButton evaluationId={ev.id} label="Share with employer" /> : null}
             <PrintExecutivePdfButton label="Download PDF" variant="signal" />
           </div>
         </div>

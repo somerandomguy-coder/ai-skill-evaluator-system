@@ -137,7 +137,10 @@ describe("B02 — Private Reports & Minimal Share Boundary (Rows P04–P06)", ()
       expect(dto.candidateName).toBe("Alice Candidate");
       expect(dto.overallScore).toBe(84);
       expect(dto.publicEvidence).toHaveLength(1);
-      expect(dto.publicEvidence[0].publicExcerpt).toBe("Do we handle AEST offset transitions?");
+      // A share link is not proof that a candidate consented to publish a
+      // particular transcript quotation. The public view carries rubric
+      // coverage only until quote-level consent is modelled explicitly.
+      expect(dto.publicEvidence[0].publicExcerpt).toBeUndefined();
 
       // SENSITIVE PRIVATE FIELDS EXCLUDED
       expect((dto as any).turns).toBeUndefined();
@@ -145,6 +148,7 @@ describe("B02 — Private Reports & Minimal Share Boundary (Rows P04–P06)", ()
       expect((dto as any).contestReason).toBeUndefined();
       expect((dto as any).reasoning).toBeUndefined();
       expect((dto as any).rawModelProse).toBeUndefined();
+      expect((dto as any).shareTokenHash).toBeUndefined();
     });
 
     it("respects token revocation and expiration", async () => {
@@ -189,6 +193,7 @@ describe("B02 — Private Reports & Minimal Share Boundary (Rows P04–P06)", ()
         expect(serialized).not.toContain("private proprietary code implementation");
         expect(serialized).not.toContain("Internal prompt secret reasoning");
         expect(serialized).not.toContain("Private candidate objection");
+        expect(serialized).not.toContain("Do we handle AEST offset transitions?");
 
         // Must contain certified public evidence statement and score
         expect(serialized).toContain("Clarifies scope before coding");

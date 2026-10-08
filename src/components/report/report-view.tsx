@@ -38,7 +38,7 @@ import { downloadProjectZip } from "@/lib/export/zip";
 import type { GroundedAssessmentReport } from "@/lib/types/assessment-academic";
 import { formatMinutes, scoreBand } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { ContestDialog, CopyLinkButton, PrintExecutivePdfButton, ViewCredentialButton } from "./actions";
+import { ContestDialog, PrintExecutivePdfButton, ShareEmployerReportButton, ViewCredentialButton } from "./actions";
 import { RequirementResultCard } from "./requirement-result";
 import { ChallengeTierBadge } from "@/components/challenge/tier-badge";
 import { AcademicRubricCard } from "./academic-rubric-card";
@@ -311,7 +311,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
               <Download className="size-3.5 text-muted-foreground" />
               Download ZIP
             </button>
-            <CopyLinkButton />
+            {isOwner ? <ShareEmployerReportButton evaluationId={ev.id} /> : null}
             <PrintExecutivePdfButton />
           </div>
         </header>
@@ -719,10 +719,7 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
           </span>
           <div className="flex flex-wrap gap-2">
             {isOwner && <ContestDialog evaluationId={ev.id} />}
-            <Link href={`/report/${ev.id}/employer`} className={buttonVariants({ variant: "signal", size: "lg", className: "rounded-full px-4" })}>
-              Share with employer
-              <ArrowRight aria-hidden />
-            </Link>
+            {isOwner ? <ShareEmployerReportButton evaluationId={ev.id} /> : null}
           </div>
         </div>
 

@@ -228,9 +228,9 @@ describe("buildCognitiveSuites() Integration", () => {
       algorithm: "SHA-256",
       scope: "saved assessment metadata",
     });
-    expect((res.verificationReceipt as Record<string, unknown>).protocol).toBeUndefined();
-    expect((res.verificationReceipt as Record<string, unknown>).calibrationN).toBeUndefined();
-    expect((res.verificationReceipt as Record<string, unknown>).evaluatorVersion).toBeUndefined();
+    expect(Object.hasOwn(res.verificationReceipt, "protocol")).toBe(false);
+    expect(Object.hasOwn(res.verificationReceipt, "calibrationN")).toBe(false);
+    expect(Object.hasOwn(res.verificationReceipt, "evaluatorVersion")).toBe(false);
   });
 });
 
