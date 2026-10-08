@@ -12,9 +12,10 @@ import { DEMO_USERS } from "@/lib/data/demo-users";
 
 import { isDemoMode } from "@/lib/env";
 
-/** Role switcher / "Continue as": become an existing seeded user. Isolated to DEMO_MODE. */
+/** Role switcher / "Continue as": become a seeded demo user or switch users in demo mode. */
 export async function switchUser(userId: string, next?: string) {
-  if (!isDemoMode()) {
+  const isDemo = DEMO_USERS.some((d) => d.id === userId);
+  if (!isDemo && !isDemoMode()) {
     redirect("/login?error=demo_disabled");
   }
 

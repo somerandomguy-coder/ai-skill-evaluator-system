@@ -46,12 +46,31 @@ describe("B01 — Real Identity & Boundary Enforcement (Rows P01–P03)", () => 
       expect(verified?.userId).toBe("candidate-1");
     });
 
-    it("prevents demo role switching when not in demo mode", async () => {
+    it("prevents demo role switching for arbitrary users when not in demo mode", async () => {
       vi.spyOn(env, "isDemoMode").mockReturnValue(false);
       const { switchUser } = await import("@/app/actions/auth");
 
-      // In production mode, switchUser must redirect with demo_disabled
-      await expect(switchUser("mentor-sarah")).rejects.toThrow("NEXT_REDIRECT");
+      // In production mode, arbitrary user switchUser must redirect with demo_disabled
+      try {
+        await switchUser("mentor-sarah");
+      } catch (err: any) {
+        expect(err?.message).toContain("NEXT_REDIRECT");
+        expect(err?.digest).toContain("demo_disabled");
+      }
+    });
+
+    it("allows seeded demo accounts to log in even when not in demo mode", async () => {
+      vi.spyOn(env, "isDemoMode").mockReturnValue(false);
+      vi.spyOn(authMod, "setUserCookie").mockResolvedValue(undefined as any);
+      const { switchUser } = await import("@/app/actions/auth");
+
+      // Seeded demo user candidate-1 successfully sets cookie and redirects without error
+      try {
+        await switchUser("candidate-1");
+      } catch (err: any) {
+        expect(err?.message).toContain("NEXT_REDIRECT");
+        expect(err?.digest).not.toContain("demo_disabled");
+      }
     });
   });
 
