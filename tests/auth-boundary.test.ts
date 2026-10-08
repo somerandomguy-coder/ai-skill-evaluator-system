@@ -117,7 +117,28 @@ describe("B01 — Real Identity & Boundary Enforcement (Rows P01–P03)", () => 
       expect(resAudit.status).toBe(403);
     });
 
-    it("disables bounty endpoints even for mentors pending policy enforcement", async () => {
+    it("disables bounty endpoints even for mentors when policy is enforced", async () => {
+      process.env.DISABLE_BOUNTIES = "true";
+      try {
+        const mentorUser: UserView = {
+          id: "mentor-1",
+          email: "mentor@example.com",
+          name: "Test Mentor",
+          role: "MENTOR",
+        };
+        vi.spyOn(authMod, "getCurrentUser").mockResolvedValue(mentorUser);
+
+        const reqGet = new Request("http://localhost:3000/api/mentor/bounties");
+        const resGet = await getBounties(reqGet);
+        expect(resGet.status).toBe(403);
+        const dataGet = await resGet.json();
+        expect(dataGet.error).toContain("disabled pending policy enforcement");
+      } finally {
+        delete process.env.DISABLE_BOUNTIES;
+      }
+    });
+
+    it("allows accredited mentors to fetch bounty requirements by default", async () => {
       const mentorUser: UserView = {
         id: "mentor-1",
         email: "mentor@example.com",
@@ -128,9 +149,10 @@ describe("B01 — Real Identity & Boundary Enforcement (Rows P01–P03)", () => 
 
       const reqGet = new Request("http://localhost:3000/api/mentor/bounties");
       const resGet = await getBounties(reqGet);
-      expect(resGet.status).toBe(403);
+      expect(resGet.status).toBe(200);
       const dataGet = await resGet.json();
-      expect(dataGet.error).toContain("disabled pending policy enforcement");
+      expect(dataGet.success).toBe(true);
+      expect(Array.isArray(dataGet.items)).toBe(true);
     });
   });
 

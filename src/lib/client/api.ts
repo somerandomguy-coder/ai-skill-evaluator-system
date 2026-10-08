@@ -47,16 +47,18 @@ export async function readNdjsonPipelineStream(
   const processLine = (line: string) => {
     const trimmed = line.trim();
     if (!trimmed) return;
+    let event: PipelineEvent;
     try {
-      const event = JSON.parse(trimmed) as PipelineEvent;
-      lastEvent = event;
-      if (event.type === "done" || event.type === "error") {
-        terminalEventSeen = true;
-      }
-      onEvent(event);
+      event = JSON.parse(trimmed) as PipelineEvent;
     } catch {
       // Discard malformed JSON records gracefully without crashing the stream
+      return;
     }
+    lastEvent = event;
+    if (event.type === "done" || event.type === "error") {
+      terminalEventSeen = true;
+    }
+    onEvent(event);
   };
 
   try {
@@ -91,7 +93,11 @@ export async function runPipeline(
   const res = await post("/api/jd", input);
   if (!res.ok || !res.body) await readJson(res); // throws with the server's message
 
-  const { terminalEventSeen } = await readNdjsonPipelineStream(res.body!, onEvent);
+  const { terminalEventSeen, lastEvent } = await readNdjsonPipelineStream(res.body!, onEvent);
+
+  if (lastEvent?.type === "error") {
+    throw new ApiError(lastEvent.message, 0);
+  }
 
   if (!terminalEventSeen) {
     throw new ApiError("Pipeline stream interrupted unexpectedly before completion.", 0, true);
