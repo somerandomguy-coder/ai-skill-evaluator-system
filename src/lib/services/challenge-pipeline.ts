@@ -77,7 +77,6 @@ async function runFastPipeline(
 
   // Step 1: Parse
   emit({ type: "step", step: "parse", status: "start" });
-  await pause(200);
   emit({ type: "step", step: "parse", status: "done", detail: `${roleTitle} at ${employer}` });
 
   // Step 2: Challenge design (V2 3-Tier Resolution)
@@ -91,12 +90,10 @@ async function runFastPipeline(
       : resolution.tierResolved === "TIER_2_CACHED"
         ? "Cached Assessment (Tier 2)"
         : "Tailored Track (Tier 3)";
-  await pause(200);
   emit({ type: "step", step: "challenge", status: "done", detail: `${challengeTitle} · ${tierLabel}` });
 
-  // Step 4: Rubric
+  // Step 3: Rubric
   emit({ type: "step", step: "rubric", status: "start" });
-  await pause(150);
   emit({
     type: "step",
     step: "rubric",
@@ -104,9 +101,8 @@ async function runFastPipeline(
     detail: `${resolved.rubric.length} requirements (SFIA Level ${resolved.sfiaProfile.level})`,
   });
 
-  // Step 5: Save atomically (M08)
+  // Step 4: Save atomically (M08)
   emit({ type: "step", step: "save", status: "start" });
-  await pause(100);
 
   const { challengeId } = await saveChallengeAtomically({
     userId: input.userId,
@@ -176,16 +172,8 @@ export async function runChallengePipeline(
 
     if (isDemoMode()) return await runDemo(text, emit);
 
-    // Only run fast simulation if explicitly requested by client, or if FAST_PIPELINE is true and not explicitly disabled
-    const shouldRunFast = input.fast === true || (isFastPipeline() && input.fast !== false);
-    if (shouldRunFast) {
-      return await runFastPipeline(
-        { userId: input.userId, userName: input.userName, userEmail: input.userEmail, rawJd: text, sourceUrl },
-        emit
-      );
-    }
-
     // 2. Classify: screen for junk, too-vague, non-JD text, and prompt-injection attempts.
+    // Mandatory for all non-demo runs; cannot be bypassed by client fast flag.
     emit({ type: "step", step: "classify", status: "start" });
     const jdQuality = await classifyJd(text);
     emit({ type: "jd_quality", verdict: jdQuality });
@@ -196,6 +184,15 @@ export async function runChallengePipeline(
       detail: jdQuality.cheatingAttempt ? "possible injection attempt" : jdQuality.type === "good" ? "looks like a real job ad" : jdQuality.type,
     });
     enforceJdQuality(jdQuality);
+
+    // Server-controlled fast rehearsal mode (only when FAST_PIPELINE is enabled on server, never by untrusted client fast flag alone in production)
+    const shouldRunFast = isFastPipeline() && input.fast !== false;
+    if (shouldRunFast) {
+      return await runFastPipeline(
+        { userId: input.userId, userName: input.userName, userEmail: input.userEmail, rawJd: text, sourceUrl },
+        emit
+      );
+    }
 
     // 3. Parse.
     emit({ type: "step", step: "parse", status: "start" });
@@ -254,11 +251,12 @@ export async function runChallengePipeline(
 }
 
 export function describePipelineError(err: unknown): string {
-  if (err instanceof InvalidJdError || err instanceof FetchJdError || err instanceof AiError) return err.message;
+  if (err instanceof InvalidJdError || err instanceof FetchJdError) return err.message;
   if (err instanceof DemoFixtureMissingError) return err.message;
-  console.error("[pipeline]", err);
-  if (err instanceof Error && err.message) {
-    return err.message;
+  if (err instanceof AiError) {
+    return "AI generation provider error. Please try again.";
   }
+  console.error("[pipeline]", err);
+  // Do NOT leak raw database or provider exception text to candidate
   return "Something went wrong while building the challenge. Please try again.";
 }
