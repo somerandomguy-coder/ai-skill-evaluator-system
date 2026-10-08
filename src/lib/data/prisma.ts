@@ -11,7 +11,6 @@ import { parseChallengeMeta, parseEscalationReasons, parseFileList, parseFileMap
 import { effectiveScore } from "../services/effective-score";
 import { reconstructFiles, startSession } from "../services/sessions";
 import { mergeStarter } from "../starter";
-import { buildCognitiveSuites } from "../services/cognitive-rubric";
 import { DEMO_USERS } from "./demo-users";
 import { getInMemoryChallenge, mockDataSource } from "./mock";
 import { sortRequirements, toRequirementView, toTurnView } from "./mappers";
@@ -131,22 +130,14 @@ function toEvaluationView(e: EvaluationRow): EvaluationView {
     ztAiedAudit = envelope.cognitiveSuites?.ztAiedAudit;
     verificationReceipt = envelope.cognitiveSuites?.verificationReceipt;
   } else {
-    // Legacy historical record without envelope: label unverified provenance
-    const cognitive = buildCognitiveSuites({
-      sessionId: session.id,
-      challengeTitle: challenge.title,
-      overallScore: e.overallScore,
-      turns,
-      files,
-    });
-    groundedAssessment = cognitive.groundedAssessment;
-    if (groundedAssessment) {
-      groundedAssessment.confidenceOrigin = "unverified";
-    }
-    suiteA = cognitive.suiteA;
-    suiteB = cognitive.suiteB;
-    ztAiedAudit = cognitive.ztAiedAudit;
-    verificationReceipt = cognitive.verificationReceipt;
+    // Historical records did not save an envelope. Do not recreate assessment
+    // cards or an integrity receipt while reading them: that would make a new
+    // calculation look like a result produced at submission time.
+    groundedAssessment = undefined;
+    suiteA = undefined;
+    suiteB = undefined;
+    ztAiedAudit = undefined;
+    verificationReceipt = undefined;
   }
 
   return {

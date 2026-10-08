@@ -430,10 +430,9 @@ function buildEvaluation(s: MockSession): EvaluationView | null {
     verificationReceipt: isStrong
       ? {
           hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          protocol: "PROOFCRAFT-RESILIENCE-V4",
+          algorithm: "SHA-256",
+          scope: "saved assessment metadata",
           timestamp: new Date(s.startedAt + 126 * MIN).toISOString(),
-          calibrationN: 140,
-          evaluatorVersion: "v2.4-strict-openai",
         }
       : undefined,
     reviewSlaMessage: isStrong

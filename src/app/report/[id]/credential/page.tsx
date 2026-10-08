@@ -6,7 +6,6 @@ import { CopyLinkButton, PrintExecutivePdfButton } from "@/components/report/act
 import type { AuditFlags } from "@/lib/data/types";
 import { data } from "@/lib/data";
 import { formatMinutes, scoreBand, shortId } from "@/lib/format";
-import { buildCognitiveSuites } from "@/lib/services/cognitive-rubric";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Credential" };
@@ -112,16 +111,23 @@ export default async function CredentialPage({
     }
   }
 
-  // Same derivation as the report, so the two screens never disagree.
-  const derived = buildCognitiveSuites({
-    sessionId: ev.sessionId,
-    challengeTitle: ev.challenge.title,
-    overallScore: ev.overallScore,
-    turns: ev.turns,
-    files: ev.files,
-  });
-  const suiteA = ev.suiteA ?? derived.suiteA;
-  const suiteB = ev.suiteB ?? derived.suiteB;
+  // A credential must only show an assessment saved at submission time. Older
+  // reports have no immutable envelope and must be reviewed rather than derived
+  // afresh when someone opens this route.
+  if (!ev.suiteA || !ev.suiteB) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-2xl items-center px-6 py-16">
+        <section className="space-y-4 rounded-3xl border border-warn/30 bg-card p-8 shadow-sm">
+          <p className="text-sm font-medium text-warn">Historical assessment</p>
+          <h1 className="text-2xl font-semibold">Credential unavailable until mentor review</h1>
+          <p className="text-muted-foreground">This assessment predates the saved evidence envelope, so ProofCraft will not recreate a credential from current heuristics.</p>
+          <Link className="inline-flex text-signal-ink underline" href={`/report/${ev.id}`}>View the historical report</Link>
+        </section>
+      </main>
+    );
+  }
+  const suiteA = ev.suiteA;
+  const suiteB = ev.suiteB;
 
   const band = scoreBand(ev.effective.score);
   const mentorVerified = ev.reviewStatus === "REVIEWED" && ev.reviews.length > 0;
