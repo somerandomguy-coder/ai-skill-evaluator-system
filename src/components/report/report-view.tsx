@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowRight,
   BadgeCheck,
   Briefcase,
   Bug,
@@ -145,14 +144,19 @@ export function ReportView({ evaluation: ev, viewer }: Props) {
   const [showJourney, setShowJourney] = useState(false);
 
   useEffect(() => {
+    let timer: number | undefined;
     try {
       const seen = localStorage.getItem(`report-journey-seen-${ev.id}`);
       if (!seen) {
-        setShowJourney(true);
+        // Defer the welcome panel until after the current render commits.
+        timer = window.setTimeout(() => setShowJourney(true), 0);
       }
     } catch {
       // Ignore storage access errors
     }
+    return () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
   }, [ev.id]);
 
   const closeJourney = () => {

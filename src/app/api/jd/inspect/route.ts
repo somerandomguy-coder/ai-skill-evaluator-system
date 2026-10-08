@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       cheatingAttempt: inspection.cheatingAttempt,
       formatted: inspection.formatted,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[POST /api/jd/inspect] Error:", err);
     return NextResponse.json(
       { error: "Failed to inspect job description" },
