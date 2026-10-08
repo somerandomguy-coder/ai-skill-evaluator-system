@@ -87,12 +87,22 @@ let files: FileMap = {};
 let installedPackageJson: string | undefined;
 let startPromise: Promise<void> | null = null;
 let queue: Promise<unknown> = Promise.resolve();
+let currentSessionId: string | null = null;
+let runtimeGeneration = 0;
 
 /** Serialise all container mutations. Errors are surfaced via `set`, never thrown into the chain. */
 function enqueue<T>(fn: () => Promise<T>): Promise<T> {
   const run = queue.then(fn, fn);
   queue = run.catch(() => undefined);
   return run;
+}
+
+export function getCurrentRuntimeSessionId(): string | null {
+  return currentSessionId;
+}
+
+export function getRuntimeGeneration(): number {
+  return runtimeGeneration;
 }
 
 const ANSI = /\u001b\[[0-9;?]*[A-Za-z]/g;
@@ -221,30 +231,49 @@ function dirname(path: string): string {
 
 /**
  * Boot, mount the project, install, and start the dev server. Idempotent: a
- * second call while starting (or after success) returns the same promise.
- * The workspace calls this on mount — not on the first prompt — so install
- * time overlaps with the candidate reading the brief and writing their first message.
+ * second call while starting (or after success) for the same session returns the same promise.
+ * When switching sessions, the prior generation is superseded and torn down.
  */
-export function startRuntime(initial: FileMap): Promise<void> {
-  if (startPromise) return startPromise;
+export function startRuntime(
+  sessionIdOrFiles: string | FileMap,
+  maybeFiles?: FileMap
+): Promise<void> {
+  const sessionId = typeof sessionIdOrFiles === "string" ? sessionIdOrFiles : "default-session";
+  const initial = typeof sessionIdOrFiles === "string" ? (maybeFiles ?? {}) : sessionIdOrFiles;
+
+  if (currentSessionId === sessionId && startPromise) {
+    return startPromise;
+  }
+
+  // Session switch or initial start: advance runtime generation
+  runtimeGeneration++;
+  const thisGen = runtimeGeneration;
+  currentSessionId = sessionId;
 
   const support = checkSupport();
   if (!support.supported) {
+    currentSessionId = sessionId;
+    startPromise = Promise.resolve();
     set({ status: "unsupported", detail: "In-browser runtime unavailable", unsupportedReason: support.reason });
-    return Promise.resolve();
+    return startPromise;
   }
 
   files = { ...initial };
   set({ ...IDLE, status: "booting", detail: "Booting the in-browser environment" });
 
   startPromise = enqueue(async () => {
+    if (thisGen !== runtimeGeneration) return;
     try {
       const wc = await boot();
+      if (thisGen !== runtimeGeneration) return;
       set({ detail: "Mounting project files" });
       await wc.mount(toFileSystemTree(files));
+      if (thisGen !== runtimeGeneration) return;
       await runInstall(wc);
+      if (thisGen !== runtimeGeneration) return;
       await runDevServer(wc);
     } catch (err) {
+      if (thisGen !== runtimeGeneration) return;
       startPromise = null; // allow a retry
       fail(err instanceof Error ? err.message : String(err));
     }
@@ -255,18 +284,25 @@ export function startRuntime(initial: FileMap): Promise<void> {
 /**
  * Write files the assistant produced. Vite picks changes up by itself; the dev
  * server is only restarted (and dependencies reinstalled) when package.json's
- * dependency-relevant fields changed.
+ * dependency-relevant fields changed. Rejects stale writes from prior sessions.
  */
-export function applyRuntimeWrites(writes: readonly FileWrite[]): Promise<void> {
+export function applyRuntimeWrites(writes: readonly FileWrite[], sessionId?: string): Promise<void> {
   if (!writes.length) return Promise.resolve();
+  if (sessionId && currentSessionId && sessionId !== currentSessionId) {
+    return Promise.resolve(); // Reject stale write from another session
+  }
+
+  const thisGen = runtimeGeneration;
   const before = files["package.json"];
   files = applyWrites(files, writes);
 
   return enqueue(async () => {
+    if (thisGen !== runtimeGeneration) return; // Superseded by session switch
     const wc = container;
     if (!wc || !startPromise) return; // not booted: the writes ride along with the initial mount
     try {
       for (const w of writes) {
+        if (thisGen !== runtimeGeneration) return;
         const dir = dirname(w.path);
         if (dir) await wc.fs.mkdir(dir, { recursive: true });
         await wc.fs.writeFile(w.path, w.contents);
@@ -278,24 +314,29 @@ export function applyRuntimeWrites(writes: readonly FileWrite[]): Promise<void> 
       const configWritten = writes.some((w) => w.path === "vite.config.js");
       if (pkgWritten && dependenciesChanged(installedPackageJson ?? before, files["package.json"])) {
         await runInstall(wc);
-        await runDevServer(wc);
+        if (thisGen === runtimeGeneration) await runDevServer(wc);
       } else if (pkgWritten || configWritten) {
-        await runDevServer(wc);
+        if (thisGen === runtimeGeneration) await runDevServer(wc);
       }
     } catch (err) {
-      fail(err instanceof Error ? err.message : String(err));
+      if (thisGen === runtimeGeneration) {
+        fail(err instanceof Error ? err.message : String(err));
+      }
     }
   });
 }
 
 /** Restart the dev server without touching files (the "Reload preview" button). */
 export function restartDevServer(): Promise<void> {
+  const thisGen = runtimeGeneration;
   return enqueue(async () => {
-    if (!container) return;
+    if (thisGen !== runtimeGeneration || !container) return;
     try {
       await runDevServer(container);
     } catch (err) {
-      fail(err instanceof Error ? err.message : String(err));
+      if (thisGen === runtimeGeneration) {
+        fail(err instanceof Error ? err.message : String(err));
+      }
     }
   });
 }
@@ -304,15 +345,23 @@ export function getRuntimeFiles(): FileMap {
   return { ...files };
 }
 
-/** Tear the container down (after submission) and reset all module state. */
-export async function stopRuntime(): Promise<void> {
-  await stopDevServer();
-  container?.teardown();
-  container = null;
-  bootPromise = null;
-  startPromise = null;
-  installedPackageJson = undefined;
-  files = {};
-  snapshot = IDLE;
-  listeners.forEach((l) => l());
+/** Tear the container down (after submission or workspace switch) and reset module state. */
+export async function stopRuntime(sessionId?: string): Promise<void> {
+  if (sessionId && currentSessionId && sessionId !== currentSessionId) {
+    return; // Don't stop active runtime if requested for stale session
+  }
+  runtimeGeneration++;
+  currentSessionId = null;
+
+  return enqueue(async () => {
+    await stopDevServer();
+    container?.teardown();
+    container = null;
+    bootPromise = null;
+    startPromise = null;
+    installedPackageJson = undefined;
+    files = {};
+    snapshot = IDLE;
+    listeners.forEach((l) => l());
+  });
 }
