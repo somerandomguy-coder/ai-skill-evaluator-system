@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { isDemoMode } from "@/lib/env";
 import { resolveChallenge } from "@/lib/engine/resolver";
 import { inspectJobDescription } from "@/lib/ai/inspect-jd";
+import { InvalidJdError } from "@/lib/ai/parse-jd";
 import type { ChallengeV2, RubricRequirement } from "@/lib/types/assessment-v2";
 
 export const maxDuration = 300;
@@ -129,10 +130,13 @@ export async function POST(request: Request) {
       }
     );
   } catch (err) {
+    if (err instanceof InvalidJdError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
     console.error("[POST /api/challenge/generate] Error:", err);
     return NextResponse.json(
       {
-        error: err instanceof Error ? err.message : "Failed to resolve challenge",
+        error: "Failed to resolve challenge",
       },
       { status: 500 }
     );
