@@ -53,6 +53,7 @@ import type { ChallengeV2 } from "../types/assessment-v2";
 import { VERIFIED_CHALLENGE_BANK } from "../engine/verified-bank";
 import { getChallengeFromRepository } from "../engine/resolver";
 import { buildRoleStarterTemplate } from "../engine/starter-template";
+import { taskApprovalRepo } from "./task-approval";
 
 export function v2ToChallengeView(v2: ChallengeV2): ChallengeView {
   return {
@@ -100,7 +101,11 @@ export function v2ToChallengeView(v2: ChallengeV2): ChallengeView {
   };
 }
 
-export function getInMemoryChallenge(id: string): ChallengeView | null {
+export function getInMemoryChallenge(id: string, version?: number): ChallengeView | null {
+  if (version !== undefined) {
+    const v2 = taskApprovalRepo.getChallenge(id, version);
+    if (v2) return v2ToChallengeView(v2);
+  }
   const existing = inMemoryChallenges.get(id);
   if (existing) return existing;
   const repoItem = getChallengeFromRepository(id) || VERIFIED_CHALLENGE_BANK.find((x) => x.id === id);

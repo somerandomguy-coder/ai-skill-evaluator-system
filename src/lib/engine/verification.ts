@@ -14,6 +14,7 @@ export interface MentorAuditInput {
   mentorName?: string;
   scores: MentorAuditDimensions;
   notes?: string;
+  version?: number;
 }
 
 export interface MentorAuditEvaluation {

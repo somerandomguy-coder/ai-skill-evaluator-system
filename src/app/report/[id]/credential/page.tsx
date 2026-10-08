@@ -80,13 +80,37 @@ function ScoreRingPip({ score, max = 5 }: { score: number; max?: number }) {
   );
 }
 
-export default async function CredentialPage({ params }: PageProps<"/report/[id]/credential">) {
+import { getCurrentUser } from "@/lib/auth";
+import { resolveShareCapability } from "@/lib/data/shares";
+
+export default async function CredentialPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ share?: string }>;
+}) {
   const { id } = await params;
   if (id.startsWith("seed-")) {
     redirect("/");
   }
-  const ev = await data.getEvaluation(id);
+  const [ev, viewer] = await Promise.all([data.getEvaluation(id), getCurrentUser()]);
   if (!ev) notFound();
+
+  const isOwner = viewer && viewer.id === ev.ownerId;
+  const isMentor = viewer && viewer.role === "MENTOR";
+
+  if (!isOwner && !isMentor) {
+    const sp = searchParams ? await searchParams : {};
+    if (sp.share) {
+      const res = await resolveShareCapability(sp.share);
+      if (res.status !== "VALID" || res.capability.evaluationId !== ev.id) {
+        redirect(`/login?error=forbidden&next=${encodeURIComponent(`/report/${id}/credential`)}`);
+      }
+    } else {
+      redirect(`/login?error=forbidden&next=${encodeURIComponent(`/report/${id}/credential`)}`);
+    }
+  }
 
   // Same derivation as the report, so the two screens never disagree.
   const derived = buildCognitiveSuites({

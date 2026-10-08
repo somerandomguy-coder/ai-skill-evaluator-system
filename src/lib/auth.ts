@@ -11,15 +11,58 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import crypto from "node:crypto";
 import { USER_COOKIE } from "./constants";
 import { data, type Role, type UserView } from "./data";
+import { isDemoMode } from "./env";
+import { DEMO_USERS } from "./data/demo-users";
+
+export function signSessionToken(userId: string, expiresInMs = 60 * 60 * 24 * 30 * 1000): string {
+  const secret = process.env.SESSION_SECRET || "proofcraft-session-signing-secret-default-hermetic";
+  const expiresAt = Date.now() + expiresInMs;
+  const payload = `${userId}:${expiresAt}`;
+  const sig = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  return `${payload}:${sig}`;
+}
+
+export function verifySessionToken(token: string): { userId: string } | null {
+  if (!token || typeof token !== "string") return null;
+  const parts = token.split(":");
+  if (parts.length !== 3) return null;
+  const [userId, expiresStr, sig] = parts;
+  const expiresAt = Number(expiresStr);
+  if (!Number.isFinite(expiresAt) || expiresAt < Date.now()) return null; // expired
+
+  const secret = process.env.SESSION_SECRET || "proofcraft-session-signing-secret-default-hermetic";
+  const expectedSig = crypto.createHmac("sha256", secret).update(`${userId}:${expiresStr}`).digest("hex");
+  try {
+    const a = Buffer.from(sig, "hex");
+    const b = Buffer.from(expectedSig, "hex");
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  } catch {
+    return null;
+  }
+  return { userId };
+}
 
 export const getCurrentUser = cache(async (): Promise<UserView | null> => {
   try {
     const cookieStore = await cookies();
-    const id = cookieStore.get(USER_COOKIE)?.value;
-    if (!id) return null;
-    return data.findUser(id);
+    const rawCookie = cookieStore.get(USER_COOKIE)?.value;
+    if (!rawCookie) return null;
+
+    const verified = verifySessionToken(rawCookie);
+    let resolvedUserId: string | null = verified?.userId ?? null;
+
+    // In isolated DEMO_MODE only, permit plain demo user ID if session token isn't signed
+    if (!resolvedUserId && isDemoMode()) {
+      const demo = DEMO_USERS.find((u) => u.id === rawCookie);
+      if (demo) resolvedUserId = demo.id;
+    }
+
+    if (!resolvedUserId) return null; // Forged or unverified cookie fails closed
+
+    return data.findUser(resolvedUserId);
   } catch {
     return null;
   }
@@ -34,11 +77,13 @@ export async function requireUser(next: string, role?: Role): Promise<UserView> 
 }
 
 export async function setUserCookie(userId: string) {
-  (await cookies()).set(USER_COOKIE, userId, {
+  const token = signSessionToken(userId);
+  (await cookies()).set(USER_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
+    secure: process.env.NODE_ENV === "production",
   });
 }
 

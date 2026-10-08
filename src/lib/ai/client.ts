@@ -14,14 +14,34 @@ import OpenAI from "openai";
 import { ContentFilterFinishReasonError, LengthFinishReasonError } from "openai/core/error";
 import { zodResponseFormat } from "openai/helpers/zod";
 import type { z } from "zod";
-import { aiApiKey, aiBaseUrl, aiProvider, isDeepSeekThinkingEnabled, isDemoMode, modelFor, openaiApiKey, type AiStage } from "../env";
+import {
+  aiApiKey,
+  aiBaseUrl,
+  aiProvider,
+  isDeepSeekThinkingEnabled,
+  isDemoMode,
+  modelFor,
+  resolveProviderConfig,
+  type AiStage,
+  type ProviderConfig,
+} from "../env";
 import { flushLangfuse, observeOpenAiClient } from "./langfuse";
 import { calculateCost, type CalculatedCost } from "./pricing";
+
+export interface AttemptMetric {
+  attempt: number;
+  success: boolean;
+  model: string;
+  usage?: { inputTokens: number; outputTokens: number };
+  errorCode?: string;
+  durationMs?: number;
+}
 
 export class AiError extends Error {
   constructor(
     message: string,
-    readonly code: string
+    readonly code: string,
+    public attempts?: AttemptMetric[]
   ) {
     super(message);
     this.name = new.target.name;
@@ -33,8 +53,14 @@ export class DemoModeError extends AiError {
   }
 }
 export class MissingApiKeyError extends AiError {
-  constructor() {
-    super("OPENAI_API_KEY (or DEEPSEEK_API_KEY) is not set. Add it to .env, or set DEMO_MODE=true to use cached responses.", "no_api_key");
+  constructor(provider: string = "ai", code: string = "no_api_key") {
+    const keyHint =
+      provider === "deepseek"
+        ? "DEEPSEEK_API_KEY is not configured"
+        : provider === "openai"
+          ? "OPENAI_API_KEY is not configured"
+          : "API key is not configured";
+    super(`${keyHint}. Cross-vendor key fallback is prohibited. Add it to .env, or set DEMO_MODE=true to use cached responses.`, code);
   }
 }
 export class ModelRefusalError extends AiError {}
@@ -75,6 +101,8 @@ export interface StructuredResult<T> {
   model: string;
   usage: { inputTokens: number; outputTokens: number };
   cost?: CalculatedCost;
+  attempts?: AttemptMetric[];
+  totalAttempts?: number;
 }
 
 /** Reasoning models accept `reasoning_effort`; chat/non-reasoning models reject it. */
@@ -211,45 +239,91 @@ function toReasoningEffort(effort: Effort | undefined): "low" | "medium" | "high
   return "high";
 }
 
-let client: OpenAI | null = null;
-let clientKey: string | null = null;
-let clientBaseURL: string | null = null;
+export function redactSecrets(str: string): string {
+  if (!str) return str;
+  let result = str;
+  const keys = [
+    process.env.OPENAI_API_KEY,
+    process.env.DEEPSEEK_API_KEY,
+    process.env.CUSTOM_AI_API_KEY,
+    process.env.EMBEDDING_API_KEY,
+  ].filter(Boolean) as string[];
 
-function getClient(): OpenAI {
-  const apiKey = aiApiKey();
-  if (!apiKey) throw new MissingApiKeyError();
-  const baseURL = aiBaseUrl() || null;
-  if (client && clientKey === apiKey && clientBaseURL === baseURL) return client;
-  clientKey = apiKey;
-  clientBaseURL = baseURL;
-  client = new OpenAI({
-    apiKey,
-    ...(baseURL ? { baseURL } : {}),
+  for (const k of keys) {
+    if (k.length > 3) {
+      result = result.split(k).join("[REDACTED_SECRET]");
+    }
+  }
+  result = result.replace(/sk-[a-zA-Z0-9_\-\.]{6,}/g, "[REDACTED_API_KEY]");
+  result = result.replace(/Bearer\s+[a-zA-Z0-9_\-\.]{6,}/gi, "Bearer [REDACTED_TOKEN]");
+  return result;
+}
+
+let customClient: OpenAI | null = null;
+let cachedClient: OpenAI | null = null;
+let cachedKey: string | null = null;
+let cachedBaseURL: string | null = null;
+
+function getClient(providerConfig: ProviderConfig): OpenAI {
+  if (customClient) return customClient;
+  if (cachedClient && cachedKey === providerConfig.apiKey && cachedBaseURL === (providerConfig.baseUrl || null)) {
+    return cachedClient;
+  }
+  cachedKey = providerConfig.apiKey;
+  cachedBaseURL = providerConfig.baseUrl || null;
+  cachedClient = new OpenAI({
+    apiKey: providerConfig.apiKey,
+    ...(providerConfig.baseUrl ? { baseURL: providerConfig.baseUrl } : {}),
   });
-  return client;
+  return cachedClient;
 }
 
 /** Test seam: inject a fake client. Pass null to reset. */
 export function setAiClientForTests(fake: OpenAI | null) {
-  client = fake;
+  customClient = fake;
+  cachedClient = null;
+  cachedKey = null;
+  cachedBaseURL = null;
 }
 
 /** Turn SDK errors into messages that are safe to show a user. Most specific first. */
-export function toAiError(err: unknown): AiError {
-  if (err instanceof AiError) return err;
+export function toAiError(err: unknown, attempts?: AttemptMetric[]): AiError {
+  if (err instanceof AiError) {
+    err.message = redactSecrets(err.message);
+    if (attempts && !err.attempts) err.attempts = attempts;
+    return err;
+  }
+  if (
+    (err as any)?.code === "missing_deepseek_key" ||
+    (err as any)?.code === "missing_openai_key" ||
+    (err as any)?.code === "missing_custom_key"
+  ) {
+    const code = (err as any).code;
+    const provider = code.replace("missing_", "").replace("_key", "");
+    return new MissingApiKeyError(provider, code);
+  }
   if (err instanceof OpenAI.AuthenticationError) {
-    return new AiUnavailableError("The OpenAI API key was rejected. Check OPENAI_API_KEY.", "auth");
+    const isDeepSeek = aiProvider() === "deepseek";
+    const keyName = isDeepSeek ? "DEEPSEEK_API_KEY" : "OPENAI_API_KEY";
+    return new AiUnavailableError(`The AI API key was rejected. Check ${keyName}.`, "auth", attempts);
   }
   if (err instanceof OpenAI.RateLimitError) {
-    return new AiUnavailableError("The AI service is rate-limiting requests (or the account is out of quota). Wait a moment and retry.", "rate_limit");
+    return new AiUnavailableError("The AI service is rate-limiting requests (or the account is out of quota). Wait a moment and retry.", "rate_limit", attempts);
+  }
+  if (err instanceof OpenAI.APIConnectionTimeoutError) {
+    return new AiUnavailableError("The AI request timed out.", "timeout", attempts);
   }
   if (err instanceof OpenAI.BadRequestError) {
-    return new AiUnavailableError(`The AI service rejected the request: ${err.message}`, "bad_request");
+    return new AiUnavailableError(`The AI service rejected the request: ${redactSecrets(err.message)}`, "bad_request", attempts);
+  }
+  if (err instanceof OpenAI.InternalServerError || (err instanceof OpenAI.APIError && err.status && err.status >= 500)) {
+    return new AiUnavailableError(`The AI service returned an upstream error (HTTP ${err.status ?? 500}).`, "upstream_5xx", attempts);
   }
   if (err instanceof OpenAI.APIError) {
-    return new AiUnavailableError(`The AI service returned an error (HTTP ${err.status ?? "?"}).`, "api");
+    return new AiUnavailableError(`The AI service returned an error (HTTP ${err.status ?? "?"}).`, "api", attempts);
   }
-  return new AiUnavailableError(err instanceof Error ? err.message : "Unknown AI error.", "unknown");
+  const msg = err instanceof Error ? err.message : "Unknown AI error.";
+  return new AiUnavailableError(redactSecrets(msg), (err as any)?.code || "unknown", attempts);
 }
 
 /**
@@ -284,7 +358,23 @@ function withFeedback(messages: ChatMessage[], issue: string): ChatMessage[] {
 export async function generateStructured<T>(req: StructuredRequest<T>): Promise<StructuredResult<T>> {
   if (isDemoMode()) throw new DemoModeError(req.stage);
 
-  const rawClient = getClient();
+  let providerConfig: ProviderConfig;
+  try {
+    providerConfig = resolveProviderConfig(req.stage);
+  } catch (err) {
+    if (customClient) {
+      providerConfig = {
+        provider: aiProvider(),
+        model: modelFor(req.stage),
+        apiKey: "mock-key",
+        baseUrl: aiBaseUrl(),
+      };
+    } else {
+      throw toAiError(err);
+    }
+  }
+
+  const rawClient = getClient(providerConfig);
   const openai = observeOpenAiClient(rawClient, {
     traceName: `ai_stage:${req.stage}`,
     sessionId: req.traceContext?.sessionId,
@@ -294,10 +384,11 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
       stage: req.stage,
       effort: req.effort,
       maxTokens: req.maxTokens,
+      provider: providerConfig.provider,
       ...req.traceContext?.metadata,
     },
   });
-  const model = modelFor(req.stage);
+  const model = providerConfig.model;
 
   let responseFormatMode: "json_schema" | "json_object" | "none" = isJsonSchemaSupported(model)
     ? "json_schema"
@@ -307,23 +398,35 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
   let lastIssue = "";
   const maxAttempts = req.maxRetries != null ? Math.max(1, req.maxRetries + 1) : 2;
 
+  const attempts: AttemptMetric[] = [];
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+
   try {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const attemptNum = attempt + 1;
+      const attemptStart = Date.now();
+      let currentAttemptUsage = { inputTokens: 0, outputTokens: 0 };
       try {
         let parsedData: T;
-        let completionModel: string;
+        let completionModel = model;
         let usage = { inputTokens: 0, outputTokens: 0 };
 
         const wantsStream = Boolean(req.onToken || req.onReasoning);
 
         if (responseFormatMode === "json_schema" && !wantsStream) {
-          const completion = await openai.chat.completions.parse({
+          const completion = await openai.chat.completions.create({
             model,
             max_completion_tokens: req.maxTokens,
             messages: [{ role: "system", content: req.system }, ...messages],
             response_format: zodResponseFormat(req.schema, `${req.stage}_output`),
             ...(supportsReasoningEffort(model) ? { reasoning_effort: toReasoningEffort(req.effort) } : {}),
           });
+
+          currentAttemptUsage = {
+            inputTokens: completion.usage?.prompt_tokens ?? 0,
+            outputTokens: completion.usage?.completion_tokens ?? 0,
+          };
 
           const choice = completion.choices[0];
           if (!choice) throw new InvalidOutputError(`The AI returned no answer (stage: ${req.stage}).`, "no_output");
@@ -333,33 +436,28 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
           if (choice.finish_reason === "length") {
             throw new TruncatedOutputError(`The AI's answer was cut off at ${req.maxTokens} tokens (stage: ${req.stage}).`, "truncated");
           }
-          if (choice.message.parsed == null) {
-            const rawContent = choice.message.content;
-            if (rawContent && rawContent.trim()) {
-              try {
-                parsedData = parseWithSchema(req.schema, safeParseJson(rawContent));
-              } catch (e) {
-                if (e instanceof Error && (e.name === "ZodError" || e instanceof SyntaxError)) {
-                  throw e;
-                }
-                throw new InvalidOutputError(`The AI returned no structured output (stage: ${req.stage}).`, "no_output");
-              }
-            } else {
-              throw new InvalidOutputError(`The AI returned no structured output (stage: ${req.stage}).`, "no_output");
-            }
-          } else {
-            parsedData = parseWithSchema(req.schema, choice.message.parsed);
+
+          const rawContent = choice.message.content;
+          if (!rawContent || !rawContent.trim()) {
+            throw new InvalidOutputError(`The AI returned no structured output (stage: ${req.stage}).`, "no_output");
           }
+
+          let jsonParsed: unknown;
+          try {
+            jsonParsed = safeParseJson(rawContent);
+          } catch (e) {
+            throw new SyntaxError(`The output was not valid JSON: ${e instanceof Error ? e.message : String(e)}`);
+          }
+
+          parsedData = parseWithSchema(req.schema, jsonParsed);
           completionModel = completion.model;
-          usage = {
-            inputTokens: completion.usage?.prompt_tokens ?? 0,
-            outputTokens: completion.usage?.completion_tokens ?? 0,
-          };
+          usage = currentAttemptUsage;
         } else {
           const isReasoning = supportsReasoningEffort(model);
-          const isDeepSeek = aiProvider() === "deepseek" || /deepseek/i.test(model);
+          const isDeepSeek = providerConfig.provider === "deepseek" || /deepseek/i.test(model);
           const deepSeekThinking = isDeepSeek ? isDeepSeekThinkingEnabled(req.stage, model) : false;
-          const effectiveMaxTokens = isDeepSeek && deepSeekThinking ? Math.max(req.maxTokens, 64_000) : req.maxTokens;
+          // Row A04 & Packet M09: remove hidden 64k token budget expansion
+          const effectiveMaxTokens = req.maxTokens;
 
           const schemaJson = getJsonSchemaPrompt(req.schema, `${req.stage}_output`);
           const schemaInstruction = schemaJson
@@ -439,8 +537,13 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
               inputTokens: streamUsage?.prompt_tokens ?? estimatedPromptTokens,
               outputTokens: streamUsage?.completion_tokens ?? Math.ceil(rawContent.length / 4),
             };
+            currentAttemptUsage = usage;
           } else {
             const completion = await openai.chat.completions.create(commonPayload as any);
+            currentAttemptUsage = {
+              inputTokens: completion.usage?.prompt_tokens ?? 0,
+              outputTokens: completion.usage?.completion_tokens ?? 0,
+            };
 
             const choice = completion.choices[0];
             if (!choice) throw new InvalidOutputError(`The AI returned no answer (stage: ${req.stage}).`, "no_output");
@@ -469,15 +572,32 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
               inputTokens: completion.usage?.prompt_tokens ?? 0,
               outputTokens: completion.usage?.completion_tokens ?? 0,
             };
+            currentAttemptUsage = usage;
           }
         }
 
-        const cost = calculateCost(completionModel, usage);
+        totalInputTokens += usage.inputTokens;
+        totalOutputTokens += usage.outputTokens;
+        attempts.push({
+          attempt: attemptNum,
+          success: true,
+          model: completionModel,
+          usage,
+          durationMs: Date.now() - attemptStart,
+        });
+
+        const cumulativeUsage = {
+          inputTokens: totalInputTokens,
+          outputTokens: totalOutputTokens,
+        };
+        const cost = calculateCost(completionModel, cumulativeUsage);
         return {
           data: parsedData,
           model: completionModel,
-          usage,
+          usage: cumulativeUsage,
           cost,
+          attempts,
+          totalAttempts: attempts.length,
         };
       } catch (err) {
         // Fallback if provider rejected json_schema or response_format
@@ -498,14 +618,27 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
           }
         }
 
+        totalInputTokens += currentAttemptUsage.inputTokens;
+        totalOutputTokens += currentAttemptUsage.outputTokens;
+
+        const issue = validationIssue(err);
+        const attemptErrCode = err instanceof AiError ? err.code : issue ? "validation_error" : (err as any)?.code || "error";
+        attempts.push({
+          attempt: attemptNum,
+          success: false,
+          model,
+          usage: currentAttemptUsage,
+          errorCode: attemptErrCode,
+          durationMs: Date.now() - attemptStart,
+        });
+
         // The SDK throws these itself when the model runs out of tokens or is filtered.
         if (err instanceof LengthFinishReasonError) {
-          throw new TruncatedOutputError(`The AI's answer was cut off at ${req.maxTokens} tokens (stage: ${req.stage}).`, "truncated");
+          throw new TruncatedOutputError(`The AI's answer was cut off at ${req.maxTokens} tokens (stage: ${req.stage}).`, "truncated", attempts);
         }
         if (err instanceof ContentFilterFinishReasonError) {
-          throw new ModelRefusalError("The AI declined this request. Try rewording the input, or reduce sensitive content.", "refusal");
+          throw new ModelRefusalError("The AI declined this request. Try rewording the input, or reduce sensitive content.", "refusal", attempts);
         }
-        const issue = validationIssue(err);
         if (issue && attempt < maxAttempts - 1) {
           lastIssue = issue;
           messages = withFeedback(req.messages, issue);
@@ -514,14 +647,15 @@ export async function generateStructured<T>(req: StructuredRequest<T>): Promise<
         if (issue) {
           throw new InvalidOutputError(
             `The AI's answer did not match the expected structure after ${attempt === 1 ? "a retry" : `${attempt} retries`} (stage: ${req.stage}). ${lastIssue}`,
-            "invalid_output"
+            "invalid_output",
+            attempts
           );
         }
-        throw toAiError(err);
+        throw toAiError(err, attempts);
       }
     }
     // Unreachable: the loop either returns or throws.
-    throw new InvalidOutputError(`Structured generation failed (stage: ${req.stage}).`, "invalid_output");
+    throw new InvalidOutputError(`Structured generation failed (stage: ${req.stage}).`, "invalid_output", attempts);
   } finally {
     await flushLangfuse().catch(() => {});
   }

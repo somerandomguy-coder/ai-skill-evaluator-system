@@ -53,6 +53,7 @@ model User {
   jobSubmissions JobSubmission[]
   buildSessions  BuildSession[]
   mentorReviews  MentorReview[]
+  challengeAudits ChallengeAudit[]
 }
 
 model JobSubmission {
@@ -82,6 +83,8 @@ model Challenge {
   /// Flat { path: contents } map mounted into the WebContainer.
   starterTemplate Json
   rubricVersion   String
+  version         Int      @default(1)
+  contentDigest   String?
   // added: generator notes for mentors, never shown to candidates —
   // { validApproaches: string[], ambiguities: string[], source: "ai" | "demo-cache" }
   meta            Json     @default("{}")
@@ -90,6 +93,7 @@ model Challenge {
   jobSubmission JobSubmission @relation(fields: [jobSubmissionId], references: [id])
   requirements  Requirement[]
   buildSessions BuildSession[]
+  audits        ChallengeAudit[]
 
   @@index([jobSubmissionId])
 }
@@ -110,12 +114,13 @@ model Requirement {
 }
 
 model BuildSession {
-  id          String        @id @default(cuid(2))
-  challengeId String
-  userId      String
-  status      SessionStatus @default(ACTIVE)
-  startedAt   DateTime      @default(now())
-  submittedAt DateTime?
+  id               String        @id @default(cuid(2))
+  challengeId      String
+  challengeVersion Int           @default(1)
+  userId           String
+  status           SessionStatus @default(ACTIVE)
+  startedAt        DateTime      @default(now())
+  submittedAt      DateTime?
 
   challenge     Challenge      @relation(fields: [challengeId], references: [id])
   user          User           @relation(fields: [userId], references: [id])
@@ -185,6 +190,7 @@ model Evaluation {
   // added: how the evaluation was produced ("ai" | "demo-cache" | "demo-offline"),
   // so a report can never present a canned result as a live AI judgment.
   source         String       @default("ai")
+  assessmentEnvelope Json?
 
   buildSession  BuildSession   @relation(fields: [buildSessionId], references: [id], onDelete: Cascade)
   mentorReviews MentorReview[]
@@ -218,4 +224,30 @@ model SearchCache {
   failed    Boolean  @default(false)
   retryAfter DateTime?
   createdAt DateTime @default(now())
+}
+
+enum ChallengeAuditDecision {
+  APPROVED
+  RE_CALIBRATE
+  REJECTED
+}
+
+model ChallengeAudit {
+  id            String                 @id @default(cuid(2))
+  challengeId   String
+  version       Int                    @default(1)
+  contentDigest String
+  mentorId      String
+  decision      ChallengeAuditDecision
+  totalScore    Int
+  scores        Json
+  notes         String?
+  reasons       String[]
+  auditedAt     DateTime               @default(now())
+
+  challenge     Challenge              @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  mentor        User                   @relation(fields: [mentorId], references: [id])
+
+  @@index([challengeId, version])
+  @@index([mentorId])
 }

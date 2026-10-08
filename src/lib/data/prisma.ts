@@ -105,13 +105,49 @@ function toEvaluationView(e: EvaluationRow): EvaluationView {
   const end = session.submittedAt ?? e.createdAt;
   const turns = session.turns.map(toTurnView);
   const files = parseFileList(session.snapshot?.tree);
-  const cognitive = buildCognitiveSuites({
-    sessionId: session.id,
-    challengeTitle: challenge.title,
-    overallScore: e.overallScore,
-    turns,
-    files,
-  });
+
+  // M07 (Row E11): Read from immutable envelope if present, preventing recomputation
+  const rawEnvelope = (e as any).assessmentEnvelope;
+  let envelope: any = null;
+  if (rawEnvelope) {
+    try {
+      envelope = typeof rawEnvelope === "string" ? JSON.parse(rawEnvelope) : rawEnvelope;
+    } catch {
+      envelope = null;
+    }
+  }
+
+  let suiteA: any;
+  let suiteB: any;
+  let ztAiedAudit: any;
+  let verificationReceipt: any;
+  let groundedAssessment: any;
+
+  if (envelope) {
+    // Read frozen state directly from immutable envelope
+    groundedAssessment = envelope.academicReport ?? null;
+    suiteA = envelope.cognitiveSuites?.suiteA;
+    suiteB = envelope.cognitiveSuites?.suiteB;
+    ztAiedAudit = envelope.cognitiveSuites?.ztAiedAudit;
+    verificationReceipt = envelope.cognitiveSuites?.verificationReceipt;
+  } else {
+    // Legacy historical record without envelope: label unverified provenance
+    const cognitive = buildCognitiveSuites({
+      sessionId: session.id,
+      challengeTitle: challenge.title,
+      overallScore: e.overallScore,
+      turns,
+      files,
+    });
+    groundedAssessment = cognitive.groundedAssessment;
+    if (groundedAssessment) {
+      groundedAssessment.confidenceOrigin = "unverified";
+    }
+    suiteA = cognitive.suiteA;
+    suiteB = cognitive.suiteB;
+    ztAiedAudit = cognitive.ztAiedAudit;
+    verificationReceipt = cognitive.verificationReceipt;
+  }
 
   return {
     id: e.id,
@@ -138,11 +174,11 @@ function toEvaluationView(e: EvaluationRow): EvaluationView {
     turns,
     files: parseFileList(session.snapshot?.tree),
     durationMinutes: Math.max(0, (end.getTime() - session.startedAt.getTime()) / 60_000),
-    suiteA: cognitive.suiteA,
-    suiteB: cognitive.suiteB,
-    ztAiedAudit: cognitive.ztAiedAudit,
-    verificationReceipt: cognitive.verificationReceipt,
-    groundedAssessment: cognitive.groundedAssessment,
+    suiteA,
+    suiteB,
+    ztAiedAudit,
+    verificationReceipt,
+    groundedAssessment,
   };
 }
 

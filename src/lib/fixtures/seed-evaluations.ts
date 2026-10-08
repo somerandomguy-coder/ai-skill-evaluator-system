@@ -149,6 +149,7 @@ export const STRONG_EVALUATION: SeedEvaluation = {
       score: 4,
       confidence: 0.85,
       evidence: [
+        turn(1, "the promise to employees is about who answered, not who wrote text."),
         file("src/App.jsx", "Comments for this group stay hidden while it is held."),
         file("src/lib/gate.js", "// Below the minimum, comments are never inspected or shown."),
       ],
@@ -201,7 +202,10 @@ export const WEAK_EVALUATION: SeedEvaluation = {
       index: 2,
       score: 1,
       confidence: 0.55,
-      evidence: [file("src/App.jsx", "const MIN_GROUP = 5;")],
+      evidence: [
+        turn(3, "can you add the minimum group size thing"),
+        file("src/App.jsx", "const MIN_GROUP = 5;"),
+      ],
       rationale:
         "A fixed threshold exists, but no approach was chosen or justified in the conversation, so there is little to judge the reasoning on.",
     },
@@ -210,6 +214,7 @@ export const WEAK_EVALUATION: SeedEvaluation = {
       score: 1,
       confidence: 0.85,
       evidence: [
+        turn(3, "can you add the minimum group size thing"),
         file("src/App.jsx", "responses.filter((r) => teamIdsOf(s).includes(r.teamId) && r.comment).length"),
       ],
       rationale:
@@ -270,7 +275,10 @@ export const WEAK_EVALUATION: SeedEvaluation = {
       index: 10,
       score: 1,
       confidence: 0.5,
-      evidence: [file("src/App.jsx", "Hidden: fewer than {MIN_GROUP} responses.")],
+      evidence: [
+        turn(3, "can you add the minimum group size thing"),
+        file("src/App.jsx", "Hidden: fewer than {MIN_GROUP} responses."),
+      ],
       rationale:
         "A minimum exists and small groups are hidden, but it counts comments rather than people, and a department that contains a hidden team is still released. Summaries are shown as facts with no link to the comments behind them.",
     },

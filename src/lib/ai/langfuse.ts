@@ -45,6 +45,46 @@ export interface TraceOptions {
   metadata?: Record<string, unknown>;
 }
 
+export function isTelemetryRawContentAllowed(): boolean {
+  return process.env.TELEMETRY_RAW_CONTENT_CONSENT === "true";
+}
+
+export function sanitizeTelemetryValue(val: unknown): unknown {
+  if (val === null || val === undefined) return val;
+  if (typeof val === "string") {
+    let cleaned = val
+      .replace(/sk-[a-zA-Z0-9_\-\.]{6,}/g, "[REDACTED_API_KEY]")
+      .replace(/Bearer\s+[a-zA-Z0-9_\-\.]{6,}/gi, "Bearer [REDACTED_TOKEN]")
+      .replace(/ey[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]*/g, "[REDACTED_JWT]")
+      .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[REDACTED_EMAIL]");
+
+    if (!isTelemetryRawContentAllowed() && cleaned.length > 200) {
+      return `[REDACTED_CONTENT: length=${cleaned.length}]`;
+    }
+    return cleaned;
+  }
+  if (Array.isArray(val)) {
+    if (!isTelemetryRawContentAllowed() && val.length > 5) {
+      return `[REDACTED_ARRAY: count=${val.length}]`;
+    }
+    return val.map(sanitizeTelemetryValue);
+  }
+  if (typeof val === "object") {
+    const res: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(val as Record<string, unknown>)) {
+      if (/password|secret|key|token|credential|rawjd|transcript|prompt|filetree/i.test(k)) {
+        if (!isTelemetryRawContentAllowed()) {
+          res[k] = "[REDACTED_SENSITIVE_FIELD]";
+          continue;
+        }
+      }
+      res[k] = sanitizeTelemetryValue(v);
+    }
+    return res;
+  }
+  return val;
+}
+
 /**
  * Wraps an OpenAI client with Langfuse tracing if Langfuse is configured.
  * If not configured, returns the original client untouched.
@@ -52,12 +92,14 @@ export interface TraceOptions {
 export function observeOpenAiClient<T extends object>(client: T, options?: TraceOptions): T {
   if (!isLangfuseEnabled()) return client;
   try {
+    const rawAllowed = isTelemetryRawContentAllowed();
     const config = {
       traceName: options?.traceName,
       sessionId: options?.sessionId,
-      userId: options?.userId,
+      userId: sanitizeTelemetryValue(options?.userId) as string,
       tags: options?.tags,
-      metadata: options?.metadata,
+      metadata: sanitizeTelemetryValue(options?.metadata) as Record<string, unknown>,
+      ...(rawAllowed ? {} : { maskInputs: true, maskOutputs: true }),
     };
     return observeOpenAI(client as any, config as any) as unknown as T;
   } catch (err) {
@@ -85,7 +127,7 @@ export async function flushLangfuse(timeoutMs = 1500): Promise<void> {
 }
 
 /**
- * Explicitly records what the candidate said in the workspace chat.
+ * Explicitly records candidate turns, adhering to metadata-only privacy defaults.
  */
 export function trackUserTurn(data: {
   sessionId: string;
@@ -98,22 +140,27 @@ export function trackUserTurn(data: {
   if (!lf) return;
 
   try {
+    const rawAllowed = isTelemetryRawContentAllowed();
+    const safeInput = rawAllowed
+      ? { message: sanitizeTelemetryValue(data.message) }
+      : { messageLength: data.message?.length ?? 0, redacted: true };
+
     const trace = lf.trace({
       name: "candidate_turn",
       sessionId: data.sessionId,
-      userId: data.userId,
+      userId: sanitizeTelemetryValue(data.userId) as string,
       tags: ["candidate_prompt", "workspace_chat"],
-      input: { message: data.message },
+      input: safeInput,
       metadata: {
         challengeTitle: data.challengeTitle,
-        charCount: data.message.length,
-        ...data.metadata,
+        charCount: data.message?.length ?? 0,
+        ...((sanitizeTelemetryValue(data.metadata) as Record<string, unknown>) ?? {}),
       },
     });
 
     trace.event({
       name: "user_message_received",
-      input: { message: data.message },
+      input: safeInput,
       metadata: { challengeTitle: data.challengeTitle },
     });
   } catch {
@@ -122,7 +169,7 @@ export function trackUserTurn(data: {
 }
 
 /**
- * Records key platform milestones in Langfuse.
+ * Records key platform milestones in Langfuse with privacy sanitization.
  */
 export function trackEvent(
   name: string,
@@ -139,20 +186,33 @@ export function trackEvent(
   if (!lf) return;
 
   try {
+    const rawAllowed = isTelemetryRawContentAllowed();
+    const safeInput = rawAllowed
+      ? sanitizeTelemetryValue(data.input)
+      : data.input != null
+        ? { summary: "input_metadata_only", count: typeof data.input === "object" ? Object.keys(data.input as object).length : 1 }
+        : undefined;
+
+    const safeOutput = rawAllowed
+      ? sanitizeTelemetryValue(data.output)
+      : data.output != null
+        ? { summary: "output_metadata_only", count: typeof data.output === "object" ? Object.keys(data.output as object).length : 1 }
+        : undefined;
+
     const trace = lf.trace({
       name,
       sessionId: data.sessionId,
-      userId: data.userId,
+      userId: sanitizeTelemetryValue(data.userId) as string,
       tags: data.tags ?? [name],
-      input: data.input,
-      output: data.output,
-      metadata: data.metadata,
+      input: safeInput,
+      output: safeOutput,
+      metadata: sanitizeTelemetryValue(data.metadata) as Record<string, unknown>,
     });
 
     trace.event({
       name: `${name}_event`,
-      input: data.input,
-      output: data.output,
+      input: safeInput,
+      output: safeOutput,
     });
   } catch {
     // Graceful no-op

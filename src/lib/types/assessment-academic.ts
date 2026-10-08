@@ -93,6 +93,7 @@ export interface DimensionEvaluation {
   qualitativeBand: QualitativeBand;
   rationale: string;
   evidenceTraces: EvidenceTrace[];
+  confidenceOrigin?: "model" | "heuristic" | "unverified";
 }
 
 export interface GroundedAssessmentReport {
@@ -106,4 +107,6 @@ export interface GroundedAssessmentReport {
   needsHumanEscalation: boolean;
   escalationReason?: string;
   evaluationTimestamp: string;
+  scoredCoverage?: number;
+  confidenceOrigin?: "model" | "heuristic" | "unverified";
 }

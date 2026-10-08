@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/.cache/
+.cache/
 
 # next.js
 /.next/
@@ -42,3 +44,28 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# archives & bundles
+*.zip
+*.tar.gz
+*.tgz
+
+# experiments & colab exports
+/data-export/colab-experiments/
+/data-export/*.zip
+/scripts/export-colab-bundle.ts
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+
+# research packs & readings
+research-reading-*/
+
+# jupyter checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/

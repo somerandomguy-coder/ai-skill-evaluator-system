@@ -1,4 +1,5 @@
 import { mergeStarter } from "../starter";
+import { normalizePath, PathError, LIMITS } from "../files";
 
 /**
  * Generates clean, role-tailored starter workspace files for candidate challenges.
@@ -51,8 +52,39 @@ export function buildRoleStarterTemplate(challenge: {
   files["README.md"] = `# ${challenge.title}\n\n${challenge.brief}${invariants}${fullstackNotes}\n\n## Candidate Workspace Instructions\n1. Review the brief and technical constraints above.\n2. Write your implementation files in \`src/\`.\n3. Validate boundary conditions, privacy sanitization, and domain rules.\n`;
 
   if (challenge.starterSchemas && Object.keys(challenge.starterSchemas).length > 0) {
+    if (Object.keys(challenge.starterSchemas).length > LIMITS.maxFiles) {
+      throw new PathError(`Starter schemas exceed maximum file limit of ${LIMITS.maxFiles}`);
+    }
+    const seenNormalized = new Set<string>();
+    let totalBytes = 0;
+
     for (const [filename, content] of Object.entries(challenge.starterSchemas)) {
-      const path = filename.startsWith("src/") ? filename : `src/${filename}`;
+      if (filename.startsWith("/") || filename.startsWith("\\") || /^[a-zA-Z]:/.test(filename)) {
+        throw new PathError(`Absolute paths are not allowed in starter schemas: ${filename}`);
+      }
+      if (filename === "__proto__" || filename === "constructor" || filename === "prototype") {
+        throw new PathError(`Disallowed reserved key in starter schemas: ${filename}`);
+      }
+      if (typeof content !== "string") {
+        throw new PathError(`Invalid file content for path: ${filename}`);
+      }
+      if (content.length > LIMITS.maxFileBytes) {
+        throw new PathError(`File exceeds maximum allowed bytes: ${filename}`);
+      }
+      totalBytes += content.length;
+      if (totalBytes > LIMITS.maxTotalBytes) {
+        throw new PathError(`Total starter schema files exceed maximum allowed bytes`);
+      }
+
+      // Validate the raw filename directly to catch ../, drive letters, and forbidden segments
+      const normalizedRaw = normalizePath(filename);
+      const fullPath = normalizedRaw.startsWith("src/") ? normalizedRaw : `src/${normalizedRaw}`;
+      const path = normalizePath(fullPath);
+
+      if (seenNormalized.has(path)) {
+        throw new PathError(`Duplicate normalized starter path: ${path} (from ${filename})`);
+      }
+      seenNormalized.add(path);
       files[path] = content;
     }
   } else {

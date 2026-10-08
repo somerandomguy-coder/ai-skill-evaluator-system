@@ -63,7 +63,10 @@ export function output(over: Partial<EvaluatorOutput> = {}): EvaluatorOutput {
         requirementId: "r3",
         score: 3,
         confidence: 0.7,
-        evidence: [{ type: "file", ref: "src/a.js", quote: "export const MIN = 5;" }],
+        evidence: [
+          { type: "turn", ref: "3", quote: "You said tested but you cannot run code." },
+          { type: "file", ref: "src/a.js", quote: "export const MIN = 5;" },
+        ],
         rationale: "Some record.",
       },
     ],

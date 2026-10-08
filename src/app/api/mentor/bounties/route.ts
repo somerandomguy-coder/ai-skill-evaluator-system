@@ -17,34 +17,12 @@ export async function GET(request: Request) {
     if (user.role !== "MENTOR") {
       return NextResponse.json({ error: "Forbidden: Mentor access required" }, { status: 403 });
     }
-    const mentorId = user.id;
 
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q") || undefined;
-    const category = searchParams.get("category") || undefined;
-    const status = searchParams.get("status") || undefined;
-    const employer = searchParams.get("employer") || undefined;
-    const sfiaLevelParam = searchParams.get("sfiaLevel");
-    const sfiaLevel = sfiaLevelParam ? parseInt(sfiaLevelParam, 10) : undefined;
-
-    const data = getBountyRequirements({
-      query,
-      category,
-      status,
-      employer,
-      sfiaLevel,
-    });
-
-    const stats = getMentorBountyStats(mentorId);
-
-    return NextResponse.json({
-      success: true,
-      items: data.items,
-      totalCount: data.totalCount,
-      categories: data.categories,
-      employers: data.employers,
-      stats,
-    });
+    // B01 / P02: Disable bounty endpoints until the full policy is enforced
+    return NextResponse.json(
+      { error: "Bounty endpoints are disabled pending policy enforcement" },
+      { status: 403 }
+    );
   } catch (err: any) {
     console.error("[GET /api/mentor/bounties] Error:", err);
     return NextResponse.json(

@@ -9,6 +9,8 @@ import { mockDataSource } from "./mock";
 import { prismaDataSource } from "./prisma";
 import type { DataSource } from "./types";
 
+import { isDemoMode } from "../env";
+
 function createSafeDataSource(): DataSource {
   const isExplicitMock = process.env.DATA_SOURCE?.toLowerCase() === "mock";
   const dbUrl = process.env.DATABASE_URL?.trim();
@@ -19,8 +21,8 @@ function createSafeDataSource(): DataSource {
     return mockDataSource;
   }
 
-  // Proxy prismaDataSource: if PostgreSQL is unreachable, credentials are invalid,
-  // or tables are not yet migrated, gracefully fall back to mockDataSource instead of crashing with HTTP 500.
+  // Proxy prismaDataSource: in demo mode gracefully fall back to mockDataSource.
+  // In production mode (Row D04), do NOT silently activate mock storage or masquerade as real data.
   const safeHandler: ProxyHandler<DataSource> = {
     get(target, prop, receiver) {
       const orig = Reflect.get(target, prop, receiver);
@@ -30,12 +32,14 @@ function createSafeDataSource(): DataSource {
         try {
           return await orig.apply(target, args);
         } catch (err: any) {
-          console.warn(
-            `[SafeDataSource] Database operation '${String(prop)}' failed (${err?.code || err?.message || err}). Falling back to mock data.`
-          );
-          const fallback = Reflect.get(mockDataSource, prop);
-          if (typeof fallback === "function") {
-            return await fallback.apply(mockDataSource, args);
+          if (isDemoMode()) {
+            console.warn(
+              `[SafeDataSource] Database operation '${String(prop)}' failed (${err?.code || err?.message || err}). Falling back to mock data in demo mode.`
+            );
+            const fallback = Reflect.get(mockDataSource, prop);
+            if (typeof fallback === "function") {
+              return await fallback.apply(mockDataSource, args);
+            }
           }
           throw err;
         }

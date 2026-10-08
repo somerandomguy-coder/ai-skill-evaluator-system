@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 const savedDemoMode = process.env.DEMO_MODE;
 beforeAll(() => {
@@ -171,7 +171,7 @@ Under Australian Taxation Office (ATO) Single Touch Payroll Phase 2 reporting, d
     registerChallengeInRepository(cachedChallenge);
 
     const query = `Consumer Data Right CDR Open Banking Gateway with AEST timing and token expiry`;
-    const result = await resolveChallenge(query, "Australian Bank");
+    const result = await resolveChallenge(query, "Australian Bank", { supervisedSemanticLookup: true });
 
     expect(result.tierResolved).toBe("TIER_2_CACHED");
     expect(result.similarityScore).toBeGreaterThanOrEqual(0.82);
@@ -305,6 +305,167 @@ describe("POST /api/challenge/generate Endpoint", () => {
     expect(response.status).toBe(400);
     const data = await response.json();
     expect(data.error).toBeDefined();
+  });
+});
+
+describe("Rehearsal Routing Loopholes & Safeguards (Rows R01–R06)", () => {
+  it("R01: fast-routes four curated engineering JDs with zero embedding/generation calls and honest curated provenance", async () => {
+    const embeddingMod = await import("@/lib/engine/embedding");
+    const pipelineMod = await import("@/lib/engine/pipeline");
+    const embeddingSpy = vi.spyOn(embeddingMod, "generateEmbedding");
+    const pipelineSpy = vi.spyOn(pipelineMod, "runAgenticGenerationPipeline");
+
+    embeddingSpy.mockClear();
+    pipelineSpy.mockClear();
+
+    const curatedCases = [
+      {
+        company: "Employment Hero",
+        jd: "Role: Software Engineer — Payroll Systems\nCompany: Employment Hero\nBuild our STP Phase 2 disaggregation engine with statutory wage and integer cents precision.",
+        expectedId: "verified-stp2-engine",
+      },
+      {
+        company: "Biza.io",
+        jd: "Role: Backend Engineer — Open Banking\nCompany: Biza.io\nImplement Consumer Data Right CDR gateway for accredited data recipients with consent register.",
+        expectedId: "verified-cdr-gateway",
+      },
+      {
+        company: "TalentAI",
+        jd: "Role: AI Evaluation Engineer\nCompany: TalentAI\nDevelop fair hiring bias detection algorithm for resume screener to prevent adverse impact.",
+        expectedId: "verified-talentai-screener",
+      },
+      {
+        company: "Total Game Development",
+        jd: "Role: Game Engine Programmer\nCompany: Total Game Development\nBuild deterministic simulation engine for lockstep multiplayer RTS engine with spatial grid.",
+        expectedId: "verified-tgd-rts-sim",
+      },
+    ];
+
+    for (const testCase of curatedCases) {
+      embeddingSpy.mockClear();
+      pipelineSpy.mockClear();
+
+      const result = await resolveChallenge(testCase.jd, testCase.company);
+
+      expect(result.challenge.id).toBe(testCase.expectedId);
+      expect(result.tierResolved).toBe("TIER_1_VERIFIED");
+      expect(result.resolutionReason).toBe("DEMO_FAST_PATH");
+      expect(result.challenge.provenance?.origin).toBe("curated_demo");
+      expect(result.challenge.provenance?.resolutionReason).toBe("DEMO_FAST_PATH");
+
+      // Verify ZERO embedding calls and ZERO generation calls
+      expect(embeddingSpy).toHaveBeenCalledTimes(0);
+      expect(pipelineSpy).toHaveBeenCalledTimes(0);
+    }
+
+    embeddingSpy.mockRestore();
+    pipelineSpy.mockRestore();
+  });
+
+  it("R02: does not fast-route company name without responsibilities (e.g. Total Game Development + Accountant)", async () => {
+    const accountantJd = `Role: Staff Accountant\nCompany: Total Game Development\nResponsibilities: Corporate balance sheet reconciliation, tax filings, accounts payable.`;
+    const result = await resolveChallenge(accountantJd, "Total Game Development");
+
+    expect(result.challenge.id).not.toBe("verified-tgd-rts-sim");
+    expect(result.resolutionReason).not.toBe("DEMO_FAST_PATH");
+    expect(result.tierResolved).toBe("TIER_3_GENERATED");
+  });
+
+  it("R03: rejects incompatible seniority (junior payroll engineer vs Level 3 fixture)", async () => {
+    const juniorJd = `Role: Junior Payroll Engineer\nCompany: Employment Hero\nResponsibilities: Assist senior developers with bug fixes in Single Touch Payroll Phase 2 disaggregation engine.`;
+    const result = await resolveChallenge(juniorJd, "Employment Hero");
+
+    expect(result.resolutionReason).not.toBe("DEMO_FAST_PATH");
+    expect(result.tierResolved).toBe("TIER_3_GENERATED");
+  });
+
+  it("R04: does not fast-route Macquarie vulnerability role where CDR is mentioned only as excluded work", async () => {
+    const macquarieJd = `Role: Application Security Vulnerability Analyst\nCompany: Macquarie Bank\nResponsibilities: Conduct vulnerability assessment and penetration testing across retail banking apps.\nNote: Consumer Data Right (CDR) systems are excluded from this scope.`;
+    const result = await resolveChallenge(macquarieJd, "Macquarie Bank");
+
+    expect(result.challenge.id).not.toBe("verified-cdr-gateway");
+    expect(result.challenge.id).not.toBe("verified-stp2-engine");
+    expect(result.resolutionReason).not.toBe("DEMO_FAST_PATH");
+  });
+
+  it("R05: does not fast-route correct domain with wrong company, unknown employer, or rejected items", async () => {
+    const wrongCompanyJd = `Role: Payroll Systems Engineer\nCompany: Canva\nResponsibilities: Implement STP Phase 2 disaggregation with integer cents and tax withholding.`;
+    const result = await resolveChallenge(wrongCompanyJd, "Canva");
+
+    expect(result.challenge.id).not.toBe("verified-stp2-engine");
+    expect(result.resolutionReason).not.toBe("DEMO_FAST_PATH");
+
+    // Also test unknown company with CDR
+    const unknownCompJd = `Role: Open Banking Engineer\nCompany: Unknown Company\nResponsibilities: Build Consumer Data Right CDR gateway for accredited data recipients.`;
+    const resUnknown = await resolveChallenge(unknownCompJd, "Unknown Company");
+    expect(resUnknown.challenge.id).not.toBe("verified-cdr-gateway");
+    expect(resUnknown.resolutionReason).not.toBe("DEMO_FAST_PATH");
+  });
+
+  it("R06: prevents cross-request fixture mutation across repeated/concurrent reads", async () => {
+    const payrollJd = `Role: Payroll Engineer\nCompany: Employment Hero\nBuild STP Phase 2 disaggregation engine with statutory wage.`;
+
+    const originalUsage = VERIFIED_CHALLENGE_BANK[0].metadata.usageCount || 0;
+    const res1 = await resolveChallenge(payrollJd, "Employment Hero");
+    const res2 = await resolveChallenge(payrollJd, "Employment Hero");
+
+    // Returned challenge has incremented usage count on its own copy
+    expect(res1.challenge.metadata.usageCount).toBe(originalUsage + 1);
+    expect(res2.challenge.metadata.usageCount).toBe(originalUsage + 1);
+
+    // Verify in-memory bank was NOT mutated
+    expect(VERIFIED_CHALLENGE_BANK[0].metadata.usageCount).toBe(originalUsage);
+
+    // Verify mutating returned object does not affect second object
+    res1.challenge.briefMarkdown = "MUTATED";
+    expect(res2.challenge.briefMarkdown).not.toBe("MUTATED");
+  });
+
+  it("R07: non-demo JD succeeds as pending even if embedding function throws (zero avoidable embeddings in default generation)", async () => {
+    const embeddingMod = await import("@/lib/engine/embedding");
+    const embeddingSpy = vi.spyOn(embeddingMod, "generateEmbedding");
+    embeddingSpy.mockImplementation(() => {
+      throw new Error("AVOIDABLE_EMBEDDING_TOUCHED: embedding function must not be called in default generation path!");
+    });
+
+    const unfamiliarJd = `Role: Quantum Satellite Telemetry Cryptographer\nCompany: DeepSpace Labs Perth\nDescription: Design quantum key distribution software for low Earth orbit satellites.`;
+
+    const result = await resolveChallenge(unfamiliarJd, "DeepSpace Labs");
+
+    expect(result.tierResolved).toBe("TIER_3_GENERATED");
+    expect(result.resolutionReason).toBe("GENERATED");
+    expect(result.challenge.verification.status).toBe("PENDING");
+    expect(result.challenge.roleTitle).toBeDefined();
+
+    // Verify embedding function was NEVER called
+    expect(embeddingSpy).toHaveBeenCalledTimes(0);
+
+    embeddingSpy.mockRestore();
+  });
+
+  it("R08: explicit supervised lookup rejects mixed vector spaces/dimensions and awaits initialization", async () => {
+    // 1. Space incompatibility: query vector with 3 dimensions vs 128 dimensions in bank
+    const mismatchedVectorMatch = await queryVectorStore({
+      vector: [1, 0, 0], // 3 dimensions
+      threshold: 0.5,
+    });
+    // Vector with mismatched dimensions is rejected (returns null)
+    expect(mismatchedVectorMatch).toBeNull();
+
+    // 2. Space incompatibility in cosineSimilarity directly
+    const { cosineSimilarity } = await import("@/lib/engine/embedding");
+    expect(cosineSimilarity([1, 0, 0], [1, 0])).toBe(0);
+    expect(cosineSimilarity([NaN, 0], [1, 0])).toBe(0);
+
+    // 3. Supervised semantic search on matching dimension succeeds
+    const validEmbedding = await generateEmbedding("Single Touch Payroll Phase 2 disaggregation engine");
+    const match = await queryVectorStore({
+      vector: validEmbedding,
+      filter: { "verification.status": "APPROVED" },
+      threshold: 0.6,
+    });
+    expect(match).not.toBeNull();
+    expect(match?.item.verification.status).toBe("APPROVED");
   });
 });
 

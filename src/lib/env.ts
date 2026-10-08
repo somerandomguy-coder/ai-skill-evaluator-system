@@ -19,10 +19,12 @@ export type AiProvider = "openai" | "deepseek" | "custom";
 
 export function aiProvider(): AiProvider {
   const p = (process.env.AI_PROVIDER || "").toLowerCase().trim();
-  if (p === "deepseek" || (!process.env.OPENAI_API_KEY && Boolean(process.env.DEEPSEEK_API_KEY))) {
+  if (p === "deepseek") return "deepseek";
+  if (p === "openai") return "openai";
+  if (p === "custom") return "custom";
+  if (!process.env.OPENAI_API_KEY && Boolean(process.env.DEEPSEEK_API_KEY)) {
     return "deepseek";
   }
-  if (p === "custom") return "custom";
   return "openai";
 }
 
@@ -82,7 +84,7 @@ export function deepseekApiKey(): string | undefined {
   return key ? key : undefined;
 }
 
-/** Active API key based on selected provider. Never leaks cross-vendor credentials. */
+/** Active API key based on selected provider. Never leaks cross-vendor credentials (Row A01). */
 export function aiApiKey(): string | undefined {
   const provider = aiProvider();
   if (provider === "deepseek") {
@@ -91,7 +93,10 @@ export function aiApiKey(): string | undefined {
   if (provider === "openai") {
     return openaiApiKey();
   }
-  return process.env.CUSTOM_AI_API_KEY?.trim() || openaiApiKey() || deepseekApiKey();
+  if (provider === "custom") {
+    return process.env.CUSTOM_AI_API_KEY?.trim() || undefined;
+  }
+  return undefined;
 }
 
 /** Base URL for OpenAI-compatible endpoints or DeepSeek. */
@@ -100,8 +105,84 @@ export function aiBaseUrl(): string | undefined {
   if (aiProvider() === "deepseek") {
     return process.env.DEEPSEEK_BASE_URL?.trim() || "https://api.deepseek.com";
   }
-  if (process.env.OPENAI_BASE_URL?.trim()) return process.env.OPENAI_BASE_URL.trim();
-  return undefined;
+  if (aiProvider() === "openai") {
+    return process.env.OPENAI_BASE_URL?.trim() || undefined;
+  }
+  return process.env.CUSTOM_AI_BASE_URL?.trim() || undefined;
+}
+
+export interface ProviderConfig {
+  provider: AiProvider;
+  model: string;
+  apiKey: string;
+  baseUrl?: string;
+}
+
+/**
+ * Resolves provider, model, key, and baseURL as one coherent configuration (Row A01-A03).
+ * Refuses cross-vendor key substitution.
+ */
+export function resolveProviderConfig(stage: AiStage): ProviderConfig {
+  const provider = aiProvider();
+  let apiKey: string | undefined;
+  let baseUrl: string | undefined;
+
+  if (provider === "deepseek") {
+    apiKey = deepseekApiKey();
+    baseUrl = process.env.DEEPSEEK_BASE_URL?.trim() || "https://api.deepseek.com";
+    if (!apiKey) {
+      const err = new Error("DeepSeek provider selected, but DEEPSEEK_API_KEY is not configured. Cross-vendor key fallback is prohibited.");
+      (err as any).code = "missing_deepseek_key";
+      throw err;
+    }
+  } else if (provider === "openai") {
+    apiKey = openaiApiKey();
+    baseUrl = process.env.OPENAI_BASE_URL?.trim() || undefined;
+    if (!apiKey) {
+      const err = new Error("OpenAI provider selected, but OPENAI_API_KEY is not configured. Cross-vendor key fallback is prohibited.");
+      (err as any).code = "missing_openai_key";
+      throw err;
+    }
+  } else if (provider === "custom") {
+    apiKey = process.env.CUSTOM_AI_API_KEY?.trim();
+    baseUrl = process.env.AI_BASE_URL?.trim() || process.env.CUSTOM_AI_BASE_URL?.trim();
+    if (!apiKey) {
+      const err = new Error("Custom provider selected, but CUSTOM_AI_API_KEY is not configured.");
+      (err as any).code = "missing_custom_key";
+      throw err;
+    }
+  }
+
+  const model = modelFor(stage);
+  return { provider, model, apiKey: apiKey!, baseUrl };
+}
+
+export type EmbeddingProvider = "openai" | "custom" | "deterministic";
+
+export function embeddingProvider(): EmbeddingProvider {
+  const p = (process.env.EMBEDDING_PROVIDER || "").toLowerCase().trim();
+  if (p === "custom") return "custom";
+  if (p === "deterministic") return "deterministic";
+  if (p === "openai" || process.env.EMBEDDING_API_KEY || process.env.OPENAI_API_KEY) return "openai";
+  return "deterministic";
+}
+
+export function embeddingApiKey(): string | undefined {
+  return process.env.EMBEDDING_API_KEY?.trim() || openaiApiKey();
+}
+
+export function embeddingBaseUrl(): string | undefined {
+  return process.env.EMBEDDING_BASE_URL?.trim() || process.env.OPENAI_BASE_URL?.trim() || undefined;
+}
+
+export function embeddingModel(): string {
+  return process.env.EMBEDDING_MODEL?.trim() || process.env.OPENAI_EMBEDDING_MODEL?.trim() || "text-embedding-3-small";
+}
+
+export function currentEmbeddingSpace(): string {
+  const provider = embeddingProvider();
+  if (provider === "deterministic") return "deterministic-128";
+  return `${provider}/${embeddingModel()}`;
 }
 
 export function langfusePublicKey(): string | undefined {

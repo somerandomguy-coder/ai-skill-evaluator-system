@@ -26,36 +26,12 @@ export async function POST(request: Request) {
     if (user.role !== "MENTOR") {
       return NextResponse.json({ error: "Forbidden: Mentor access required" }, { status: 403 });
     }
-    const mentorId = user.id;
-    const mentorName = user.name;
 
-    const json = await request.json().catch(() => null);
-    const parsed = ReviewBodySchema.safeParse(json);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid review payload", details: parsed.error.format() },
-        { status: 400 }
-      );
-    }
-
-    const { requirementId, action, reason, notes, duplicateOfId } = parsed.data;
-
-    const result = submitRequirementReview({
-      requirementId,
-      mentorId,
-      mentorName,
-      action,
-      reason,
-      notes,
-      duplicateOfId,
-    });
-
-    return NextResponse.json({
-      success: true,
-      item: result.item,
-      reward: result.reward,
-      updatedStats: result.updatedStats,
-    });
+    // B01 / P02: Disable bounty endpoints until the full policy is enforced
+    return NextResponse.json(
+      { error: "Bounty endpoints are disabled pending policy enforcement" },
+      { status: 403 }
+    );
   } catch (err: any) {
     console.error("[POST /api/mentor/bounties/review] Error:", err);
     return NextResponse.json(

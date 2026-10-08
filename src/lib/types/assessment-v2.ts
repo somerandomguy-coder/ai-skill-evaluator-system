@@ -16,6 +16,16 @@ export interface SfiaProfile {
 
 export type TierLevel = "TIER_1_VERIFIED" | "TIER_2_CACHED" | "TIER_3_GENERATED";
 
+export type ResolutionReason = "DEMO_FAST_PATH" | "GENERATED" | "SEMANTIC_MATCH";
+
+export type TaskOrigin = "curated_demo" | "ai" | "deterministic_fallback";
+
+export interface ChallengeProvenance {
+  origin: TaskOrigin;
+  resolutionReason?: ResolutionReason;
+  parentChallengeId?: string;
+}
+
 export type VerificationStatus = "APPROVED" | "RE_CALIBRATE" | "REJECTED" | "PENDING";
 
 export interface MentorBadge {
@@ -46,6 +56,29 @@ export interface RubricRequirement {
   failureModes: string[]; // Observable vibe-coding anti-patterns
 }
 
+export interface StageExecutionRecord {
+  stage: string;
+  origin: "ai" | "deterministic_fallback" | "curated_demo";
+  model?: string;
+  durationMs?: number;
+  attemptCount: number;
+  fallbackReason?: string;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  } | "unknown";
+}
+
+export interface ChallengeMetadata {
+  createdAt: string;
+  usageCount: number;
+  promptVersion?: string;
+  sourceTruncated?: boolean;
+  omittedChars?: number;
+  stages?: StageExecutionRecord[];
+}
+
 export interface ChallengeV2 {
   id: string;
   tier: TierLevel;
@@ -57,12 +90,10 @@ export interface ChallengeV2 {
   technicalInvariants: string[];
   starterSchemas: Record<string, string>;
   rubric: RubricRequirement[];
+  provenance?: ChallengeProvenance;
   verification: {
     status: VerificationStatus;
     badge?: MentorBadge;
   };
-  metadata: {
-    createdAt: string;
-    usageCount: number;
-  };
+  metadata: ChallengeMetadata;
 }

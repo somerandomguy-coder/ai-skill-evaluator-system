@@ -20,6 +20,7 @@ import {
 } from "../constants";
 import { CATEGORY_META, type EvaluationResult, type RequirementCategory } from "./schemas";
 import type { IntegrityFlag } from "./scoring";
+import type { GroundedAssessmentReport } from "../types/assessment-academic";
 
 export type EscalationCode =
   | "LOW_CONFIDENCE"
@@ -30,7 +31,9 @@ export type EscalationCode =
   | "SESSION_TOO_LONG"
   | "INTEGRITY_FLAG"
   | "NO_AI_EVALUATION"
-  | "CONTESTED";
+  | "CONTESTED"
+  | "ACADEMIC_UNASSESSED_DIMENSION"
+  | "ACADEMIC_ESCALATION";
 
 export interface EscalationReason {
   code: EscalationCode;
@@ -47,6 +50,8 @@ export interface EscalationInput {
   integrityFlags?: IntegrityFlag[];
   /** True when no AI evaluator ran at all (DEMO_MODE offline evaluation). */
   noAiEvaluation?: boolean;
+  /** Grounded academic assessment if available (Row E10) */
+  academicReport?: GroundedAssessmentReport | null;
 }
 
 export interface EscalationDecision {
@@ -132,6 +137,23 @@ export function shouldEscalate(input: EscalationInput): EscalationDecision {
   // 6. Someone talking to the evaluator.
   for (const f of input.integrityFlags ?? []) {
     reasons.push({ code: "INTEGRITY_FLAG", message: f.reason, turns: [f.turn] });
+  }
+
+  // 7. Grounded academic assessment unassessed dimension (Row E10) or academic escalation
+  if (input.academicReport) {
+    const nullDims = input.academicReport.dimensions.filter((d) => d.score === null);
+    if (nullDims.length) {
+      const names = nullDims.map((d) => d.name).join(", ");
+      reasons.push({
+        code: "ACADEMIC_UNASSESSED_DIMENSION",
+        message: `Academic assessment has ${nullDims.length} unassessed dimension${nullDims.length === 1 ? "" : "s"} with null score (${names}): mentor review required.`,
+      });
+    } else if (input.academicReport.needsHumanEscalation) {
+      reasons.push({
+        code: "ACADEMIC_ESCALATION",
+        message: input.academicReport.escalationReason || "Academic evaluation flagged for human review.",
+      });
+    }
   }
 
   return {

@@ -17,6 +17,8 @@ export const REASON_META: Record<EscalationCode, { label: string; icon: LucideIc
   INTEGRITY_FLAG: { label: "Integrity flag", icon: ShieldAlert, tone: ROSE },
   NO_AI_EVALUATION: { label: "No AI evaluation", icon: Bot, tone: VIOLET },
   CONTESTED: { label: "Contested by candidate", icon: Gavel, tone: VIOLET },
+  ACADEMIC_UNASSESSED_DIMENSION: { label: "Academic dimension null", icon: Search, tone: AMBER },
+  ACADEMIC_ESCALATION: { label: "Academic review flagged", icon: ShieldAlert, tone: ROSE },
 };
 
 export function ReasonChip({ reason, className }: { reason: Pick<EscalationReason, "code" | "message">; className?: string }) {

@@ -22,6 +22,25 @@ function toCandidateSafeChallenge(c: ChallengeV2) {
   };
 }
 
+const USER_GENERATION_QUOTAS = new Map<string, number[]>();
+const MAX_GENERATIONS_PER_HOUR = 5;
+
+export function hasExceededGenerationQuota(userId: string, now = Date.now()): boolean {
+  const oneHourAgo = now - 60 * 60 * 1000;
+  const history = (USER_GENERATION_QUOTAS.get(userId) || []).filter((ts) => ts > oneHourAgo);
+  if (history.length >= MAX_GENERATIONS_PER_HOUR) {
+    USER_GENERATION_QUOTAS.set(userId, history);
+    return true;
+  }
+  history.push(now);
+  USER_GENERATION_QUOTAS.set(userId, history);
+  return false;
+}
+
+export function resetGenerationQuotas(): void {
+  USER_GENERATION_QUOTAS.clear();
+}
+
 /**
  * POST /api/challenge/generate
  * Resolves an incoming Job Description through the 3-Tier Challenge Hierarchy.
@@ -33,8 +52,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Payload too large (max 64KB)" }, { status: 413 });
     }
 
-    const json = await request.json().catch(() => null);
-    if (!json) {
+    const text = await request.text().catch(() => "");
+    if (!text || Buffer.byteLength(text, "utf8") > 64 * 1024) {
+      return NextResponse.json({ error: "Payload too large (max 64KB)" }, { status: 413 });
+    }
+
+    let json: unknown;
+    try {
+      json = JSON.parse(text);
+    } catch {
       return NextResponse.json({ error: "Invalid JSON request body" }, { status: 400 });
     }
 
@@ -47,8 +73,13 @@ export async function POST(request: Request) {
     }
 
     const user = await getCurrentUser();
-    if (!user && !isDemoMode() && process.env.NODE_ENV !== "test") {
+    if (!user && !isDemoMode()) {
       return NextResponse.json({ error: "Authentication required to generate challenges" }, { status: 401 });
+    }
+
+    const quotaUserId = user?.id || "demo-or-test-visitor";
+    if (hasExceededGenerationQuota(quotaUserId)) {
+      return NextResponse.json({ error: "Generation quota exceeded. Please wait before generating another challenge." }, { status: 429 });
     }
 
     const { rawJd, companyName } = parsed.data;

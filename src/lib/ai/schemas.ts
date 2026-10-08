@@ -257,6 +257,7 @@ export type EvaluatorOutput = z.infer<typeof EvaluatorOutputSchema>;
 export interface VerifiedEvidence extends Evidence {
   /** True when the reference exists and the quote really appears in it. */
   verified: boolean;
+  speaker?: "USER" | "ASSISTANT";
 }
 
 export interface RequirementResult {
@@ -282,4 +283,9 @@ export interface EvaluationResult {
   strengths: string[];
   gaps: string[];
   unadjudicatedDisagreement: EvaluatorOutput["unadjudicatedDisagreement"];
+  rawModelProse?: {
+    strengths: string[];
+    gaps: string[];
+    unverified: true;
+  };
 }

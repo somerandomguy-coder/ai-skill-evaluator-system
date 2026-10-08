@@ -21,6 +21,7 @@ import { parseFileList, parseFileMap, toJson } from "../json";
 import { guardPackageJson, mergeStarter } from "../starter";
 import { evaluateAndStore } from "./evaluations";
 import { RetryableError, ServiceError } from "./errors";
+import { operationRepo } from "../data/operations";
 import { trackEvent, trackUserTurn } from "../ai/langfuse";
 import { getInMemoryChallenge } from "../data/mock";
 import { buildRoleStarterTemplate } from "../engine/starter-template";
@@ -259,6 +260,14 @@ export async function sendMessage(input: {
         : writes.filter((w) => w.path !== "package.json");
     }
 
+    const sessionCheck = await prisma.buildSession.findUnique({
+      where: { id: session.id },
+      select: { status: true },
+    });
+    if (sessionCheck && sessionCheck.status !== "ACTIVE") {
+      throw new ServiceError("Session has already been submitted. Late assistant writes are rejected.", 409);
+    }
+
     const assistantTurn = await prisma.chatTurn.create({
       data: {
         buildSessionId: session.id,
@@ -387,6 +396,14 @@ export async function sendMessageStream(
         : writes.filter((w) => w.path !== "package.json");
     }
 
+    const sessionCheck = await prisma.buildSession.findUnique({
+      where: { id: session.id },
+      select: { status: true },
+    });
+    if (sessionCheck && sessionCheck.status !== "ACTIVE") {
+      throw new ServiceError("Session has already been submitted. Late assistant writes are rejected.", 409);
+    }
+
     const assistantTurn = await prisma.chatTurn.create({
       data: {
         buildSessionId: session.id,
@@ -418,6 +435,10 @@ export async function submitSession(sessionId: string, userId: string): Promise<
     if (!session.turns.some((t) => t.role === "USER")) {
       throw new ServiceError("Send at least one message to the assistant before submitting.");
     }
+    const lastTurn = session.turns[session.turns.length - 1];
+    if (lastTurn && lastTurn.role === "USER") {
+      throw new ServiceError("Your last message is still being processed by the assistant. Please wait for it to complete before submitting.", 409);
+    }
     const files = reconstructFiles(mergeStarter(parseFileMap(session.challenge.starterTemplate)), session.turns);
     try {
       await prisma.$transaction([
@@ -437,9 +458,35 @@ export async function submitSession(sessionId: string, userId: string): Promise<
 
   const existing = await prisma.evaluation.findUnique({ where: { buildSessionId: sessionId }, select: { id: true } });
   if (existing) return existing.id;
+
+  const claim = operationRepo.claimOperation("EVALUATION", userId, { sessionId });
+  if (claim.alreadyCompleted && claim.operation.resultId) {
+    return claim.operation.resultId;
+  }
+
+  if (claim.inFlight) {
+    const pollStart = Date.now();
+    const timeoutMs = 15_000;
+    while (Date.now() - pollStart < timeoutMs) {
+      await new Promise((r) => setTimeout(r, 100));
+      const pollOp = operationRepo.getOperation(claim.operation.id, userId);
+      if (pollOp?.status === "COMMITTED" && pollOp.resultId) {
+        return pollOp.resultId;
+      }
+      const evalRow = await prisma.evaluation.findUnique({ where: { buildSessionId: sessionId }, select: { id: true } });
+      if (evalRow) return evalRow.id;
+      if (pollOp?.status === "FAILED") {
+        break;
+      }
+    }
+  }
+
   try {
-    return (await evaluateAndStore(sessionId)).id;
+    const evaluation = await evaluateAndStore(sessionId);
+    operationRepo.completeOperation(claim.operation.id, userId, evaluation.id);
+    return evaluation.id;
   } catch (err) {
+    operationRepo.failOperation(claim.operation.id, userId, (err as Error)?.message || "Evaluation failed");
     if ((err as Prisma.PrismaClientKnownRequestError).code === "P2002") {
       const again = await prisma.evaluation.findUnique({ where: { buildSessionId: sessionId }, select: { id: true } });
       if (again) return again.id;

@@ -105,7 +105,13 @@ export function verifyEvidence(e: Evidence, ctx: EvidenceContext): VerifiedEvide
     const turn = Number.isFinite(n) ? ctx.turns.find((t) => t.seq === n) : undefined;
     if (!turn) return { ...e, verified: false };
     const haystack = [turn.content, turn.reasoning ?? "", ...(turn.filesWritten ?? []).map((f) => f.path)].join("\n");
-    return { type: "turn", ref: String(n), quote: e.quote, verified: quoteAppearsIn(e.quote, haystack) };
+    return {
+      type: "turn",
+      ref: String(n),
+      quote: e.quote,
+      verified: quoteAppearsIn(e.quote, haystack),
+      speaker: turn.role,
+    };
   }
   const path = normalizeFilePath(e.ref);
   const contents = ctx.files[path];
@@ -195,6 +201,25 @@ export function finalizeEvaluation(
       done.set(req.id, withheld(req.id, rationale || "No evidence was found for this requirement.", "No supporting evidence was available for this requirement.", good));
       continue;
     }
+
+    // M05: Require at least one verified USER-turn citation for a numeric behavioural score
+    const hasCandidateAttribution = good.some(
+      (e) => e.type === "turn" && e.speaker === "USER"
+    );
+
+    if (!hasCandidateAttribution) {
+      const isFileOnly = good.every((e) => e.type === "file");
+      const isAssistantOnly = good.every((e) => e.type === "turn" && e.speaker === "ASSISTANT");
+      note = isFileOnly
+        ? "Only file artifacts were cited without candidate-turn action, so behavioral score was withheld."
+        : isAssistantOnly
+        ? "Only assistant turns were cited without candidate-turn action, so behavioral score was withheld."
+        : "Evidence lacks candidate attribution (no candidate turns cited), so behavioral score was withheld.";
+
+      done.set(req.id, withheld(req.id, rationale, note, good));
+      continue;
+    }
+
     if (discarded > 0) {
       confidence = Math.min(confidence, FABRICATED_CITATION_CONFIDENCE_CAP);
       note = `${discarded} citation${discarded === 1 ? "" : "s"} could not be verified and ${discarded === 1 ? "was" : "were"} discarded.`;
@@ -210,14 +235,28 @@ export function finalizeEvaluation(
 
   const overall = computeOverall(perRequirement, ctx.requirements);
 
-  // Fallback sentences come from the rubric itself, in decision terms.
+  // M06: Close the post-processing boundary:
+  // Use finalized result-derived summaries by default; unsupported raw strengths,
+  // gaps, and invalidated-score rationale must not survive as public factual claims.
+  // If raw model prose is retained for mentors, label it unverified and private.
+  // Do not force exactly three invented strengths where evidence does not support them.
   const scored = perRequirement
     .map((r) => ({ r, req: byId.get(r.requirementId)! }))
     .filter((x) => x.r.score !== null)
     .sort((a, b) => (b.r.score! - a.r.score!) || b.req.weight - a.req.weight);
-  const weakest = perRequirement
-    .map((r) => ({ r, req: byId.get(r.requirementId)! }))
-    .sort((a, b) => (a.r.score ?? -1) - (b.r.score ?? -1) || b.req.weight - a.req.weight);
+
+  const supportedStrengths = scored
+    .filter((x) => (x.r.score ?? 0) >= 4)
+    .map((x) => `Strong candidate evidence on: ${x.req.statement}`);
+
+  const supportedGaps = perRequirement
+    .filter((r) => r.score === null || r.score <= 2)
+    .map((r) => {
+      const req = byId.get(r.requirementId)!;
+      return r.score === null
+        ? `No scorable candidate evidence on: ${req.statement}`
+        : `Limited candidate evidence on: ${req.statement}`;
+    });
 
   const seqs = new Set(ctx.turns.map((t) => t.seq));
   const dis = out.unadjudicatedDisagreement;
@@ -225,8 +264,13 @@ export function finalizeEvaluation(
   return {
     ...overall,
     perRequirement,
-    strengths: exactlyThree(out.strengths, scored.map((x) => `Strong evidence on: ${x.req.statement}`)),
-    gaps: exactlyThree(out.gaps, weakest.map((x) => `Little or no evidence on: ${x.req.statement}`)),
+    strengths: supportedStrengths,
+    gaps: supportedGaps,
+    rawModelProse: {
+      strengths: out.strengths,
+      gaps: out.gaps,
+      unverified: true,
+    },
     unadjudicatedDisagreement: {
       present: dis.present,
       turns: dis.turns.filter((t) => seqs.has(t)),

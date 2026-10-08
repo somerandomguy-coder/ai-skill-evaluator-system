@@ -5,10 +5,18 @@ import { ReportView } from "@/components/report/report-view";
 import { getCurrentUser } from "@/lib/auth";
 import { data } from "@/lib/data";
 
+import { resolveShareCapability } from "@/lib/data/shares";
+
 export const metadata: Metadata = { title: "Assessment report" };
 
-/** Public and read-only: the link is what an employer is sent. Only the candidate sees the contest control. */
-export default async function ReportPage({ params }: PageProps<"/report/[id]">) {
+/** Owner and mentor see private report; others require a valid share token. */
+export default async function ReportPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ share?: string }>;
+}) {
   const { id } = await params;
   if (id.startsWith("seed-")) {
     redirect("/");
@@ -16,9 +24,29 @@ export default async function ReportPage({ params }: PageProps<"/report/[id]">) 
   const [evaluation, viewer] = await Promise.all([data.getEvaluation(id), getCurrentUser()]);
   if (!evaluation) notFound();
 
-  return (
-    <PageShell width="5xl">
-      <ReportView evaluation={evaluation} viewer={viewer} />
-    </PageShell>
-  );
+  const isOwner = viewer && viewer.id === evaluation.ownerId;
+  const isMentor = viewer && viewer.role === "MENTOR";
+
+  if (isOwner || isMentor) {
+    return (
+      <PageShell width="5xl">
+        <ReportView evaluation={evaluation} viewer={viewer} />
+      </PageShell>
+    );
+  }
+
+  const sp = searchParams ? await searchParams : {};
+  if (sp.share) {
+    const res = await resolveShareCapability(sp.share);
+    if (res.status === "VALID" && res.capability.evaluationId === evaluation.id) {
+      return (
+        <PageShell width="5xl">
+          <ReportView evaluation={evaluation} viewer={null} />
+        </PageShell>
+      );
+    }
+  }
+
+  // Cross-owner or anonymous visitor without share token is denied
+  redirect(`/login?error=forbidden&next=${encodeURIComponent(`/report/${id}`)}`);
 }

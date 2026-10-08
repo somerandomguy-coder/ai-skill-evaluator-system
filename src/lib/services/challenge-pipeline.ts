@@ -25,6 +25,7 @@ import { resolveChallenge } from "../engine/resolver";
 import { buildRoleStarterTemplate } from "../engine/starter-template";
 import { v2ToChallengeView, saveInMemoryChallenge } from "../data/mock";
 import type { ChallengeView } from "../data/types";
+import { saveChallengeAtomically } from "./challenge-persistence";
 
 type Emit = (e: PipelineEvent) => void;
 
@@ -103,90 +104,25 @@ async function runFastPipeline(
     detail: `${resolved.rubric.length} requirements (SFIA Level ${resolved.sfiaProfile.level})`,
   });
 
-  // Step 5: Save
+  // Step 5: Save atomically (M08)
   emit({ type: "step", step: "save", status: "start" });
   await pause(100);
 
-  const id = `v2-${Date.now()}`;
-  const fallbackChallengeView: ChallengeView = {
-    ...v2ToChallengeView(resolved),
-    id,
-    job: {
-      ...v2ToChallengeView(resolved).job,
-      roleTitle,
-      employer,
-      sourceUrl: input.sourceUrl || null,
-    },
-    fromDemoCache: false,
-  };
-
-  saveInMemoryChallenge(fallbackChallengeView);
-
-  try {
-    await prisma.user.upsert({
-      where: { id: input.userId },
-      update: {},
-      create: {
-        id: input.userId,
-        email: input.userEmail ?? `${input.userId}@proofcraft.dev`,
-        name: input.userName ?? "Candidate",
-        role: "CANDIDATE",
-      },
-    });
-    const sub = await prisma.jobSubmission.create({
-      data: {
-        userId: input.userId,
-        rawJd: text,
-        sourceUrl: input.sourceUrl,
-        parsedJd: toJson(fallbackChallengeView.job),
-        companyResearch: toJson(fallbackChallengeView.research),
-      },
-    });
-    await prisma.challenge.create({
-      data: {
-        id,
-        jobSubmissionId: sub.id,
-        title: challengeTitle,
-        brief: fallbackChallengeView.brief,
-        domainContext: fallbackChallengeView.domainContext,
-        timeboxMinutes: fallbackChallengeView.timeboxMinutes,
-        starterTemplate: toJson(
-          buildRoleStarterTemplate({
-            title: challengeTitle,
-            brief: fallbackChallengeView.brief,
-            technicalInvariants: resolved.technicalInvariants,
-            starterSchemas: resolved.starterSchemas,
-          })
-        ),
-        rubricVersion: "SFIA-9-ECD-v2",
-        meta: toJson({
-          validApproaches: [],
-          ambiguities: [],
-          tier: resolution.tierResolved,
-          sfiaProfile: resolved.sfiaProfile,
-          technicalInvariants: resolved.technicalInvariants,
-          starterSchemas: resolved.starterSchemas,
-          verification: resolved.verification,
-          similarityScore: resolution.similarityScore,
-        }),
-      },
-    });
-    await prisma.requirement.createMany({
-      data: fallbackChallengeView.requirements.map((r) => ({
-        challengeId: id,
-        category: r.category,
-        statement: r.statement,
-        weight: r.weight,
-        successSignals: r.successSignals,
-        failureModes: r.failureModes,
-      })),
-    });
-  } catch (err) {
-    console.warn(`[runFastPipeline] Database save failed (${err}). Stored in memory.`);
-  }
+  const { challengeId } = await saveChallengeAtomically({
+    userId: input.userId,
+    userEmail: input.userEmail,
+    userName: input.userName,
+    rawJd: text,
+    sourceUrl: input.sourceUrl || null,
+    parsedJd: { roleTitle, employer, sourceUrl: input.sourceUrl || null },
+    companyResearch: { whatTheyDo: "", domainAndUsers: "", technicalSignals: [], groundedInSearch: false, sources: [] },
+    challenge: resolved,
+    tier: resolution.tierResolved,
+    similarityScore: resolution.similarityScore,
+  });
 
   emit({ type: "step", step: "save", status: "done" });
-  emit({ type: "done", challengeId: id, demo: false });
+  emit({ type: "done", challengeId, demo: false });
 }
 
 export async function runChallengePipeline(
@@ -295,82 +231,20 @@ export async function runChallengePipeline(
       detail: `${resolved.rubric.length} requirements (SFIA Level ${resolved.sfiaProfile.level})`,
     });
 
-    // 6. Save.
+    // 6. Save atomically (M08)
     emit({ type: "step", step: "save", status: "start" });
-    let createdId: string;
-    try {
-      await prisma.user.upsert({
-        where: { id: input.userId },
-        update: {},
-        create: {
-          id: input.userId,
-          email: input.userEmail ?? `${input.userId}@proofcraft.dev`,
-          name: input.userName ?? "Candidate",
-          role: "CANDIDATE",
-        },
-      });
-
-      const submission = await prisma.jobSubmission.create({
-        data: { userId: input.userId, rawJd: text, sourceUrl, parsedJd: toJson(parsed), companyResearch: toJson(research) },
-      });
-      const row = await prisma.challenge.create({
-        data: {
-          jobSubmissionId: submission.id,
-          title: resolved.roleTitle,
-          brief: resolved.briefMarkdown,
-          domainContext: `Enterprise Australian assessment grounded in SFIA 9 standards for ${parsed.employer}.`,
-          timeboxMinutes: resolved.sfiaProfile.level === 2 ? 120 : 180,
-          starterTemplate: toJson(
-            buildRoleStarterTemplate({
-              title: resolved.roleTitle,
-              brief: resolved.briefMarkdown,
-              technicalInvariants: resolved.technicalInvariants,
-              starterSchemas: resolved.starterSchemas,
-            })
-          ),
-          rubricVersion: "SFIA-9-ECD-v2",
-          meta: toJson({
-            validApproaches: [],
-            ambiguities: [],
-            tier: resolution.tierResolved,
-            sfiaProfile: resolved.sfiaProfile,
-            technicalInvariants: resolved.technicalInvariants,
-            starterSchemas: resolved.starterSchemas,
-            verification: resolved.verification,
-            similarityScore: resolution.similarityScore,
-          }),
-        },
-      });
-      await prisma.requirement.createMany({
-        data: resolved.rubric.map((r) => ({
-          challengeId: row.id,
-          category: r.category,
-          statement: r.statement,
-          weight: r.weight,
-          successSignals: r.successSignals,
-          failureModes: r.failureModes,
-        })),
-      });
-      createdId = row.id;
-    } catch (dbErr: any) {
-      console.warn(`[runChallengePipeline] Database save failed (${dbErr?.message ?? dbErr}). Storing in-memory.`);
-      const fallbackId = `gen-${Date.now()}`;
-      const fallbackChallengeView: ChallengeView = {
-        ...v2ToChallengeView(resolved),
-        id: fallbackId,
-        job: { ...parsed, sourceUrl: sourceUrl || null },
-        research: {
-          whatTheyDo: research.whatTheyDo,
-          domainAndUsers: research.domainAndUsers,
-          technicalSignals: research.technicalSignals,
-          groundedInSearch: research.groundedInSearch,
-          sources: research.sources.map((s) => ({ title: s.title, url: s.url })),
-        },
-        fromDemoCache: false,
-      };
-      saveInMemoryChallenge(fallbackChallengeView);
-      createdId = fallbackId;
-    }
+    const { challengeId: createdId } = await saveChallengeAtomically({
+      userId: input.userId,
+      userEmail: input.userEmail,
+      userName: input.userName,
+      rawJd: text,
+      sourceUrl,
+      parsedJd: parsed,
+      companyResearch: research,
+      challenge: resolved,
+      tier: resolution.tierResolved,
+      similarityScore: resolution.similarityScore,
+    });
 
     emit({ type: "step", step: "save", status: "done" });
     emit({ type: "done", challengeId: createdId, demo: false });

@@ -10,8 +10,14 @@ import { clearUserCookie, safeNext, setUserCookie } from "@/lib/auth";
 import { data } from "@/lib/data";
 import { DEMO_USERS } from "@/lib/data/demo-users";
 
-/** Role switcher / "Continue as": become an existing seeded user. */
+import { isDemoMode } from "@/lib/env";
+
+/** Role switcher / "Continue as": become an existing seeded user. Isolated to DEMO_MODE. */
 export async function switchUser(userId: string, next?: string) {
+  if (!isDemoMode()) {
+    redirect("/login?error=demo_disabled");
+  }
+
   const demo = DEMO_USERS.find((d) => d.id === userId);
   let user = demo ?? null;
   if (demo) {

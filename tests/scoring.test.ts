@@ -120,13 +120,15 @@ describe("finalizeEvaluation — every score cites evidence", () => {
     expect(r.perRequirement[2].score).toBeNull();
   });
 
-  it("always returns exactly three strengths and three gaps", () => {
-    const r = finalizeEvaluation(output({ strengths: ["only one"], gaps: [] }), ctx);
-    expect(r.strengths).toHaveLength(3);
-    expect(r.gaps).toHaveLength(3);
-    expect(r.strengths[0]).toBe("only one");
-    const many = finalizeEvaluation(output({ strengths: ["a", "b", "c", "d", "e"] }), ctx);
-    expect(many.strengths).toEqual(["a", "b", "c"]);
+  it("derives public summaries from finalized results and retains raw model prose privately (M06)", () => {
+    const r = finalizeEvaluation(output({ strengths: ["caught all bugs"], gaps: ["leaked PII"] }), ctx);
+    expect(r.strengths).toContain("Strong candidate evidence on: Interrogates the brief before building");
+    expect(r.strengths).not.toContain("caught all bugs");
+    expect(r.rawModelProse).toEqual({
+      strengths: ["caught all bugs"],
+      gaps: ["leaked PII"],
+      unverified: true,
+    });
   });
 
   it("drops disagreement turns that do not exist", () => {

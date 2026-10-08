@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { isDemoMode, openaiApiKey } from "../env";
+import { isDemoMode, embeddingApiKey, embeddingBaseUrl, embeddingModel, embeddingProvider } from "../env";
 
 /**
  * Deterministic character 3-gram + term hashing vectorizer for offline, demo, and test modes.
@@ -52,8 +52,11 @@ function generateDeterministicVector(text: string, dimensions = 128): number[] {
  * Returns a score between -1 and 1 (typically 0 to 1 for normalized vectors).
  */
 export function cosineSimilarity(a: number[], b: number[]): number {
-  if (!a || !b || a.length === 0 || b.length === 0) return 0;
-  const len = Math.min(a.length, b.length);
+  if (!a || !b || a.length === 0 || b.length === 0 || a.length !== b.length) return 0;
+  for (let i = 0; i < a.length; i++) {
+    if (!Number.isFinite(a[i]) || !Number.isFinite(b[i])) return 0;
+  }
+  const len = a.length;
   let dotProduct = 0;
   let normA = 0;
   let normB = 0;
@@ -74,9 +77,10 @@ let openAiDisabled = false;
 
 function getOpenAi(): OpenAI | null {
   if (openAiDisabled) return null;
-  const key = openaiApiKey();
+  const key = embeddingApiKey();
   if (!key) return null;
-  if (!cachedOpenAi) cachedOpenAi = new OpenAI({ apiKey: key });
+  const baseURL = embeddingBaseUrl();
+  if (!cachedOpenAi) cachedOpenAi = new OpenAI({ apiKey: key, ...(baseURL ? { baseURL } : {}) });
   return cachedOpenAi;
 }
 
@@ -91,13 +95,13 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     return generateDeterministicVector("", 128);
   }
 
-  // Check if live AI is available
-  if (!isDemoMode() && !openAiDisabled) {
+  // Check if live AI is available and not forced deterministic
+  if (!isDemoMode() && !openAiDisabled && embeddingProvider() !== "deterministic") {
     const ai = getOpenAi();
     if (ai) {
       try {
         const resp = await ai.embeddings.create({
-          model: process.env.OPENAI_EMBEDDING_MODEL || "text-embedding-3-small",
+          model: embeddingModel(),
           input: trimmed.slice(0, 8000),
         });
         if (resp.data?.[0]?.embedding) {
@@ -107,7 +111,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
         if (err instanceof OpenAI.AuthenticationError || (err as any)?.status === 401) {
           openAiDisabled = true;
         }
-        console.warn("[generateEmbedding] OpenAI embedding failed, falling back to deterministic vectorizer:", (err as Error)?.message ?? err);
+        console.warn("[generateEmbedding] embedding failed, falling back to deterministic vectorizer:", (err as Error)?.message ?? err);
       }
     }
   }
