@@ -16,6 +16,7 @@ import { buildRoleStarterTemplate } from "../engine/starter-template";
 import { computeChallengeContentDigest, taskApprovalRepo } from "../data/task-approval";
 import { operationRepo } from "../data/operations";
 import { saveInMemoryChallenge, v2ToChallengeView } from "../data/mock";
+import { sanitizeCandidateBriefMarkdown } from "../sanitize-brief";
 import type { ChallengeV2, TierLevel } from "../types/assessment-v2";
 import type { ChallengeView } from "../data/types";
 
@@ -61,6 +62,11 @@ export async function saveChallengeAtomically(
     } catch {
       // User might already exist in demo environment
     }
+  }
+
+  // Ensure candidate brief is sanitized from any secret AI traps or spoiler markers
+  if (input.challenge?.briefMarkdown) {
+    input.challenge.briefMarkdown = sanitizeCandidateBriefMarkdown(input.challenge.briefMarkdown);
   }
 
   // 2. Compute immutable content digest

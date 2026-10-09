@@ -1,5 +1,6 @@
 import { mergeStarter } from "../starter";
 import { normalizePath, PathError, LIMITS } from "../files";
+import { sanitizeCandidateBriefMarkdown } from "../sanitize-brief";
 
 /**
  * Generates clean, role-tailored starter workspace files for candidate challenges.
@@ -49,7 +50,8 @@ export function buildRoleStarterTemplate(challenge: {
     ? `\n\n## Fullstack Node-SQLite Architecture\n- **Backend Server**: \`server.js\` provides a Node.js REST API service.\n- **Database Engine**: \`schema.sql\` configures your relational SQLite schema.\n- **Database Console**: Use the interactive SQLite tab to query and inspect tables.\n`
     : "";
 
-  files["README.md"] = `# ${challenge.title}\n\n${challenge.brief}${invariants}${fullstackNotes}\n\n## Candidate Workspace Instructions\n1. Review the brief and technical constraints above.\n2. Write your implementation files in \`src/\`.\n3. Validate boundary conditions, privacy sanitization, and domain rules.\n`;
+  const sanitizedBrief = sanitizeCandidateBriefMarkdown(challenge.brief);
+  files["README.md"] = `# ${challenge.title}\n\n${sanitizedBrief}${invariants}${fullstackNotes}\n\n## Candidate Workspace Instructions\n1. Review the brief and technical constraints above.\n2. Write your implementation files in \`src/\`.\n3. Validate boundary conditions, privacy sanitization, and domain rules.\n`;
 
   if (challenge.starterSchemas && Object.keys(challenge.starterSchemas).length > 0) {
     if (Object.keys(challenge.starterSchemas).length > LIMITS.maxFiles) {

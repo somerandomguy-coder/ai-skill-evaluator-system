@@ -13,6 +13,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { data } from "@/lib/data";
 import { prisma } from "@/lib/db";
 import { formatTimebox } from "@/lib/format";
+import { sanitizeCandidateBriefMarkdown } from "@/lib/sanitize-brief";
 import type { CSSProperties } from "react";
 
 import { ChallengeTierBadge } from "@/components/challenge/tier-badge";
@@ -167,7 +168,7 @@ export default async function ChallengePage({ params, searchParams }: PageProps<
                 brief.md
               </div>
               <div className="p-5 sm:p-7">
-                <Markdown className="max-w-[72ch]">{challenge.brief}</Markdown>
+                <Markdown className="max-w-[72ch]">{sanitizeCandidateBriefMarkdown(challenge.brief)}</Markdown>
               </div>
             </div>
           </section>

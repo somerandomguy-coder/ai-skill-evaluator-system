@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { generateStructured } from "../ai/client";
 import { aiApiKey, isDemoMode } from "../env";
+import { sanitizeCandidateBriefMarkdown } from "../sanitize-brief";
+export { sanitizeCandidateBriefMarkdown };
 import type {
   ChallengeV2,
   RubricCategory,
@@ -224,8 +226,10 @@ Use the extracted SFIA profile, target company domain, and Australian statutory 
 Rules:
 1. DO NOT invent generic CRUD apps, to-do lists, or algorithmic puzzles.
 2. Embed real Australian regulatory/industry constraints relevant to the domain (e.g., Single Touch Payroll Phase 2 disaggregation, Privacy Act 1988 data masking, CDR/Open Banking standards, or AEST/AWST timezone reconciliations).
-3. Deliberately inject 2-3 "AI Traps"—scenarios where unguided LLMs generate incorrect, naive, or insecure patterns (e.g., floating-point arithmetic for currency, aggregate gross calculation instead of statutory breakdowns, or unmasked sensitive identity fields in logs).
+3. Deliberately embed 2-3 latent architectural pitfalls / "AI Traps" in the problem domain (e.g., floating-point arithmetic for currency, aggregate gross calculation instead of statutory breakdowns, or unmasked sensitive identity fields in logs).
+   CRITICAL CANDIDATE-FACING RULE: The briefMarkdown is STRICTLY candidate-facing. DO NOT reveal, mention, or label "AI Traps" in the brief. Traps must remain latent architectural pitfalls that the candidate must independently detect and resolve. NEVER include an "AI Traps" section or spoil hidden traps to the candidate.
 4. Define strict Definition of Done and TypeScript interfaces.
+5. Format any final "Assessment Criteria" as a clean Markdown table with columns: Assessment Area | Weight | Core Competencies & Verification Focus (use bold area names, code-styled weights like \`30%\`, and concise verification focus).
 
 Output valid JSON containing: title, companyName, briefMarkdown, technicalInvariants, and starterSchemas.`;
 
@@ -390,7 +394,7 @@ export async function runAgent2EcdTaskSynthesizerWithRecord(
     const resolvedCompany = companyName?.trim() || result.data.companyName;
 
     const isThinJd = rawJd.trim().split(/\s+/).length < 40;
-    let briefMarkdown = result.data.briefMarkdown;
+    let briefMarkdown = sanitizeCandidateBriefMarkdown(result.data.briefMarkdown);
     if (isThinJd && !briefMarkdown.includes("Exercise Assumptions")) {
       briefMarkdown += `\n\n## Exercise Assumptions & Clarifications\n- Input job description provides minimal domain specifics; standard enterprise engineering constraints and Australian privacy defaults are assumed.\n- Clarification questions for hiring team:\n  1. What specific data volumes and throughput requirements apply?\n  2. Are there proprietary legacy systems requiring custom transport protocols?`;
     }
@@ -541,7 +545,7 @@ export async function runAgenticGenerationPipeline(
     roleTitle: taskModel.title,
     embeddingVector: jdEmbedding,
     sfiaProfile,
-    briefMarkdown: taskModel.briefMarkdown,
+    briefMarkdown: sanitizeCandidateBriefMarkdown(taskModel.briefMarkdown),
     technicalInvariants: taskModel.technicalInvariants,
     starterSchemas: taskModel.starterSchemas,
     rubric: scopedRubric,
