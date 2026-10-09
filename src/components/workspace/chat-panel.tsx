@@ -676,39 +676,36 @@ export function ChatPanel({
             className="block max-h-48 min-h-14 w-full resize-none bg-transparent px-3.5 pt-3 text-[13.5px] leading-relaxed outline-none [field-sizing:content] placeholder:text-muted-foreground disabled:opacity-60"
           />
           <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 min-w-0">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={blocked}
-                className="inline-flex items-center gap-1 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                className="inline-flex items-center gap-1 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 shrink-0"
                 title="Attach design screenshot / UI mockup"
                 aria-label="Attach design mockup"
               >
                 <ImageIcon className="size-4" />
               </button>
-              <span className="hidden items-center gap-1 pl-1 text-[11px] text-muted-foreground sm:inline-flex">
-                <kbd className="rounded border border-border px-1 font-mono">↵</kbd> send
-                <kbd className="ml-1.5 rounded border border-border px-1 font-mono">⇧↵</kbd> new line
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
+
               {/* Skills Register Button */}
               <button
                 type="button"
                 onClick={() => setIsSkillsModalOpen(true)}
                 disabled={blocked}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/50 text-[11.5px] font-medium transition-all select-none cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/50 text-[11.5px] font-medium transition-all select-none cursor-pointer shrink-0"
                 title="Skill Register: Browse or add slash command skills (/grill-me, /prototype, etc.)"
                 aria-label="Open Skill Register"
               >
                 <Sparkles className="size-3 text-signal" />
-                <span className="hidden sm:inline">Skills</span>
+                <span>Skills</span>
                 <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-signal/15 text-signal font-semibold">
                   {skills.length}
                 </span>
               </button>
+            </div>
 
+            <div className="flex items-center gap-2 shrink-0">
               {/* Base44-style compact Plan/Build segmented pill toggle */}
               <div
                 className="inline-flex items-center p-0.5 rounded-lg bg-muted/70 border border-border/50 text-[11.5px]"
@@ -752,7 +749,7 @@ export function ChatPanel({
                 </button>
               </div>
 
-              <span className={cn("tabular font-mono text-[11px]", draft.length > MAX_CHARS ? "text-bad" : "text-muted-foreground", draft.length < MAX_CHARS * 0.8 && "invisible")}>
+              <span className={cn("tabular font-mono text-[11px]", draft.length > MAX_CHARS ? "text-bad" : "text-muted-foreground", draft.length < MAX_CHARS * 0.8 && "hidden")}>
                 {draft.length}/{MAX_CHARS}
               </span>
 
@@ -762,14 +759,18 @@ export function ChatPanel({
                 size="sm"
                 disabled={!canSend}
                 className={cn(
-                  "rounded-lg gap-1.5 text-xs font-semibold px-3 h-8 shadow-xs transition-all",
+                  "rounded-lg gap-1.5 text-xs font-semibold px-3 h-8 shadow-xs transition-all shrink-0",
                   userMode === "ASK" && "text-muted-foreground hover:text-foreground border-border hover:bg-muted/60"
                 )}
                 aria-label={userMode === "CODE" ? "Build code" : "Ask question"}
-                title={userMode === "CODE" ? "Build mode: Writes and modifies files" : "Ask mode: Conceptual Q&A, files are safe"}
+                title={
+                  userMode === "CODE"
+                    ? "Build mode: Writes and modifies files (↵ send)"
+                    : "Ask mode: Conceptual Q&A, files are safe (↵ send)"
+                }
               >
                 <span>{userMode === "CODE" ? "Build" : "Ask"}</span>
-                <ArrowUp className="size-3.5" aria-hidden />
+                <ArrowUp className="size-3.5 shrink-0" aria-hidden />
               </Button>
             </div>
           </div>
