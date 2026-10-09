@@ -117,6 +117,13 @@ export async function saveChallengeAtomically(
 
         // Step C: Save all Requirements atomically
         if (input.challenge.rubric?.length) {
+          // Normalize rubric requirement IDs to ensure global uniqueness against PostgreSQL Requirement_pkey
+          input.challenge.rubric = input.challenge.rubric.map((r, idx) => {
+            const isGeneric = !r.id || r.id.startsWith("REQ-") || r.id.startsWith("rubric-req-");
+            const safeId = isGeneric ? `${chal.id}-req-${idx + 1}` : r.id;
+            return { ...r, id: safeId };
+          });
+
           await tx.requirement.createMany({
             data: input.challenge.rubric.map((r) => ({
               id: r.id,

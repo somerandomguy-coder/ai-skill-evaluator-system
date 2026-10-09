@@ -529,6 +529,11 @@ export async function runAgenticGenerationPipeline(
   const stages = [stage1.record, stage2.record, stage3.record];
   const hasFallback = stages.some((s) => s.origin === "deterministic_fallback");
 
+  const scopedRubric = rubric.map((r, idx) => ({
+    ...r,
+    id: r.id?.startsWith(challengeId) ? r.id : `${challengeId}-req-${idx + 1}`,
+  }));
+
   const challenge: ChallengeV2 = {
     id: challengeId,
     tier: "TIER_3_GENERATED",
@@ -539,7 +544,7 @@ export async function runAgenticGenerationPipeline(
     briefMarkdown: taskModel.briefMarkdown,
     technicalInvariants: taskModel.technicalInvariants,
     starterSchemas: taskModel.starterSchemas,
-    rubric,
+    rubric: scopedRubric,
     provenance: {
       origin: hasFallback ? "deterministic_fallback" : "ai",
       resolutionReason: "GENERATED",
