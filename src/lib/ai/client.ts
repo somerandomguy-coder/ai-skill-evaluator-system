@@ -118,6 +118,42 @@ export function isJsonSchemaSupported(model: string): boolean {
   return true;
 }
 
+function findMatchingCloseDelimiter(text: string, startIndex: number): number {
+  const openChar = text[startIndex];
+  const closeChar = openChar === "{" ? "}" : "]";
+  let depth = 0;
+  let inString = false;
+  let isEscaped = false;
+
+  for (let i = startIndex; i < text.length; i++) {
+    const char = text[i];
+
+    if (inString) {
+      if (isEscaped) {
+        isEscaped = false;
+      } else if (char === "\\") {
+        isEscaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+    } else if (char === openChar) {
+      depth++;
+    } else if (char === closeChar) {
+      depth--;
+      if (depth === 0) {
+        return i;
+      }
+    }
+  }
+
+  return -1;
+}
+
 /** Safely extract a JSON substring from raw text or markdown fences, stripping reasoning blocks. */
 export function extractJsonFromText(text: string): string {
   let cleaned = text.trim();
@@ -140,19 +176,30 @@ export function extractJsonFromText(text: string): string {
         return candidate;
       }
     }
-    return fenceMatches[0][1].trim();
   }
 
   const firstBrace = cleaned.indexOf("{");
-  const lastBrace = cleaned.lastIndexOf("}");
   const firstBracket = cleaned.indexOf("[");
-  const lastBracket = cleaned.lastIndexOf("]");
 
+  let startIndex = -1;
   if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
-    if (lastBrace > firstBrace) return cleaned.slice(firstBrace, lastBrace + 1);
-  } else if (firstBracket !== -1 && lastBracket > firstBracket) {
-    return cleaned.slice(firstBracket, lastBracket + 1);
+    startIndex = firstBrace;
+  } else if (firstBracket !== -1) {
+    startIndex = firstBracket;
   }
+
+  if (startIndex !== -1) {
+    const matchIndex = findMatchingCloseDelimiter(cleaned, startIndex);
+    if (matchIndex > startIndex) {
+      return cleaned.slice(startIndex, matchIndex + 1);
+    }
+    const isBrace = cleaned[startIndex] === "{";
+    const lastIndex = isBrace ? cleaned.lastIndexOf("}") : cleaned.lastIndexOf("]");
+    if (lastIndex > startIndex) {
+      return cleaned.slice(startIndex, lastIndex + 1);
+    }
+  }
+
   return cleaned;
 }
 
@@ -162,7 +209,21 @@ export function safeParseJson(raw: string): unknown {
   try {
     return JSON.parse(extracted);
   } catch (err1) {
-    // Attempt common LLM JSON repairs:
+    // 1. If error indicates trailing non-whitespace character after JSON at position N,
+    // slice up to that position and try parsing:
+    const posMatch = err1 instanceof Error ? err1.message.match(/at position (\d+)/i) : null;
+    if (posMatch) {
+      const pos = parseInt(posMatch[1], 10);
+      if (pos > 0 && pos < extracted.length) {
+        try {
+          return JSON.parse(extracted.slice(0, pos).trim());
+        } catch {
+          // continue to repair logic
+        }
+      }
+    }
+
+    // 2. Attempt common LLM JSON repairs:
     const repaired = extracted
       // Replace smart quotes
       .replace(/[\u201C\u201D]/g, '"')
@@ -174,7 +235,19 @@ export function safeParseJson(raw: string): unknown {
 
     try {
       return JSON.parse(repaired);
-    } catch {
+    } catch (err2) {
+      const posMatch2 = err2 instanceof Error ? err2.message.match(/at position (\d+)/i) : null;
+      if (posMatch2) {
+        const pos2 = parseInt(posMatch2[1], 10);
+        if (pos2 > 0 && pos2 < repaired.length) {
+          try {
+            return JSON.parse(repaired.slice(0, pos2).trim());
+          } catch {
+            // continue
+          }
+        }
+      }
+
       throw new SyntaxError(
         `The output was not valid JSON: ${err1 instanceof Error ? err1.message : String(err1)}`
       );

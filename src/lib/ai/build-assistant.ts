@@ -149,7 +149,7 @@ export async function buildAssistant(
     system: buildSystemPrompt(challenge, tier),
     messages,
     schema: AssistantTurnSchema,
-    maxTokens: tier === "ASK" ? 4_000 : 32_000,
+    maxTokens: tier === "ASK" ? 16_000 : 32_000,
     effort: "medium",
     traceContext,
   });
@@ -236,7 +236,7 @@ export async function buildAssistantStream(
     system: buildSystemPrompt(challenge, tier),
     messages,
     schema: AssistantTurnSchema,
-    maxTokens: tier === "ASK" ? 4_000 : 32_000,
+    maxTokens: tier === "ASK" ? 16_000 : 32_000,
     effort: "medium",
     traceContext,
     onReasoning: (chunk) => {

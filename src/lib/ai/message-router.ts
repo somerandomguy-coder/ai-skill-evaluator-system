@@ -107,7 +107,7 @@ export function resolveEffectiveTier(
     const trimmed = message.trim();
     const isPureQuestion =
       /^(what|why|how|who|where|when|which|can you explain|explain|clarify)\b/i.test(trimmed) &&
-      !/\b(code|build|write|implement|fix|refactor|create|make|generate)\b/i.test(trimmed);
+      !/\b(code|build|write|implement|fix|refactor|create|make|generate|error|bug|issue|fail|broken|crash|patch|debug)\b/i.test(trimmed);
 
     if (isPureQuestion) {
       return {
