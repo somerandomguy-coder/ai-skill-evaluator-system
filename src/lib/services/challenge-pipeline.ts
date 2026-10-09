@@ -63,16 +63,25 @@ async function runDemo(text: string, emit: Emit) {
 }
 
 async function runFastPipeline(
-  input: { userId: string; userName?: string; userEmail?: string; rawJd: string; sourceUrl?: string },
+  input: {
+    userId: string;
+    userName?: string;
+    userEmail?: string;
+    rawJd: string;
+    sourceUrl?: string;
+    parsedJd?: { roleTitle: string; employer: string };
+  },
   emit: Emit
 ) {
   const text = input.rawJd;
-  let roleTitle = "Full-Stack Engineer";
-  let employer = "TalentAI";
-  const roleMatch = text.match(/Role:\s*([^\n\r]+)/i);
-  if (roleMatch && roleMatch[1]?.trim()) roleTitle = roleMatch[1].trim();
-  const companyMatch = text.match(/Company:\s*([^\n\r(]+)/i);
-  if (companyMatch && companyMatch[1]?.trim()) employer = companyMatch[1].trim();
+  let roleTitle = input.parsedJd?.roleTitle || "Full-Stack Engineer";
+  let employer = input.parsedJd?.employer || "TalentAI";
+  if (!input.parsedJd) {
+    const roleMatch = text.match(/Role:\s*([^\n\r]+)/i);
+    if (roleMatch && roleMatch[1]?.trim()) roleTitle = roleMatch[1].trim();
+    const companyMatch = text.match(/Company:\s*([^\n\r(]+)/i);
+    if (companyMatch && companyMatch[1]?.trim()) employer = companyMatch[1].trim();
+  }
 
   // Step 1: Parse
   emit({ type: "step", step: "parse", status: "start" });
