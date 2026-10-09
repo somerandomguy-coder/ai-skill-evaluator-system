@@ -6,12 +6,24 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { restartDevServer, startRuntime } from "@/lib/runtime/webcontainer";
 import type { FileMap } from "@/lib/files";
+import { cn } from "@/lib/utils";
 import { RuntimeProgress, useRuntime } from "./runtime-status";
 
 /** The live preview: warm-up progress, the running app, or an honest explanation when it can't run. */
 export function PreviewPanel({ initialFiles }: { initialFiles: FileMap }) {
   const rt = useRuntime();
   const [reloads, setReloads] = useState(0);
+  const [restarting, setRestarting] = useState(false);
+
+  const handleRestart = async () => {
+    setRestarting(true);
+    try {
+      await restartDevServer();
+      setReloads((n) => n + 1);
+    } finally {
+      setRestarting(false);
+    }
+  };
 
   if (rt.status === "unsupported") {
     return (
@@ -59,8 +71,18 @@ export function PreviewPanel({ initialFiles }: { initialFiles: FileMap }) {
           <span className="truncate font-mono text-xs text-muted-foreground">{rt.previewUrl.replace(/^https?:\/\//, "")}</span>
         </span>
         <div className="flex shrink-0 items-center gap-1">
-          <Button variant="ghost" size="icon-sm" onClick={() => setReloads((n) => n + 1)} title="Reload the preview" aria-label="Reload the preview">
-            <RefreshCw aria-hidden />
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => void handleRestart()}
+            disabled={restarting}
+            title="Restart dev server & rebuild"
+            aria-label="Restart dev server & rebuild"
+          >
+            <RotateCcw className={cn("size-3.5", restarting && "animate-spin")} aria-hidden />
+          </Button>
+          <Button variant="ghost" size="icon-sm" onClick={() => setReloads((n) => n + 1)} title="Reload preview iframe" aria-label="Reload preview iframe">
+            <RefreshCw className="size-3.5" aria-hidden />
           </Button>
           <a href={rt.previewUrl} target="_blank" rel="noreferrer noopener" title="Open the preview in a new tab" aria-label="Open the preview in a new tab" className="grid size-7 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
             <ExternalLink className="size-3.5" aria-hidden />

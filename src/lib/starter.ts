@@ -68,6 +68,12 @@ const VITE_CONFIG = `import { defineConfig } from "vite";
 // \`npm install\` fast inside the browser sandbox.
 export default defineConfig({
   esbuild: { jsx: "automatic" },
+  server: {
+    watch: {
+      usePolling: true,
+      interval: 150,
+    },
+  },
 });
 `;
 
