@@ -134,7 +134,16 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
         }
       });
       // The persisted pair replaces the optimistic message.
-      setTurns((prev) => [...prev.filter((t) => t.seq !== optimistic?.seq && !res.turns.some((r) => r.seq === t.seq)), ...res.turns]);
+      setTurns((prev) => {
+        const next = [...prev.filter((t) => t.seq !== optimistic?.seq && !res.turns.some((r) => r.seq === t.seq)), ...res.turns];
+        const seen = new Set<string>();
+        return next.filter((t) => {
+          const key = `${t.role}-${t.seq}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      });
       if (res.writes.length) {
         setFiles((prev) => applyWrites(prev, res.writes));
         setChanged(new Set(res.writes.map((w) => w.path)));

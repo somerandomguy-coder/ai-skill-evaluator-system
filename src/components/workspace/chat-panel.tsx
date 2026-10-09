@@ -449,7 +449,18 @@ export function ChatPanel({
             </button>
           </div>
         ) : (
-          turns.map((t) => (t.role === "USER" ? <UserMessage key={t.seq} turn={t} /> : <AssistantMessage key={t.seq} turn={t} notes={notes[t.seq]} onOpenFile={onOpenFile} />))
+          turns.map((t, idx) =>
+            t.role === "USER" ? (
+              <UserMessage key={`turn-${t.role}-${t.seq}-${idx}`} turn={t} />
+            ) : (
+              <AssistantMessage
+                key={`turn-${t.role}-${t.seq}-${idx}`}
+                turn={t}
+                notes={notes[t.seq]}
+                onOpenFile={onOpenFile}
+              />
+            )
+          )
         )}
 
         {showStreamingBubble ? (
