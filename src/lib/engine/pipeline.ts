@@ -387,7 +387,10 @@ export async function runAgent2EcdTaskSynthesizerWithRecord(
     });
     const starterSchemas: Record<string, string> = {};
     for (const f of result.data.starterSchemas) {
-      starterSchemas[f.filename] = f.contents;
+      const safeFilename = f.filename.replace(/^[/\\]+/, "").trim();
+      if (safeFilename) {
+        starterSchemas[safeFilename] = f.contents;
+      }
     }
 
     // Preserve submitted employer identity

@@ -42,12 +42,7 @@ export async function saveChallengeAtomically(
   const hasDb = Boolean(dbUrl);
 
   // 1. User authentication enforcement (Row D04, P01)
-  if (!isDemo && hasDb) {
-    const user = await prisma.user.findUnique({ where: { id: input.userId } });
-    if (!user) {
-      throw new ServiceError("Authenticated user required for challenge persistence.", 401);
-    }
-  } else if (isDemo && hasDb) {
+  if (hasDb) {
     try {
       await prisma.user.upsert({
         where: { id: input.userId },
@@ -60,7 +55,7 @@ export async function saveChallengeAtomically(
         },
       });
     } catch {
-      // User might already exist in demo environment
+      // User might already exist in database
     }
   }
 
@@ -88,47 +83,57 @@ export async function saveChallengeAtomically(
           },
         });
 
-        // Step B: Save Challenge with version 1 and contentDigest
-        const chal = await tx.challenge.create({
-          data: {
-            id: input.challenge.id,
-            jobSubmissionId: sub.id,
-            title: input.challenge.roleTitle,
-            brief: input.challenge.briefMarkdown,
-            domainContext: `Enterprise Australian assessment grounded in SFIA 9 standards for ${input.challenge.companyName}.`,
-            timeboxMinutes: input.challenge.sfiaProfile?.level === 2 ? 120 : 180,
-            version: 1,
-            contentDigest,
-            starterTemplate: toJson(
-              buildRoleStarterTemplate({
-                title: input.challenge.roleTitle,
-                brief: input.challenge.briefMarkdown,
+        const cleanSchemas = input.challenge.starterSchemas
+          ? Object.fromEntries(
+              Object.entries(input.challenge.starterSchemas).map(([k, v]) => [
+                k.replace(/^[/\\]+/, "").trim(),
+                v,
+              ])
+            )
+          : undefined;
+
+        // Step B: Save Challenge with version 1 and contentDigest (or reuse existing)
+        const existingChal = await tx.challenge.findUnique({ where: { id: input.challenge.id } });
+        const chal =
+          existingChal ??
+          (await tx.challenge.create({
+            data: {
+              id: input.challenge.id,
+              jobSubmissionId: sub.id,
+              title: input.challenge.roleTitle,
+              brief: input.challenge.briefMarkdown,
+              domainContext: `Enterprise Australian assessment grounded in SFIA 9 standards for ${input.challenge.companyName}.`,
+              timeboxMinutes: input.challenge.sfiaProfile?.level === 2 ? 120 : 180,
+              version: 1,
+              contentDigest,
+              starterTemplate: toJson(
+                buildRoleStarterTemplate({
+                  title: input.challenge.roleTitle,
+                  brief: input.challenge.briefMarkdown,
+                  technicalInvariants: input.challenge.technicalInvariants,
+                  starterSchemas: cleanSchemas,
+                })
+              ),
+              rubricVersion: "SFIA-9-ECD-v2",
+              meta: toJson({
+                validApproaches: [],
+                ambiguities: [],
+                tier: input.tier,
+                sfiaProfile: input.challenge.sfiaProfile,
                 technicalInvariants: input.challenge.technicalInvariants,
-                starterSchemas: input.challenge.starterSchemas,
-              })
-            ),
-            rubricVersion: "SFIA-9-ECD-v2",
-            meta: toJson({
-              validApproaches: [],
-              ambiguities: [],
-              tier: input.tier,
-              sfiaProfile: input.challenge.sfiaProfile,
-              technicalInvariants: input.challenge.technicalInvariants,
-              starterSchemas: input.challenge.starterSchemas,
-              verification: input.challenge.verification,
-              similarityScore: input.similarityScore,
-            }),
-          },
-        });
+                starterSchemas: cleanSchemas ?? input.challenge.starterSchemas,
+                verification: input.challenge.verification,
+                similarityScore: input.similarityScore,
+              }),
+            },
+          }));
 
         // Step C: Save all Requirements atomically
         if (input.challenge.rubric?.length) {
-          // Normalize rubric requirement IDs to ensure global uniqueness against PostgreSQL Requirement_pkey
-          input.challenge.rubric = input.challenge.rubric.map((r, idx) => {
-            const isGeneric = !r.id || r.id.startsWith("REQ-") || r.id.startsWith("rubric-req-");
-            const safeId = isGeneric ? `${chal.id}-req-${idx + 1}` : r.id;
-            return { ...r, id: safeId };
-          });
+          input.challenge.rubric = input.challenge.rubric.map((r, idx) => ({
+            ...r,
+            id: r.id?.startsWith(chal.id) ? r.id : `${chal.id}-req-${idx + 1}`,
+          }));
 
           await tx.requirement.createMany({
             data: input.challenge.rubric.map((r) => ({
@@ -140,6 +145,7 @@ export async function saveChallengeAtomically(
               successSignals: r.successSignals,
               failureModes: r.failureModes,
             })),
+            skipDuplicates: true,
           });
         }
 
