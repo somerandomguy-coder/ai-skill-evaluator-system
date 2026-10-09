@@ -32,7 +32,10 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
 
   const categories = groups.map((g) => {
     const totalWeight = g.items.reduce((sum, item) => sum + item.requirement.weight, 0);
-    const weightedSum = g.items.reduce((sum, item) => sum + (item.score ?? ev.overallScore) * item.requirement.weight, 0);
+    const weightedSum = g.items.reduce((sum, item) => {
+      const scorePct = item.score !== null ? (item.score / 5) * 100 : ev.overallScore;
+      return sum + scorePct * item.requirement.weight;
+    }, 0);
     const avgScore = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : Math.round(ev.overallScore);
     return {
       category: g.category,
@@ -43,7 +46,8 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
         id: item.requirementId,
         statement: item.requirement.statement,
         weight: item.requirement.weight,
-        score: item.score ?? Math.round(ev.overallScore),
+        score: item.score ?? Math.round((ev.overallScore / 100) * 5),
+        aiScore: item.score,
       })),
     };
   });
@@ -109,6 +113,21 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
               bodyClassName="h-[46rem]"
               extraTabs={[
                 {
+                  value: "evaluation",
+                  label: "Suite A: Technical Requirements",
+                  icon: <ListChecks className="size-3.5" aria-hidden />,
+                  content: (
+                    <div className="space-y-4 p-4 text-xs">
+                      <p className="text-muted-foreground text-[11px]">
+                        Every citation links to exact transcript turns or file trees. Unscorable items are flagged null for human adjudication.
+                      </p>
+                      {ev.results.map((r) => (
+                        <RequirementResultCard key={r.requirementId} result={r} />
+                      ))}
+                    </div>
+                  ),
+                },
+                {
                   value: "ai-prompt-rubric",
                   label: "Suite B: AI Steering & Zero-Trust",
                   icon: <Terminal className="size-3.5" aria-hidden />,
@@ -156,21 +175,6 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
                     </div>
                   ),
                 },
-                {
-                  value: "evaluation",
-                  label: "Suite A: Technical Requirements",
-                  icon: <ListChecks className="size-3.5" aria-hidden />,
-                  content: (
-                    <div className="space-y-4 p-4 text-xs">
-                      <p className="text-muted-foreground text-[11px]">
-                        Every citation links to exact transcript turns or file trees. Unscorable items are flagged null for human adjudication.
-                      </p>
-                      {ev.results.map((r) => (
-                        <RequirementResultCard key={r.requirementId} result={r} />
-                      ))}
-                    </div>
-                  ),
-                },
               ]}
             />
           </div>
@@ -183,6 +187,7 @@ export default async function MentorReviewPage({ params }: PageProps<"/mentor/[i
               hasAiScores={hasAiScores}
               reviewedBefore={ev.reviewStatus === "REVIEWED"}
               categories={categories}
+              suiteB={suiteB}
             />
 
             <Card className="rounded border border-border bg-surface-container-lowest">
