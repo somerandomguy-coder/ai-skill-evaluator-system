@@ -15,7 +15,7 @@
  */
 import type { WebContainer, WebContainerProcess } from "@webcontainer/api";
 import { applyWrites, toFileSystemTree, type FileMap, type FileWrite } from "../files";
-import { dependenciesChanged } from "../starter";
+import { dependenciesChanged, mergeStarter } from "../starter";
 
 export type RuntimeStatus =
   | "idle"
@@ -174,6 +174,12 @@ async function boot(): Promise<WebContainer> {
 }
 
 async function runInstall(wc: WebContainer) {
+  // Ensure package.json is mounted before attempting npm install
+  if (!files["package.json"]) {
+    files = mergeStarter(files);
+    await wc.mount(toFileSystemTree(files));
+  }
+
   // Loop until the installed package.json matches the current one: the assistant
   // may have added a dependency while the previous install was still running.
   for (let pass = 0; pass < 3; pass++) {
@@ -258,7 +264,7 @@ export function startRuntime(
     return startPromise;
   }
 
-  files = { ...initial };
+  files = mergeStarter(initial ?? {});
   set({ ...IDLE, status: "booting", detail: "Booting the in-browser environment" });
 
   startPromise = enqueue(async () => {
