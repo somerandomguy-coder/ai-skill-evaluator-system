@@ -432,12 +432,17 @@ export async function submitSession(sessionId: string, userId: string): Promise<
   const session = await loadOwned(sessionId, userId);
 
   if (session.status === "ACTIVE") {
-    if (!session.turns.some((t) => t.role === "USER")) {
-      throw new ServiceError("Send at least one message to the assistant before submitting.");
-    }
     const lastTurn = session.turns[session.turns.length - 1];
     if (lastTurn && lastTurn.role === "USER") {
-      throw new ServiceError("Your last message is still being processed by the assistant. Please wait for it to complete before submitting.", 409);
+      try {
+        await prisma.chatTurn.delete({ where: { id: lastTurn.id } });
+        session.turns.pop();
+      } catch {
+        // Safe to ignore if turn was already pruned
+      }
+    }
+    if (!session.turns.some((t) => t.role === "USER")) {
+      throw new ServiceError("Send at least one message to the assistant before submitting.");
     }
     const files = reconstructFiles(mergeStarter(parseFileMap(session.challenge.starterTemplate)), session.turns);
     try {

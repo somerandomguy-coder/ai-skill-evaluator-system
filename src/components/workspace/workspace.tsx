@@ -190,6 +190,10 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
   async function submit() {
     if (isSubmittingBuildRef.current) return;
     isSubmittingBuildRef.current = true;
+    setError(null);
+    setStreamingMessage(null);
+    setStreamingReasoning(null);
+    setStreamingStatus(null);
     try {
       const { evaluationId } = await submitBuild(workspace.sessionId);
       await stopRuntime();

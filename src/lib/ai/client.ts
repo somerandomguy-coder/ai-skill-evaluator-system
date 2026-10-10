@@ -406,6 +406,9 @@ export function toAiError(err: unknown, attempts?: AttemptMetric[]): AiError {
  */
 function validationIssue(err: unknown): string | null {
   if (!(err instanceof Error) || err instanceof OpenAI.APIError) return null;
+  if (err instanceof InvalidOutputError || (err as any).code === "no_output") {
+    return "The model returned an empty or blank response.";
+  }
   if (err.name === "ZodError") {
     const issues = (err as unknown as { issues?: { path: (string | number)[]; message: string }[] }).issues ?? [];
     const lines = issues.slice(0, 5).map((i) => `  - ${i.path.join(".") || "(root)"}: ${i.message}`);

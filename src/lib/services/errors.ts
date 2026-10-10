@@ -16,6 +16,8 @@ export class ServiceError extends Error {
  * on record, so retrying re-runs the assistant without sending it twice.
  */
 export class RetryableError extends Error {
+  readonly retryable: boolean = true;
+
   constructor(readonly original: unknown) {
     super(original instanceof Error ? original.message : "The assistant hit a problem.");
     this.name = "RetryableError";

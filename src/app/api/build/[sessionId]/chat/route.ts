@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { errorResponse, fixtureModeResponse, json, readBody, requireApiUser } from "@/lib/api";
 import { sendMessage, sendMessageStream } from "@/lib/services/sessions";
+import { RetryableError } from "@/lib/services/errors";
 
 // A whole-file rewrite from the model can take a while.
 export const maxDuration = 300;
@@ -47,7 +48,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/build/[sess
           controller.close();
         } catch (err: any) {
           const message = err?.message || "An error occurred while answering.";
-          const retryable = Boolean(err?.retryable);
+          const retryable = err instanceof RetryableError ? true : Boolean(err?.retryable);
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", message, retryable })}\n\n`));
           controller.close();
         }
