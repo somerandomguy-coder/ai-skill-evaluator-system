@@ -248,6 +248,9 @@ export function startRuntime(
   const initial = typeof sessionIdOrFiles === "string" ? (maybeFiles ?? {}) : sessionIdOrFiles;
 
   if (currentSessionId === sessionId && startPromise) {
+    if (maybeFiles && Object.keys(maybeFiles).length > 0) {
+      void syncRuntimeFiles(maybeFiles);
+    }
     return startPromise;
   }
 
@@ -285,6 +288,29 @@ export function startRuntime(
     }
   });
   return startPromise;
+}
+
+/**
+ * Write a set of updated files to the container filesystem if active.
+ */
+export function syncRuntimeFiles(targetFiles: FileMap): Promise<void> {
+  if (!targetFiles || Object.keys(targetFiles).length === 0) return Promise.resolve();
+  const thisGen = runtimeGeneration;
+  files = { ...files, ...targetFiles };
+
+  return enqueue(async () => {
+    if (thisGen !== runtimeGeneration || !container) return;
+    try {
+      for (const [path, contents] of Object.entries(targetFiles)) {
+        if (thisGen !== runtimeGeneration) return;
+        const dir = dirname(path);
+        if (dir) await container.fs.mkdir(dir, { recursive: true });
+        await container.fs.writeFile(path, contents);
+      }
+    } catch (err) {
+      console.warn("[webcontainer] syncRuntimeFiles warning:", err);
+    }
+  });
 }
 
 /**
@@ -332,12 +358,23 @@ export function applyRuntimeWrites(writes: readonly FileWrite[], sessionId?: str
   });
 }
 
-/** Restart the dev server without touching files (the "Reload preview" button). */
-export function restartDevServer(): Promise<void> {
+/** Restart the dev server, optionally ensuring all target files are flushed to the container first. */
+export function restartDevServer(targetFiles?: FileMap): Promise<void> {
   const thisGen = runtimeGeneration;
+  if (targetFiles && Object.keys(targetFiles).length > 0) {
+    files = { ...files, ...targetFiles };
+  }
   return enqueue(async () => {
     if (thisGen !== runtimeGeneration || !container) return;
     try {
+      if (targetFiles && Object.keys(targetFiles).length > 0) {
+        for (const [path, contents] of Object.entries(targetFiles)) {
+          if (thisGen !== runtimeGeneration) return;
+          const dir = dirname(path);
+          if (dir) await container.fs.mkdir(dir, { recursive: true });
+          await container.fs.writeFile(path, contents);
+        }
+      }
       await runDevServer(container);
     } catch (err) {
       if (thisGen === runtimeGeneration) {

@@ -479,16 +479,13 @@ export function ChatPanel({
             <TriangleAlert aria-hidden className="size-4" />
             <AlertDescription className="space-y-2.5 text-bad">
               <p>{error.message}</p>
-              <div className="flex items-center gap-2">
-                {error.retryable && (
+              {error.retryable && (
+                <div className="flex items-center gap-2">
                   <Button size="sm" variant="outline" className="gap-1.5" onClick={onRetry}>
                     <RotateCcw className="size-3" aria-hidden /> Retry
                   </Button>
-                )}
-                <Button size="sm" variant="ghost" className="gap-1" onClick={onDismissError}>
-                  <X className="size-3" aria-hidden /> Dismiss
-                </Button>
-              </div>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
         )}

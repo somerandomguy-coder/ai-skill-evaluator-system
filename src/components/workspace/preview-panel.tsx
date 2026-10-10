@@ -18,7 +18,7 @@ export function PreviewPanel({ initialFiles }: { initialFiles: FileMap }) {
   const handleRestart = async () => {
     setRestarting(true);
     try {
-      await restartDevServer();
+      await restartDevServer(initialFiles);
       setReloads((n) => n + 1);
     } finally {
       setRestarting(false);
@@ -48,11 +48,11 @@ export function PreviewPanel({ initialFiles }: { initialFiles: FileMap }) {
           <AlertDescription>{rt.error}</AlertDescription>
         </Alert>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void restartDevServer()}>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void restartDevServer(initialFiles)}>
             <RotateCcw className="size-3.5" aria-hidden />
             Restart the dev server
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => void startRuntime(initialFiles)}>
+          <Button variant="ghost" size="sm" onClick={() => void restartDevServer(initialFiles)}>
             Start over
           </Button>
         </div>

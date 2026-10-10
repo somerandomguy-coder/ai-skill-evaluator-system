@@ -325,7 +325,7 @@ export function Workspace({ workspace }: { workspace: WorkspaceView }) {
               </TabsList>
             </div>
             <TabsContent value="preview" className="fade-in min-h-0 overflow-hidden">
-              <PreviewPanel initialFiles={workspace.files} />
+              <PreviewPanel initialFiles={files} />
             </TabsContent>
             <TabsContent value="files" className="fade-in flex min-h-0 overflow-hidden bg-card">
               <FileBrowser files={fileList} changed={changed} selected={file} onSelect={setFile} className="h-full w-full" />
